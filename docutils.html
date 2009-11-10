@@ -1,0 +1,312 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>title &mdash; fiches v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="fiches v0.1 documentation" href="index.html" />
+    <link rel="next" title="kvm" href="kvm.html" />
+    <link rel="prev" title="tp01: guess the number" href="nf01/guess.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="kvm.html" title="kvm"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nf01/guess.html" title="tp01: guess the number"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="title">
+<h1>title<a class="headerlink" href="#title" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="presentation">
+<h2>Presentation<a class="headerlink" href="#presentation" title="Permalink to this headline">¶</a></h2>
+<p>There are hooks available at several levels of the documentation stack
+to help us build our specific helpers.</p>
+<ul class="simple">
+<li>the <strong>restructured text</strong> has <em>directives</em> <a class="footnote-reference" href="#id3" id="id1">[1]</a> and <em>roles</em> <a class="footnote-reference" href="#id4" id="id2">[2]</a></li>
+</ul>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/directives.html">http://docutils.sourceforge.net/docs/ref/rst/directives.html</a> and
+<a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#directives">http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#directives</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#interpreted-text">http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#interpreted-text</a>
+and <a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/roles.html">http://docutils.sourceforge.net/docs/ref/rst/roles.html</a></td></tr>
+</tbody>
+</table>
+<ul class="simple">
+<li>the <strong>docutils</strong> <a class="footnote-reference" href="#id9" id="id5">[3]</a> can associate code to implement directives
+<a class="footnote-reference" href="#id10" id="id6">[4]</a> and roles <a class="footnote-reference" href="#id11" id="id7">[5]</a> to manipulate the doctreee <a class="footnote-reference" href="#id12" id="id8">[6]</a>. The doctree
+is the parsed representation of a rst. It is the step after the rst
+and before the html or latex.</li>
+</ul>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[3]</a></td><td><a class="reference external" href="http://docs.python.org/library/docutils">http://docs.python.org/library/docutils</a> and also docutils.parsers.rst,
+docutils.nodes</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id10" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[4]</a></td><td><a class="reference external" href="http://docutils.sourceforge.net/docs/howto/rst-directives.html">http://docutils.sourceforge.net/docs/howto/rst-directives.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[5]</a></td><td><a class="reference external" href="http://docutils.sourceforge.net/docs/howto/rst-roles.html">http://docutils.sourceforge.net/docs/howto/rst-roles.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id12" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[6]</a></td><td><a class="reference external" href="http://docutils.sourceforge.net/docs/ref/doctree.html">http://docutils.sourceforge.net/docs/ref/doctree.html</a></td></tr>
+</tbody>
+</table>
+<ul class="simple">
+<li>via <strong>Sphinx</strong>, there is an infrastructure for extensions integrated
+in the build process <a class="footnote-reference" href="#id14" id="id13">[7]</a>. An even better example can be read in the
+sources of the todo extensions of Sphinx version 0.6 (<tt class="docutils literal"><span class="pre">locate</span>
+<span class="pre">todo.py</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">0.6</span></tt>): a docutils <em>Directive</em> class is used which
+makes it possible to check the consistency of the input and display
+clear report of the errors. If the extension only stick to standard
+docutils nodes, there is no need for specific writer visitor functions</li>
+</ul>
+<table class="docutils footnote" frame="void" id="id14" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id13">[7]</a></td><td><a class="reference external" href="http://sphinx.pocoo.org/extensions.html">http://sphinx.pocoo.org/extensions.html</a></td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="extensions-for-protocol-commands-and-options">
+<h2>Extensions for protocol commands and options<a class="headerlink" href="#extensions-for-protocol-commands-and-options" title="Permalink to this headline">¶</a></h2>
+<p>A list of the ALLP protocol commands, their parameters and their
+synopsis of their use and optionality is an efficient way to get an
+overview of the protocol. Also these helpers are meant to create links
+and backlinks between the command and the parameter they uses.</p>
+<p>The new restructured text directive <em>command</em> has one argument, the
+parameter name and offers a form with fields for mandatory and
+optional parameters and a brief explanation. Example:</p>
+<div class="highlight-python"><pre>.. command:: setup
+   :mandatory: file
+   :optional: nptstart,scale
+
+   Sets up a record a or a streaming</pre>
+</div>
+<p>is rendered as</p>
+<div class="highlight-python"><pre>Setup
+
+.. hlist::
+   * mandatory parameters: file
+   * optional parameters: nptstart, scale
+
+Sets up a record a or streaming</pre>
+</div>
+<p>This directive can be completely implemented at the reading phase
+with standard docutils body elements (a text node and a list node)
+iff this node can be marked for processing at writing phase for the
+building of the table, there is no need for custom nodes and
+visitor functions for the writing phase.</p>
+<p>The directive <em>parameter</em> has one argument, the parameter name, and a
+content which is short description of the value type, the
+constraints on the value and the impact of the parameter. The
+resulting doctree node should list the commands using this
+parameter. Example:</p>
+<div class="highlight-python"><pre>.. parameter:: file
+   :type: A pathname (a string)
+      :default:
+
+   The pathname of the presentation on the disk.</pre>
+</div>
+<p>This should be rendered as :</p>
+<div class="highlight-python"><pre>file
+----
+
+A pathname (a string). The pathname of the presentation on the
+disk. Used by setup, delete.</pre>
+</div>
+<p>The <em>used by</em> is automatically added. This directive need a
+Directive instance inserting a node in the form which which will
+lack the link toward the target. An event handler must be connected
+to the <em>doctree-resolved</em> event to resolve the target toward the
+commands using it.</p>
+<p>It is also possible to make one directive called <em>allp</em> which takes
+a <em>:class:</em> option which can be either a <em>command</em> or a <em>parameter</em>.</p>
+<p>Yet another solution is simply to tag the <em>:class:command</em> or the
+<em>:class:parameter</em> option in a paragraph to lay the information
+needed to build the &#8220;Used by&#8221;.</p>
+<p>The directive <em>commandtable</em> (no arguments, no options and no
+content) inserts a table whose columns headers are the command name
+and whose lines headers are the parameter names. The intersection
+is a symbol &#8216;m&#8217;, &#8216;o&#8217; or empty which denotes whether a command uses
+a parameter or not and whether the parameter is mandatory or
+optional. Example:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>drive</td>
+<td>m</td>
+<td>o</td>
+</tr>
+<tr><td>file</td>
+<td>m</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>nptstart</td>
+<td>o</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>scale</td>
+<td>o</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>The directive needs a Directive instance inserting a placeholder
+at the reading pahse which gets filled  by a handler triggered by the
+<em>doctree-resolved</em> event. There is no need for visitor functions if
+the resulting nodes are standard docutils nodes.</p>
+<p>It is also possible to make not a latex, nor an html builder but a
+which outputs the table which is then copied and pasted into the
+document.</p>
+<p>Make sure every parameter has an short description, a type,
+restrictions and example. Make sure every optional parameter has a
+default.</p>
+</div>
+<div class="section" id="extensions-for-perspectives-without-breaking-the-flow">
+<h2>Extensions for perspectives without breaking the flow<a class="headerlink" href="#extensions-for-perspectives-without-breaking-the-flow" title="Permalink to this headline">¶</a></h2>
+<p>In addition to todo which rocks also need the directive:</p>
+<blockquote>
+<ul class="simple">
+<li>to be determined,</li>
+<li>rationale,</li>
+<li>convention,</li>
+<li>point of configuration,</li>
+<li>limitations,</li>
+<li>security risk,</li>
+<li>road map,</li>
+<li>warning,</li>
+<li>stressing a specific point,</li>
+<li>define (coming to terms, definition)</li>
+<li>tests are a complicated beast. When talking from a high level view
+on a subject, I want to specify more precisely a paragraph which is
+hidden in the document but appears in an appendix. I would like to
+query the doc only for the tests, or only for the todos. I would
+like to set tests numbers from the command line.</li>
+</ul>
+</blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">title</a><ul>
+<li><a class="reference external" href="#presentation">Presentation</a></li>
+<li><a class="reference external" href="#extensions-for-protocol-commands-and-options">Extensions for protocol commands and options</a></li>
+<li><a class="reference external" href="#extensions-for-perspectives-without-breaking-the-flow">Extensions for perspectives without breaking the flow</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="nf01/guess.html"
+                                  title="previous chapter">tp01: guess the number</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="kvm.html"
+                                  title="next chapter">kvm</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/docutils.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="kvm.html" title="kvm"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="nf01/guess.html" title="tp01: guess the number"
+             >previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>

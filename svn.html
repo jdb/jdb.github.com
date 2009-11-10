@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>merge with svn &mdash; fiches v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="fiches v0.1 documentation" href="index.html" />
+    <link rel="next" title="tips" href="tips.html" />
+    <link rel="prev" title="lvm" href="lvm.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="tips.html" title="tips"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lvm.html" title="lvm"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="merge-with-svn">
+<h1>merge with svn<a class="headerlink" href="#merge-with-svn" title="Permalink to this headline">¶</a></h1>
+<ul>
+<li><p class="first">Installation des paquets debian</p>
+<div class="highlight-python"><pre>sudo aptitude install subversion apache2 libapache2-svn</pre>
+</div>
+</li>
+<li><p class="first">Configuration d&#8217;une instance de dépot</p>
+<div class="highlight-python"><pre>sudo mkdir -p /var/www/svn/myproject
+chown -R www-data.www-data !$       # the wiki files belongs to apache
+svnadmin create !$
+chmod -R ug+rwx !$                  # apache may read and write
+chmod -R o-rwx !$                   # everybody else is rejected
+
+cd ; svn checkout file:///var/www/svn/myproject/
+cd myproject &amp;&amp; svn mkdir tags branches trunk
+svn commit -m ''</pre>
+</div>
+</li>
+<li><p class="first">Configuration d&#8217;Apache: add the following at the root of your /etc/apache2/sites-available/default</p>
+<div class="highlight-python"><pre>&lt;Location /svn&gt;
+  DAV svn
+  SVNParentPath /var/www/svn
+&lt;/Location&gt;</pre>
+</div>
+</li>
+<li><p class="first">Commandes quotidiennes:</p>
+<div class="highlight-python"><pre>cd ~/my-projectcd
+svn update
+svn status
+emacs machin.py
+svn commit --message "support de l alphabet elfique"</pre>
+</div>
+</li>
+<li><p class="first">Ignorer certain fichier pas important lors des svn status, et commit</p>
+<div class="highlight-python"><pre>svn propedit svn:ignore mydir # launches a text editor
+
+# or, in batch
+
+cat &gt;  /tmp/list &lt;&lt; EOF
+*.pdf
+*.ps
+_build
+EOF
+
+svn propsset svn:ignore -F /tmp/list mydir</pre>
+</div>
+</li>
+<li><p class="first">Correction d&#8217;un bug en utilisant des branches</p>
+<div class="highlight-python"><pre>svn copy trunk tags/1.0.0       # last release
+
+copy tags/1.0.0 branches/ticket-42
+                                # bug report, hence branch
+...
+svn ci -m 'ready for review'    # fix and commit in the branch
+
+
+v=`svn log --stop-on-copy tags/1.0.0 | sed ... `      ###
+cd trunk &amp;&amp; svn update                                ###  This is the merge step
+svn merge -r $v:head branches/1.0.0                   ###
+                                                      ###  $v was the 1st revision for the branch
+rm ssh
+svn ci -m 'fix merged'
+copy trunk tags/1.0.1</pre>
+</div>
+</li>
+</ul>
+<p>allp-vod2    circular-buffer  logging   program_guide virtualisation allp-vodrtp  dvb-cards        playlist  segmented-streaming</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="lvm.html"
+                                  title="previous chapter">lvm</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="tips.html"
+                                  title="next chapter">tips</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/svn.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="tips.html" title="tips"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lvm.html" title="lvm"
+             >previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>

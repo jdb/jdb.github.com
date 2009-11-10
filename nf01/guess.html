@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tp01: guess the number &mdash; fiches v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="fiches v0.1 documentation" href="../index.html" />
+    <link rel="up" title="<no title>" href="index.html" />
+    <link rel="next" title="title" href="../docutils.html" />
+    <link rel="prev" title="<no title>" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../docutils.html" title="title"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="<no title>"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">fiches v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">&lt;no title&gt;</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tp01-guess-the-number">
+<h1>tp01: guess the number<a class="headerlink" href="#tp01-guess-the-number" title="Permalink to this headline">¶</a></h1>
+<p>Copy and paste the following Python script in a text file and execute
+: <tt class="docutils literal"><span class="pre">python</span> <span class="pre">guess.py</span></tt> to test it.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">coups_max</span><span class="p">,</span> <span class="n">secret_max</span> <span class="o">=</span> <span class="mf">15</span><span class="p">,</span> <span class="mf">1000</span>
+
+<span class="c"># Regle du jeu et tirage du nombre mystere</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Je vais choisir un nombre entre 1 et &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">secret_max</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.</span><span class="se">\n</span><span class="s">...&quot;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="n">secret</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="n">secret_max</span><span class="p">)</span>
+
+<span class="c"># Partie interactive</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;Voila, c&#39;est fait; à vous de le deviner maintenant !&quot;</span><span class="p">)</span>
+<span class="n">coups_joues</span><span class="p">,</span> <span class="n">tentative</span> <span class="o">=</span> <span class="mf">0</span><span class="p">,</span> <span class="mf">0</span>
+<span class="k">while</span> <span class="n">coups_joues</span> <span class="o">&lt;</span> <span class="n">coups_max</span> <span class="ow">and</span> <span class="n">tentative</span><span class="o">!=</span><span class="n">secret</span><span class="p">:</span>
+    <span class="n">tentative</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Proposition ?</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span> <span class="p">)</span>
+    <span class="n">coups_joues</span> <span class="o">+=</span> <span class="mf">1</span>
+
+    <span class="k">if</span> <span class="n">tentative</span> <span class="o">&lt;</span> <span class="mf">1</span> <span class="ow">or</span> <span class="n">tentative</span> <span class="o">&gt;</span> <span class="n">secret_max</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;On a dit entre 1 et 1000 !&#39;</span><span class="p">)</span> 
+
+    <span class="k">if</span>   <span class="n">tentative</span> <span class="o">&lt;</span> <span class="n">secret</span> <span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Trop petit.&#39;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">tentative</span> <span class="o">&gt;</span> <span class="n">secret</span> <span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Trop grand.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span> <span class="n">tentative</span><span class="o">-</span><span class="n">secret</span> <span class="p">)</span><span class="o">==</span><span class="mf">1</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Mais ca brule !&#39;</span><span class="p">)</span>
+
+<span class="c"># Fin de la partie et affichage des resultats</span>
+<span class="k">if</span> <span class="n">coups_joues</span><span class="o">==</span><span class="n">tentative</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Oui !, Bravo,  vous avez trouve en </span><span class="si">%s</span><span class="s"> coups.&#39;</span> <span class="o">%</span>  <span class="n">coups_joues</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Le nombre etait effectivement </span><span class="si">%s</span><span class="s">.&#39;</span> <span class="o">%</span> <span class="n">secret</span><span class="p">)</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;&quot;&quot;Bon, ca va bien maintenant </span><span class="si">%s</span><span class="s"> on jette l&#39;eponge !</span>
+<span class="s">    J&#39;avais choisi </span><span class="si">%s</span><span class="s">.</span>
+<span class="s">    Vous n&#39;etes pas encore pret pour le Juste prix&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">secret</span> <span class="p">)</span>
+  
+        
+</pre></div>
+</div>
+<p>Internationalized version !</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">gettext</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">gettext</span><span class="o">.</span><span class="n">gettext</span>
+
+<span class="n">gettext</span><span class="o">.</span><span class="n">bindtextdomain</span><span class="p">(</span> <span class="s">&quot;guess&quot;</span><span class="p">,</span> <span class="s">&quot;language.d&quot;</span><span class="p">)</span>
+<span class="n">gettext</span><span class="o">.</span><span class="n">textdomain</span><span class="p">(</span><span class="s">&quot;guess&quot;</span><span class="p">)</span>
+<span class="n">gettext</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s">&quot;guess&quot;</span><span class="p">)</span>
+
+
+<span class="n">coups_max</span><span class="p">,</span> <span class="n">secret_max</span> <span class="o">=</span> <span class="mf">15</span><span class="p">,</span> <span class="mf">100</span>
+
+<span class="c"># Regle du jeu et tirage du nombre mystere</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="n">secret</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="n">secret_max</span><span class="p">)</span>
+
+<span class="c"># Partie interactive</span>
+<span class="k">print</span><span class="p">(</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;J&#39;ai choisi un nombre mystere entre 1 et </span><span class="si">%s</span><span class="s"> ; a vous de jouer !&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">secret_max</span> <span class="p">)</span>
+<span class="n">coups_joues</span><span class="p">,</span> <span class="n">tentative</span> <span class="o">=</span> <span class="mf">0</span><span class="p">,</span> <span class="mf">0</span>
+<span class="k">while</span> <span class="n">coups_joues</span> <span class="o">&lt;</span> <span class="n">coups_max</span> <span class="ow">and</span> <span class="n">tentative</span><span class="o">!=</span><span class="n">secret</span><span class="p">:</span>
+    <span class="n">tentative</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="nb">raw_input</span><span class="p">(</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Proposition ?</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">))</span> <span class="p">)</span>
+    <span class="n">coups_joues</span> <span class="o">+=</span> <span class="mf">1</span>
+
+    <span class="k">if</span> <span class="n">tentative</span> <span class="o">&lt;</span> <span class="mf">1</span> <span class="ow">or</span> <span class="n">tentative</span> <span class="o">&gt;</span> <span class="n">secret_max</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;On a dit entre 1 et 1000 !&#39;</span><span class="p">)</span> <span class="p">)</span> 
+
+    <span class="k">if</span>   <span class="n">tentative</span> <span class="o">&lt;</span> <span class="n">secret</span> <span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Trop petit.&#39;</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">tentative</span> <span class="o">&gt;</span> <span class="n">secret</span> <span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Trop grand.&#39;</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span> <span class="n">tentative</span><span class="o">-</span><span class="n">secret</span> <span class="p">)</span><span class="o">==</span><span class="mf">1</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Mais ca brule !&#39;</span><span class="p">)</span> <span class="p">)</span>
+
+<span class="c"># Fin de la partie et affichage des resultats</span>
+<span class="k">if</span> <span class="n">tentative</span><span class="o">==</span><span class="n">secret</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Oui !, Bravo, vous avez trouve le nombre </span><span class="si">%s</span><span class="s"> en </span><span class="si">%s</span><span class="s"> coups.&#39;</span><span class="p">)</span>
+           <span class="o">%</span>  <span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="n">coups_joues</span><span class="p">))</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Bon, ca va bien maintenant. C&#39;etait </span><span class="si">%s</span><span class="s">&quot;</span> <span class="p">)</span> <span class="o">%</span> <span class="n">secret</span> <span class="p">)</span> 
+  
+</pre></div>
+</div>
+<p>Look at the commands at the top of the source. The
+internationalization (i18n) tools will look for the translation file:</p>
+<div class="highlight-python"><pre># SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR &lt;EMAIL@ADDRESS&gt;, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2009-10-13 13:33+CEST\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME &lt;EMAIL@ADDRESS&gt;\n"
+"Language-Team: LANGUAGE &lt;LL@li.org&gt;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: guess2.py:18
+msgid "J'ai choisi un nombre mystere entre 1 et %s ; a vous de jouer !"
+msgstr "Mind the gap between the train and the platform: %s !"
+
+#: guess2.py:21
+msgid ""
+"\n"
+"Proposition ?\n"
+msgstr "\nTry ?\n"
+
+#: guess2.py:25
+msgid "On a dit entre 1 et 1000 !"
+msgstr "Hey, we said between 1 and 1000 !"
+
+#: guess2.py:28
+msgid "Trop petit."
+msgstr "Too small"
+
+#: guess2.py:31
+msgid "Trop grand."
+msgstr "Too big."
+
+#: guess2.py:34
+msgid "Mais ca brule !"
+msgstr "Earth, Storm and Fire, Heed my call."
+
+#: guess2.py:38
+msgid "Oui !, Bravo, vous avez trouve le nombre %s en %s coups."
+msgstr "Don't you know, pop it up, you got to pop it up! %s."
+
+#: guess2.py:42
+msgid "Bon, ca va bien maintenant. C'etait %s."
+msgstr "A beulibobol ! Thank a boute it ... I have in ze bilouque! %s."
+
+</pre>
+</div>
+<p>This file was created by</p>
+<div class="highlight-python"><pre>pygettext guess2.py
+sed s/CHARSET/UTF-8/ messages.pot &gt; en.po
+$EDITOR en.po   # Here I filled in the blank with the english sentence
+mkdir -p language.d/en/LC_MESSAGES/
+msgfmt en.po -o language.d/en/LC_MESSAGES/guess.mo</pre>
+</div>
+<p>Be erally careful with the filenames and location. The i18n tools
+expect stuff to be where the source code say it should be. If the i18n
+tools can&#8217;t find the translation file, it fall back on the default
+string with no error.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">&lt;no title&gt;</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="../docutils.html"
+                                  title="next chapter">title</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/nf01/guess.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../docutils.html" title="title"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="<no title>"
+             >previous</a> |</li>
+        <li><a href="../index.html">fiches v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >&lt;no title&gt;</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>lvm &mdash; fiches v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="fiches v0.1 documentation" href="index.html" />
+    <link rel="next" title="merge with svn" href="svn.html" />
+    <link rel="prev" title="ssh" href="ssh.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="svn.html" title="merge with svn"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ssh.html" title="ssh"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="lvm">
+<h1>lvm<a class="headerlink" href="#lvm" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="create-an-lvm-partition-merged-from-two-fake-partitions">
+<h2>Create an lvm partition merged from two fake partitions<a class="headerlink" href="#create-an-lvm-partition-merged-from-two-fake-partitions" title="Permalink to this headline">¶</a></h2>
+<p>You can copy and paste these commands with no ill effects. They will
+not operate on your real hard drive partitions.</p>
+<ol class="arabic">
+<li><p class="first">create fake partition just for demonstration purpose with losetup:</p>
+<div class="highlight-python"><pre>dd if=/dev/zero of=hda1 bs=1M count=20
+dd if=/dev/zero of=hda2 bs=1M count=10
+losetup /dev/loop1 hda1        # for demonstration purpose, I create two fake
+losetup /dev/loop2 hda2        # partitions from newly created files with losetup.</pre>
+</div>
+</li>
+<li><p class="first">creation and use of a logical volume spanning two partitions:</p>
+<div class="highlight-python"><pre># pvcreate /dev/loop1
+  Physical volume "/dev/loop1" successfully created
+
+# pvcreate /dev/loop2
+  Physical volume "/dev/loop2" successfully created
+
+# vgcreate data-disks /dev/loop2 /dev/loop1
+  Volume group "data-disks" successfully created
+
+# lvcreate -n muzak -L 24M datadisks
+  Logical volume "muzak" created
+
+# mkfs.ext3 /dev/mapper/datadisks-muzak
+
+# mkdir /mnt/muzak &amp;&amp; mount /dev/mapper/datadisks-muzak /mnt/muzak
+
+# dd if=/dev/zero of=tons-of-muzak count=44000
+
+# du -sh tons-of-muzak
+  22M     tons-of-muzak
+
+# cp tons-of-muzak /mnt/muzak</pre>
+</div>
+<p>From two partition (20M and 10M), we created a lv of 24M in which we
+copied more data (22M) than available on each of the partitions taken
+separatly.</p>
+</li>
+<li><p class="first">cleaning up:</p>
+<div class="highlight-python"><pre># lvremove datadisks/muzak
+Do you really want to remove active logical volume "muzak"? [y/n]: y
+  Logical volume "muzak" successfully removed
+
+# vgremove data-disks
+  Volume group "data-disks" successfully removed
+
+# pvremove /dev/loop1 /dev/loop2
+  Labels on physical volume "/dev/loop1" successfully wiped
+  Labels on physical volume "/dev/loop2" successfully wiped
+
+## lvm cleanup is done by now, let's clean the fake partitions
+# losetup -d /dev/loop2
+# losetup -d /dev/loop1
+# rm hda{1,2}</pre>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="resetting-the-filesystem-after-an-lvm-resize">
+<h2>Resetting the filesystem after an lvm resize<a class="headerlink" href="#resetting-the-filesystem-after-an-lvm-resize" title="Permalink to this headline">¶</a></h2>
+<p>You may need the following so that lvs and df -h agrees on the disk sizes</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">umount</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">mapper</span><span class="o">/</span><span class="n">fnac</span><span class="o">-</span><span class="n">fnac</span>
+<span class="n">e2fsck</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">mapper</span><span class="o">/</span><span class="n">fnac</span><span class="o">-</span><span class="n">fnac</span>
+<span class="n">resize2fs</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">mapper</span><span class="o">/</span><span class="n">fnac</span><span class="o">-</span><span class="n">fnac</span>
+</pre></div>
+</div>
+<p>Is the umount necessary ?</p>
+</div>
+<div class="section" id="mounting-a-logical-volume-from-a-livecd">
+<h2>Mounting a logical volume from a livecd<a class="headerlink" href="#mounting-a-logical-volume-from-a-livecd" title="Permalink to this headline">¶</a></h2>
+<p>You cannot boot a live CD and expect the logical volume to be &#8220;mount
+ready&#8221; as is a standard ext3. You need to type</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">vgscan</span> <span class="o">--</span><span class="n">mknodes</span>
+<span class="n">vgchange</span> <span class="o">-</span><span class="n">ay</span>
+</pre></div>
+</div>
+<p>Now you&#8217;re set</p>
+<div class="highlight-python"><pre>lvscan
+mount /dev/mini/root /mnt/</pre>
+</div>
+<p>Also, I could not <tt class="docutils literal"><span class="pre">vgscan</span></tt>, with the feisty live even after having
+installed <tt class="docutils literal"><span class="pre">lvm2</span></tt> (<tt class="docutils literal"><span class="pre">Unable</span> <span class="pre">to</span> <span class="pre">mount</span> <span class="pre">drive</span> <span class="pre">('LVM2_member')</span></tt>, and
+<tt class="docutils literal"><span class="pre">No</span> <span class="pre">program</span> <span class="pre">“vgscan”</span> <span class="pre">found</span> <span class="pre">for</span> <span class="pre">your</span> <span class="pre">current</span> <span class="pre">version</span> <span class="pre">of</span> <span class="pre">LVM</span></tt>). I had
+to use the Knoppix liveCD v5, instead.</p>
+</div>
+<div class="section" id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="http://www.debian-administration.org/articles/410">http://www.debian-administration.org/articles/410</a></li>
+<li><a class="reference external" href="http://www.linuxdevcenter.com/pub/a/linux/2006/04/27/managing-disk-space-with-lvm.html">http://www.linuxdevcenter.com/pub/a/linux/2006/04/27/managing-disk-space-with-lvm.html</a></li>
+<li><a class="reference external" href="http://www.howtoforge.com/linux_lvm">http://www.howtoforge.com/linux_lvm</a></li>
+<li><a class="reference external" href="http://tldp.org/HOWTO/LVM-HOWTO/">http://tldp.org/HOWTO/LVM-HOWTO/</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">lvm</a><ul>
+<li><a class="reference external" href="#create-an-lvm-partition-merged-from-two-fake-partitions">Create an lvm partition merged from two fake partitions</a></li>
+<li><a class="reference external" href="#resetting-the-filesystem-after-an-lvm-resize">Resetting the filesystem after an lvm resize</a></li>
+<li><a class="reference external" href="#mounting-a-logical-volume-from-a-livecd">Mounting a logical volume from a livecd</a></li>
+<li><a class="reference external" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="ssh.html"
+                                  title="previous chapter">ssh</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="svn.html"
+                                  title="next chapter">merge with svn</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/lvm.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="svn.html" title="merge with svn"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ssh.html" title="ssh"
+             >previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>

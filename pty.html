@@ -1,0 +1,551 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Les pseudo-terminaux &mdash; fiches v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="fiches v0.1 documentation" href="index.html" />
+    <link rel="next" title="JSON" href="json.html" />
+    <link rel="prev" title="Backward compatibility" href="backward-compatibility.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="json.html" title="JSON"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="backward-compatibility.html" title="Backward compatibility"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="les-pseudo-terminaux">
+<h1>Les pseudo-terminaux<a class="headerlink" href="#les-pseudo-terminaux" title="Permalink to this headline">¶</a></h1>
+<p>Ces quelques pages expliquent ce que sont les pseudo terminaux (pty) et
+décrivent les interfaces de programmation exportées par le noyau.</p>
+<p>Les pseudo terminaux sont un composant extrêmement important des
+systèmes compatibles Unix. Le pseudo-terminal est le mécanisme à la
+base de xterm, kterm et des autre émulateurs de terminal mais aussi à
+la base de sshd, rshd, telnetd et autres systèmes de login à
+distance. C&#8217;est encore le mécanisme à la base des librairies et
+applications en mode texte, comme ncurses ou ou emacs en mode console.</p>
+<p>Les codes présentés ont été testés sur linux-2.6.5; mais le noyau n&#8217;a
+pas subi de changements important dans ce domaine depuis le noyau 2.4,
+ces codes devraient fonctionner sans difficultés.</p>
+<div class="section" id="qu-est-ce-qu-un-pseudo-terminal">
+<h2>Qu&#8217;est-ce qu&#8217;un pseudo terminal?<a class="headerlink" href="#qu-est-ce-qu-un-pseudo-terminal" title="Permalink to this headline">¶</a></h2>
+<p>L&#8217;acronyme pty signifie <em>pseudo-teletype</em>, ce sont les
+<em>pseudo-téléscripteurs</em> historique en français. Du point de vue d&#8217;un
+noyau, un terminal (ou tty pour <em>teletype</em>) est un fichier spécial de
+type caractère sur lequel peux être connecté soit un terminal physique
+(les vt100 et vt320 étaient composés d&#8217;un clavier et écran) soit une
+application qui envoie et reçoit des données de manière interactive
+des utilisateurs. Le sous-système de terminal du noyau transfère les
+données vers l&#8217;application vers ou depuis un interpréteur de commandes
+ou d&#8217;autres programmes interactifs. Comme les vt100 ont disparus
+depuis longtemps et que les vt320 sont en voie de disparition, de nos
+jours quand on parle de terminal, on fait indistinctement référence
+soit au fichier périphérique, soit à l&#8217;application interactive qui y
+est connectée.</p>
+<p>Un exemple de fichier périphérique terminal est le port serie
+(/dev/ttyS0 ou /dev/ttyUSB0), un autre exemple est le terminal virtuel
+de la console de texte (/dev/tty1, /dev/tty2 etcaetera), un autre
+encore est la fenetre de xterm ou d&#8217;un autre emulateur de terminal
+(/dev/ttyp0 ou /dev/pts/0).</p>
+<p>Dans tout ces cas, le fichier special dans /dev offre aux processus
+qui accèdent aux fonctionnalités specifique d&#8217;un terminal les
+parametres <em>termios</em> (terminal input output settings), ou plus
+précisement, ces paramètres ennuyeux mais important, relatifs a la
+vitesse de la transmission, a la parité, aux conventions sur les
+signaux de fins de fichiers et tant d&#8217;autres mais aussi l&#8217;affectation
+de fonctionnalite speciale a chaque caractere. Il est possible de
+simuler une fin de fichier a travers ctrl-D ou arreter un processus
+par ctrl-C seulement parce que ce caractere rejoint un fichier special
+associé a un terminal. Chaque utilisateur peut choisir quels sont les
+caracteres speciaux et aucun de ces caractères n&#8217;a une signification
+speciale en dehors du contexte du terminal.</p>
+<p>Pour lire ou modifier la configuration termios d&#8217;un terminal, les
+fonctions de la librairie <em>tcgetattr</em> et <em>tcsetattr</em> (terminal control
+get/set attributes) ou les commandes <em>stty</em> (set tty), en gardant en
+memoire que la commande agit seulement sur l&#8217;entrée standard:</p>
+<div class="highlight-python"><pre>burla% stty
+       speed 38400 baud; line = 0; erase = ^H; -brkint -imaxbel
+
+burla% stty &lt; /dev/ttyS0
+       speed 9600 baud; line = 0; -brkint -imaxbel
+
+burla% stty &lt; /etc/passwd
+       stty: entrée standard: Ioctl() inappropré pour un périphérique</pre>
+</div>
+<p>Dans les deux cas, la configuration est lue depuis le noyau ou écrite
+dans le noyau au travers de l&#8217;appel systeme ioctl, avec les commandes
+TCGETA, TCSETA et autres commandes de la meme famille, dont
+l&#8217;implementation est dans le fichier divers/char/tty_io.c</p>
+<p>Lors du lancement d&#8217;une application interactive comme bash dans un
+émulateur de terminal, bash est lié a la partie maitre du terminal
+et</p>
+</div>
+<div class="section" id="qu-est-ce-qu-un-couple-de-pseudo-terminal">
+<h2>Qu&#8217;est-ce qu&#8217;un couple de pseudo terminal<a class="headerlink" href="#qu-est-ce-qu-un-couple-de-pseudo-terminal" title="Permalink to this headline">¶</a></h2>
+<p>Alors qu&#8217;un terminal comme /dev/ttyS0 est clairement associe a un
+peripherique (le port serie) qui peut etre connecte a un terminal
+physique, le dispositif associe a la fenetre de xterm ne permet aucun
+peripherique materiel et les donnees echangee entre l&#8217;interprete de
+commandes et le fichier special dans /dev/ sont gere par un autre
+processus sur la meme machine, c&#8217;est xterm dans notre cas.</p>
+<p>Dans toute les situations dans lesquelles il est necessaire d&#8217;executer
+un processus a l&#8217;interieur de l&#8217;abstraction &#8220;terminal&#8221; sans faire
+l;usage d&#8217;une reelle interface materielle, il est possible de
+s&#8217;abonner au mecanisme des pseudo terminaux, mecanisme selon lequel a
+chaque pty est associe a un autre fichier special qui se comporte
+comme si il etait l&#8217;autre extremite du cable serie. Les deux fichiers
+speciaux forment ce que l&#8217;on appelle un couple de pseudo terminaux ou
+plus simplement un couple de terminaux ou &#8216;tty pair&#8217;.</p>
+<p>Les deux composants du couple se comportent comme un tube
+bidirectionnel (un <em>pipe</em>) et l&#8217;un sera &#8216;maitre&#8217; alors que l&#8217;autre
+sera esclave. Le comportement des fichiers speciaux associe, n&#8217;est pas
+completement symetrique de la meme maniere que les descripteurs de
+fichiers associé a un tube ou a une socket: le terminal esclave est
+typiquement un terminal reel, mais il peut etre ouvert seulement apres
+l&#8217;ouverture du maitre qui lui est associe; le terminal maitre, par
+contre, ne se comporte pas completement comme un terminal et ne peut
+etre ouvert qu&#8217;une seule fois.</p>
+<div class="highlight-python"><pre>Ouverture d'une couple de terminaux
+#include &lt;stdlib.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;sys/stat.h&gt;
+
+int main()
+{
+    int i, j;
+    char devname[]="/dev/pty--";
+    char s1[]="pqrstuvwxyzabcde";
+    char s2[]="0123456789abcdef";
+    int fds, fdm = -1;
+
+    for (i=0; fdm&lt;0 &amp;&amp; i&lt;16; i++) {
+        for (j=0; fdm&lt;0 &amp;&amp; j&lt;16; j++) {
+            devname[8] = s1[i];
+            devname[9] = s2[j];
+            if ((fdm = open(devname, O_RDWR)) &lt; 0) {
+                if (errno == EIO) continue;
+                exit(1);
+            }
+        }
+    }
+    devname[5]='t';        //   /dev/ttyXY
+    if ((fds = open(devname, O_RDWR)) &lt; 0)
+    exit(2);
+    exit(0);
+}</pre>
+</div>
+</div>
+<div class="section" id="l-interface-historique">
+<h2>L&#8217;interface historique<a class="headerlink" href="#l-interface-historique" title="Permalink to this headline">¶</a></h2>
+<p>Historiquement les pseudo-terminaux, maître et esclave, existaient
+dans le répertoire /dev. En cas d&#8217;absence, ils peuvent être créés par
+la commande <tt class="docutils literal"><span class="pre">/dev/MAKEDEV</span> <span class="pre">pty</span></tt>. Les terminaux esclave portent le
+numero majeur 3 et leur noms sont par exemples <tt class="docutils literal"><span class="pre">/dev/ttyp0</span></tt>; les
+terminaux maîtres portent le numéro majeur 2 et leur noms suivent la
+rêgle <tt class="docutils literal"><span class="pre">/dev/ptyp0</span></tt> où chaque <em>p</em> signifie <em>pseudo</em>. Le code pour
+gérer ces peripherique est optionel dans le kernel, et est inclu par
+la clé è`CONFIG/LEGACYPTYS``.</p>
+<p>Les noms des fichiers spéciaux associe a chaque couple de terminal
+different par leur deux derniers caracteres, chacun d&#8217;eux pouvant
+prendre 16 valeurs pour un total de 256 paires. Le bref programme
+legacy.c dans l&#8217;encadre 1 montre la procedure classique d&#8217;ouverture
+d&#8217;une paire de terminal, cherchant le premier maitre disponible puis
+utilisant le slave associe. Si un maitre est deja utilisé, open
+retourne EIO et la boucle recommence. Si le support des pseudo
+terminal n&#8217;est pas compile, alors le premier open retournera ENODEV,
+si le fichier special n&#8217;existe pas le premier open retournera ENOENT
+et dans les deux cas, la boucle s&#8217;arrete. Le comportement du programme
+peut etre observe avec strace.</p>
+<p>UN programme qui utilise les terminaux pour resoudre une tache devra
+naturellement faire d&#8217;autres operation comme changer le proprietaire
+et les permissions d&#8217;acces au fichier special pour refleter
+l&#8217;utilisateur qui en a pris le controle et les preferences (voir la
+page d&#8217;exemple de mesg par exemple).</p>
+<p>Les mecanismes avec paire de fichier decris au dessus ont neanmoins
+quelque probleme non negligeable: le processus qui ouvre une session
+doi etre privilegie (pour changer le proprietaire du terminal),
+l&#8217;assignation du terminal n&#8217;est pas atomique et donne lieu a une
+session critique, le scanning des dispositif pour en trouver un
+disponible peut un retard indesiré.</p>
+<p>Enfin, 512 fichier speciaux dans /dev sont souvent une entrave, et
+cela pose un probleme avec les machines embarquées. Par exemple, le
+systeme de developpement du processeur etrax est livre avec une
+distribution avec le repertoire /dev/sur un dispositif en lecture
+seulement ou ont ete cree seulement trois paires de terminaux pour ne
+pas gacher l&#8217;espace limite a disposition. La consequence est que le
+server telnet ne peut accepter plus de trois utilisateurs en meme
+temps.  et il n&#8217;est pas possible de faire travailler plus de trois
+etudiant en meme temps, a moins de reprogrammer la memoire flash avec
+une version personnalisée du systeme.</p>
+</div>
+<div class="section" id="l-interface-actuelle">
+<h2>L&#8217;interface actuelle<a class="headerlink" href="#l-interface-actuelle" title="Permalink to this headline">¶</a></h2>
+<p>Chacun des problemes relatif aux terminaux virtuel ont éte resolu
+simplement par l&#8217;observation que le maitre est ouvert une seule fois,
+il est alors possible d&#8217;implementer un seul fichier special pour gerer
+l&#8217;ensemble des maitres, faisant ce que le noyau, une fois le fichier
+ouvert, l&#8217;associe a un terminale maitre qui pourra etre requeté sur le
+nom du fichier esclave associe. Par contre, il n&#8217;est pas possible
+d&#8217;unifier tout les terminaux fils en un seul fichier parce que les
+autres processus doivent pouvoir ouvrir les terminaux esclave en cours
+d&#8217;utilisation. C&#8217;est de cette maniere que fonctionne les programme de
+la famille de talk, qui est encore retenu comme meilleur qu&#8217;IRC dans
+certain contexte.</p>
+<p>Cette approche est specifiée dans le standard <em>unix98</em>, qui a défini une
+série de fonctions pour ouvrir et configurer les terminaux.
+L&#8217;utilisation de ces fonctions cache les détails de chaque
+implémentation, comme les noms des fichiers spéciaux à utiliser ou le
+mécanisme utilisé pour changer le propriétaire du terminal esclave
+(souvent un tel mécanisme est un appel à setuid).</p>
+<p>Cette infrastructure a été implémenté dans les systêmes GNU/linux;
+mais une autre est aussi utilisée: au lieu d&#8217;utiliser le fichier
+special situé dans /dev pour les terminaux esclave, un systême de
+fichiers adaptés a été créé de telle sorte que le noyau doit rendre
+visible les terminaux esclave en réponse aux accès au terminal maitre,
+pour éviter que l&#8217;intégration du systême doivent choisir entre occuper le
+precieux espace sur le disque ou limiter arbitrairement le nombre de
+session. L&#8217;implémentation du systême de fichier entre code et données,
+pese moins de 10KB et s&#8217;active grace a l&#8217;option CONFIG_UNIX98_PTY</p>
+<div class="highlight-python"><pre>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;sys/stat.h&gt;
+
+int main()
+{
+    int n;
+    int zero=0;
+    char name[16];
+    int fds, fdm;
+
+    if ((fdm = open("/dev/ptmx", O_RDWR)) &lt; 0)
+    exit(1);
+
+    if (ioctl(fdm, TIOCGPTN, &amp;n) &lt; 0)
+    exit(2);
+    sprintf(name, "/dev/pts/%i", n);
+    if (ioctl(fdm, TIOCSPTLCK, &amp;zero) &lt; 0)
+    exit(3);
+
+    if ((fds = open(name, O_RDWR)) &lt; 0)
+    exit(4);
+    exit(0);
+}</pre>
+</div>
+<p>L&#8217;ouverture et la configuration d&#8217;un couple de terminaux à la manière
+<em>unix98</em> est effectuée à travers les fonctions de la librairie
+<em>getpt</em>, <em>grantpt</em>, <em>ptsname</em>, <em>unlockpt</em> pour lesquelles les pages de
+manuel sont disponibles pour plus de détails. Le programme <em>open.c</em>
+montre par contre une approche de plus bas niveau qui utilise les
+mecanismes du noyau Linux aux depends de la portabilité.</p>
+<p>Dans ce cas, le terminal maitre est appele /dev/ptmx (pseudo-tty
+multiplexer) et les terminaux esclaves sont situés dans le directory
+/dev/pts où a été monté le système de fichier <em>devpts</em>. Les deux
+commandes ioctl utilisee dans le programme d&#8217;exemple sont utilise pour
+demander au systeme le numero du terminal esclave a ouvrir (TIOGPTN)
+et pour le debloquer, autorisant l&#8217;acces a l&#8217;esclave (TIOCPTLCK:
+terminal ioctl pseudo terminal lock). Le terminal esclave disparait
+automaitquement du systeme de fichier son utilisation est
+terminée. Si l&#8217;on execute open avec strace, l&#8217;on verra que le
+programme ouvre un terminal esclave qui n&#8217;existe plus une fois
+l&#8217;execution terminée.</p>
+<p>Le systeme de fichiers devpts etait deja disponible dans les linux2.2
+et n&#8217;a pratiquement pas evolue dans la version 2.6, seulement par
+l&#8217;ajout des attributs etendus, une fonctionnalite disponible dans les
+principaux systeme de fichiers mais en dehors du sujet de cet
+article. Normalement, le systeme de fichier devpts est monte lors du
+demarrage de la distribution, bien qu&#8217;il ne soit pas present dans
+/etc/fstab. Il est possible de demonter /dev/pts seulement apres avoir
+ferme tout les pseudo terminal en cours d&#8217;utilisation; le systeme
+continuera a fonctionner aec le mecanisme precedent (a la condition
+d&#8217;avoir le fichier special dans /dev et le support relatif dans le
+noyau). Il est toujours possible de remonter /dev/pts et de faire
+cohabiter les deux systemes.</p>
+<div class="highlight-python"><pre>burla% who
+    rubini   ttyp1        Apr  6 09:43 (ostro.i.gnudd.com)
+    rubini   ttyp2        Apr  6 09:43 (ostro.i.gnudd.com)
+    rubini   pts/16       Apr  6 09:43 (ostro.i.gnudd.com)</pre>
+</div>
+<div class="highlight-python"><pre>#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;pty.h&gt;
+#include &lt;utmp.h&gt;
+#include &lt;sys/time.h&gt;
+#include &lt;sys/wait.h&gt;
+#include &lt;sys/types.h&gt;
+
+int main()
+{
+    int fdm, fds;
+    int pid, i;
+    fd_set set;
+    char buf[64];
+
+    if (openpty(&amp;fdm, &amp;fds, NULL, NULL, NULL))
+      exit(1);
+    if ((pid = fork()) &lt; 0)
+      exit(2);
+    if (!pid) {
+      // child
+      close(fdm);
+      login_tty(fds);
+      execl("/bin/sh", "sh", NULL);
+      exit(3);
+    }
+    /* father: copy stdin/out to/from master */
+    close(fds); system("stty raw -echo");
+    FD_ZERO(&amp;set);
+    while (waitpid(pid, &amp;i, WNOHANG)!=pid) {
+      FD_SET(0, &amp;set);
+      FD_SET(fdm, &amp;set);
+      select(fdm+1, &amp;set, NULL, NULL, NULL);
+      if (FD_ISSET(0, &amp;set)) {
+          i = read(0, buf, 64);
+          if (i&gt;0) write(fdm, buf, i);
+      }
+      if (FD_ISSET(fdm, &amp;set)) {
+          i = read(fdm, buf, 64);
+          if (i&gt;0) write(1, buf, i);
+      }
+    }
+    system("stty sane");
+    exit(0);
+}</pre>
+</div>
+</div>
+<div class="section" id="l-execution-de-sh-dans-un-nouveau-terminal">
+<h2>L&#8217;execution de sh dans un nouveau terminal<a class="headerlink" href="#l-execution-de-sh-dans-un-nouveau-terminal" title="Permalink to this headline">¶</a></h2>
+<p>Le programme openpty dans l&#8217;encadre 3, ouvre une paire de terminaux et
+execute un interpreteur de commande a l&#8217;interieur de l&#8217;esclave. Pour
+simplifier et raccourcir le code, les fonctions openpty et login_tty
+sont utilisée. Ces fonctions font partie de la libutil, ils ne font
+pas rigoureusement partie de la libc mais ont ete rendu possible pour
+eviter que chaque application doivent les reimplementer. Le makefile
+que j&#8217;ai utilise, donc, est compose de ces deux regles:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">CFLAGS</span> <span class="o">=</span> <span class="o">-</span><span class="n">ggdb</span> <span class="o">-</span><span class="n">Wall</span>
+<span class="n">LDFLAGS</span> <span class="o">=</span> <span class="o">-</span><span class="n">lutil</span>
+</pre></div>
+</div>
+<p>Une fois ouvert la paire de terminaux, le programme cree un processus
+fils auquel est assigne le nouveau terminal esclave comme terminal de
+controle, avant d&#8217;executer sh. Le processus pere, par contre, s&#8217;occupe
+de copier son entree standard sur le terminal maitre et tout ce qui
+sort du terminal maitre sur sur sa sortie standard.</p>
+<p>La solution obtenue est celle represente sur la figure 1, dans
+laquelle les fleches entrante et sortante des processus representent
+les fichiers standards de input et d&#8217;output alors que la ligne bleue
+sortant de openpty represente les fichiers ouverts vers le terminal
+maitre. Mais puisque l&#8217;input standard et l&#8217;output de openpty seront
+probablement en execution a l&#8217;interieur d&#8217;un autre terminal (la
+console, xterm o comme dnas mon cas, rshd, a son tour controle par rsh
+a travers un xterm), dont il est necessaire de configurer le terminal
+invite pour permettre l&#8217;utilisation interactive (un caractere a la
+fois). de l&#8217;interprete de commande invoque dans le nouveaux terminal
+esclave, c&#8217;est pour cela qu&#8217;est utilise la commande stty presenté
+precedemment.</p>
+<p>Openpty fonctionne soit avec les terminaux legacy, soit avec devpts,
+en ce que la fonction de la librairie utilisee dans le code demontrer
+dans legacy.c repose sur le la methode standard de unix98</p>
+<div class="highlight-python"><pre>burla% tty
+     /dev/ttyp0
+burla% ./openpty
+sh-2.05a$ tty
+     /dev/ttyp1
+sh-2.05a$ exit
+     exit
+burla% sudo mount -t devpts none /dev/pts
+burla% ./openpty
+sh-2.05a$ tty
+     /dev/pts/7
+sh-2.05a$ exit
+burla% tty
+     /dev/ttyp0</pre>
+</div>
+<p>Utilisation de PPP sur un pseudo terminal Les pseudo terminaux se
+pretent aussi a des usages non conventionnels, profitant de leur
+complete equivalence, au niveau logiciel avec un port serie, ou un
+modem.</p>
+<p>Le protocole (PPP mais aussi SLIP) est implementé avec une discipline
+de ligne, un module logicielqui peux etre utilise sur n&#8217;importe auel
+type de termial. La discipline de ligne a pour but de discipliner le
+comportement du systeme en ce qui concerne les données qui rejoigne
+le noyau e provenance du terminal, en plus de permettre l&#8217;envoi de
+donnees vers le terminal. Une discussion approfondie de la discipline
+est disponible dans l&#8217;article sur www.linux.it/kerneldocs/serial.</p>
+<p>Mais si PPP peut travailler sur n&#8217;importe quel type de terminal, il
+est alors possible de faire une connexion point a point entre deux
+machines distantes, a condition de pouvoir creer une paire de
+terminaux sur chacune des deux machines. Sur la figure 2 est
+represente la maniere pour realiser telle connexion dirigeant le
+protocole dans un canal ssh a la place d&#8217;un port serie est cela est
+traditionnellement fait avec PPP. Chacuns des deux PPPD est mis en
+communication avec avec un terminal esclave, qui par son logiciel est
+indistingable d&#8217;un modem. et les deux processus ssh client et server,
+s&#8217;occupent de faire le pont entre le terminal maitre et le canal
+chiffre sur le protocol IP.</p>
+<p>figure 2</p>
+<p>Le code pour realiser une telle structure de processus est visible
+dans l&#8217;encadre 4, cette fois ecrite dans le langage ettcl (une version
+de TCL modifiée pour pouvoir faire fonctionner le systeme
+EtLinux). Il se trouve sur internet une version de ppptunnel ecrite en
+perl, et il est immediat d&#8217;ecrire cet outil dans n&#8217;importe quel
+langage qui supporte l&#8217;ouverture d&#8217;une pair de terminal. Le choix du
+langage n&#8217;influence que de maniere annexe la realisation parce que le
+programme doit seulement connecter les fichiers descriptor et rendre
+le controle aux deux pppd, dans un cas a travers ssh.</p>
+<div class="highlight-c"><pre>#!/usr/local/bin/ettclsh
+# -*-tcl-*-
+
+if [llength $argv]!=3 {
+    puts stderr "use: \"$argv0 &lt;remotehost&gt; &lt;local-IP&gt; &lt;remote-IP&gt;\""
+    exit 1
+}
+foreach {host ip1 ip2} $argv {}
+
+sys_ttypair master slave
+if ![set pid [sys_fork]] {
+    # child
+    after 1000
+    sys_dup $slave stdin
+    sys_dup $slave stdout
+    close $slave; close $master
+    set ttyname [file readlink /dev/fd/0]
+    sys_exec sudo \
+        pppd debug local $ip1:$ip2 nodetach noauth lock $ttyname
+    exit
+}
+# father
+sys_dup $master stdin
+sys_dup $master stdout
+close $master; close $slave
+sys_exec ssh -t $host sudo \
+    pppd debug local $ip2:$ip1 nodetach noauth lock /dev/tty</pre>
+</div>
+<ul class="simple">
+<li>role d&#8217;un terminal (caractere par caractere, transmission de signaux)</li>
+<li>qu&#8217;est il possible de faire sur terminal qui n&#8217;est pas possible de faire</li>
+<li>difference venant de expect</li>
+<li>liens entre les processus fils et pere et terminaux maitre et esclave</li>
+</ul>
+<p>Le role de ppptunnel est d&#8217;ouvrir une paire de terminal (dans le sous
+système tty sur la figure) et d&#8217;appeler fork. Le processus fils ferme
+le terminal maitre et execute pppd sur son terminal esclave; le
+processus pere ferme le terminal esclave et excute ssh, en specifiant
+sur la ligne de commande l&#8217;execution de pppd sur la machine distante
+apres l&#8217;ouverture du terminal de controle (qui est une autre paire de
+terminaux, specifie avec l&#8217;option -t).</p>
+<p>Pour que la commande puisse s&#8217;executer telle qu&#8217;expliqué dans ce
+paragraphe, il est nécessaire que l&#8217;utilisateur local soit autorisé à
+se connecter via ssh sur la machine distante et que sudo puisse
+fonctionner sans mot de passe sur chacune des machine, mais il est
+possible de composer le mot de passe relatif a ssh et a sudo sur le
+terminal dans lequel s&#8217;execute ppptunnel; et au lieu de nécessiter que
+le sudo distant ne demande pas de mot de passe. Au niveau kernel,
+cette connexion repose sur les modules normaux de PPP: ppp_generic,
+ppp_async et les modules de compression.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Les pseudo-terminaux</a><ul>
+<li><a class="reference external" href="#qu-est-ce-qu-un-pseudo-terminal">Qu&#8217;est-ce qu&#8217;un pseudo terminal?</a></li>
+<li><a class="reference external" href="#qu-est-ce-qu-un-couple-de-pseudo-terminal">Qu&#8217;est-ce qu&#8217;un couple de pseudo terminal</a></li>
+<li><a class="reference external" href="#l-interface-historique">L&#8217;interface historique</a></li>
+<li><a class="reference external" href="#l-interface-actuelle">L&#8217;interface actuelle</a></li>
+<li><a class="reference external" href="#l-execution-de-sh-dans-un-nouveau-terminal">L&#8217;execution de sh dans un nouveau terminal</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="backward-compatibility.html"
+                                  title="previous chapter">Backward compatibility</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="json.html"
+                                  title="next chapter">JSON</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/pty.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="json.html" title="JSON"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="backward-compatibility.html" title="Backward compatibility"
+             >previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>

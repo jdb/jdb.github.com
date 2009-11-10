@@ -1,0 +1,38 @@
+
+
+My fiches
+=========
+
+	
+.. toctree::
+   :maxdepth: 1
+
+   i18n
+   packaging
+   ssh
+   lvm
+   svn
+   tips
+   disk
+   phoronix
+   rsync
+   partition
+   noyau
+   glossary
+   nf01/index
+   docutils
+   kvm
+   backward-compatibility
+   pty
+   json
+   twisted/concurrent
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
+ 

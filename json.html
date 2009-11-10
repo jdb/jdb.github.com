@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>JSON &mdash; fiches v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="fiches v0.1 documentation" href="index.html" />
+    <link rel="prev" title="Les pseudo-terminaux" href="pty.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pty.html" title="Les pseudo-terminaux"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="json">
+<h1>JSON<a class="headerlink" href="#json" title="Permalink to this headline">¶</a></h1>
+<p>For the configuration files, we weighted three well known data
+formats: INI, JSON and XML. We chose <a class="reference external" href="http://www.json.org/fatfree.html">JSON</a> <a class="footnote-reference" href="#id3" id="id1">[1]</a>. Google and Yahoo
+have blessed the format by making their public webservices available
+via JSON which de facto makes JSON a &#8220;serious&#8221; format. Libraries for
+most languages are available at <a class="reference external" href="http://www.json.org">http://www.json.org</a> .</p>
+<ul>
+<li><p class="first">JSON is brief:
+<em>&lt;tag&gt;foo&lt;tag/&gt;&lt;tag&gt;bar&lt;/tag&gt;&lt;tag&gt;fubar&lt;/tag&gt;</em> becomes
+<em>[&#8220;foo&#8221;,&#8221;bar&#8221;,&#8221;fubar&#8221;]</em></p>
+<p>JSON is not perfect as &#8220;it&#8221; &#8220;always&#8221; &#8220;requires&#8221; &#8220;quotes&#8221; &#8220;around&#8221;
+&#8220;strings&#8221;, also linefeeds are not a separator, so commas are also
+explicitly required as separators. Quotes in string must be escaped
+with a &#8216;\&#8217;.</p>
+</li>
+<li><p class="first">JSON expresses complex structures in terms of dictionaries, lists
+and combinations of those, which are native datatypes in most modern
+languages.</p>
+<p>In XML, learn the many concepts, select a complex library, choose
+between DOM, SAX, Xpath or a language specific API, choose between
+attribute oriented or data oriented schema, and troll endlessly
+about everyone of your choice with colleagues about the &#8220;right&#8221; way
+to do it.</p>
+</li>
+<li><p class="first">INI files are simple to read, but difficult to edit programmatically
+(think about keeping the comments, keeping section order).</p>
+<p>INI files only advantage is the simplicity for humans eyes, there is
+virtually no learning step with this format while it is possible to
+be confused by a sequence of nested JSON brackets and braces.</p>
+</li>
+<li><p class="first">INI format is less supported by languages. In python</p>
+</li>
+</ul>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/JSON">http://en.wikipedia.org/wiki/JSON</a></td></tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="pty.html"
+                                  title="previous chapter">Les pseudo-terminaux</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/json.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pty.html" title="Les pseudo-terminaux"
+             >previous</a> |</li>
+        <li><a href="index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>
