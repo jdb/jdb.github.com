@@ -1,3 +1,9 @@
 # Sphinx inventory version 1
 # Project: fiches
-# Version: 0.1
+# Version: 0.2
+xpath function twisted/concurrent.html
+getStuffAsynchronously function twisted/concurrent.html
+reactor class twisted/concurrent.html
+reactor.start method twisted/concurrent.html
+getpage function twisted/concurrent.html
+reactor.stop method twisted/concurrent.html
