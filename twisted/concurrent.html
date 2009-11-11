@@ -1,0 +1,444 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Concurrent tasks with Twisted &mdash; fiches v0.1 documentation</title>
+    <link rel="stylesheet" href="../.static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../.static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../.static/jquery.js"></script>
+    <script type="text/javascript" src="../.static/doctools.js"></script>
+    <link rel="top" title="fiches v0.1 documentation" href="../index.html" />
+    <link rel="prev" title="JSON" href="../json.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../json.html" title="JSON"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="concurrent-tasks-with-twisted">
+<h1>Concurrent tasks with Twisted<a class="headerlink" href="#concurrent-tasks-with-twisted" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="problem-introduction">
+<h2>Problem introduction<a class="headerlink" href="#problem-introduction" title="Permalink to this headline">¶</a></h2>
+<p>Concurrency is a key concept particularly useful for performance: take
+a simple problem such as retrieving, for each element of a list of
+blogs, the title of the web page of the first article of the
+blog. This means:</p>
+<div class="highlight-python"><pre>for each blog url retrieve the list of articles
+    get the first article url in the list
+    retrieve the web page of the first article
+    display the title</pre>
+</div>
+<p>This is solved quite elegantly in Python. Here are the two functions
+we will use:</p>
+<dl class="function">
+<dt id="getpage">
+<tt class="descname">getpage</tt><big>(</big><em>url</em><big>)</big> &rarr; html tree<a class="headerlink" href="#getpage" title="Permalink to this definition">¶</a></dt>
+<dd>Makes an http get request to the url passed as a parameter and
+returns the html content of the response as tree structure,</dd></dl>
+
+<dl class="function">
+<dt id="xpath">
+<tt class="descname">xpath</tt><big>(</big><em>pattern</em><big>)</big> &rarr; list of matching nodes<a class="headerlink" href="#xpath" title="Permalink to this definition">¶</a></dt>
+<dd>Can operate on an html tree structure, selecting the list of html nodes
+matching the <em>xpath</em> pattern: can find urls or page title.</dd></dl>
+
+<p>Here is the script:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
+
+<span class="n">getpage</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">url</span> <span class="p">:</span> <span class="n">parse</span><span class="p">(</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url</span> <span class="p">)</span> <span class="p">)</span>
+
+<span class="c"># strip unneeded spaces and linefeeds</span>
+<span class="n">clean</span>   <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span>   <span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="mf">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">planet</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;http://planet.debian.net&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://planetzope.org&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://planet.gnome.org&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://gstreamer.freedesktop.org/planet/&quot;</span><span class="p">]:</span>
+
+    <span class="c"># first pattern matches articles links, second pattern: html titles</span>
+    <span class="n">articles</span> <span class="o">=</span> <span class="n">getpage</span><span class="p">(</span> <span class="n">planet</span>      <span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="s">&#39;//h3/a/@href&#39;</span>     <span class="p">)</span>
+    <span class="n">titles</span>   <span class="o">=</span> <span class="n">getpage</span><span class="p">(</span> <span class="n">articles</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="s">&#39;/html/head/title&#39;</span> <span class="p">)</span>
+
+    <span class="k">print</span> <span class="s">&quot;first article on </span><span class="si">%s</span><span class="s"> : </span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">planet</span><span class="p">,</span>
+        <span class="n">articles</span><span class="p">[</span><span class="mf">0</span><span class="p">],</span>
+        <span class="n">clean</span><span class="p">(</span> <span class="n">titles</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="p">)</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>This solution has a fondamental problem: when there are <em>n</em> element in
+the blog list, there will be <em>2n</em> page downloaded, one after the other,
+and this will take <em>2n * time to download one page</em>. When the
+problem takes a time directly proportional to the number of input,
+this is called an <em>O(n)</em> complexity and this rightfully rise the
+eyebrow of any developer concerned with performance or
+scalability. The solution presented at the end of the article is not
+too different, and is three times faster.</p>
+<p>As each download is completely independent with regard to each other,
+it is obvious that these downloads can be executed in parallel, or,
+<em>concurrently</em>, which is the raison d&#8217;être of the Twisted Python
+framework.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>A fast language</p>
+<p class="last">A frequently heard reaction at this point is &#8220;Python is a slow
+language to start with, a fast language is the answer to
+performance&#8221;. Notwithstanding the many existing techniques to make
+compiled Python code or make use of multiple processors from
+Twisted, it is not the point, in some case, a fast language like C
+does not help. For example, take the download of a install CD,
+there is an insignificant gain in performance in a downloader
+written in C over an implementation in Python, because (1) both
+implementation are very likely to end up leaving the network stuff,
+and disk writes to the kernel and most importantly because (2) this
+job is inherently bound by the network bandwidth, not by CPU
+computations, where C really shines. Both in C and in Python, in the
+context of multiple downloads, there is a need to run the tasks
+concurrently.</p>
+</div>
+</div>
+<div class="section" id="twisted-in-brief">
+<h2>Twisted in brief<a class="headerlink" href="#twisted-in-brief" title="Permalink to this headline">¶</a></h2>
+<p>One of the core ideas is that Twisted functions which make a network
+call should not block the application while the response is not yet
+available. <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt>, for example, blocks as long as the web
+page is not downloaded. Asynchronous functions register one or more
+<em>callbacks</em> to handle the result and returns to the main loop as soon
+as possible. The main loop (the <a title="reactor" class="reference internal" href="#reactor"><tt class="xref docutils literal"><span class="pre">reactor</span></tt></a>) keeps track of the
+available results and runs the callbacks with the result as the first
+argument. Because Twisted functions are <em>non-blocking</em>, and because
+they use callbacks to process the result, the result is processed
+<em>asynchronously</em> (such framework are also called <em>event-driven</em>).</p>
+<p>Now, what does an asynchronous function returns if it does not return
+the result? From the <a title="reactor" class="reference internal" href="#reactor"><tt class="xref docutils literal"><span class="pre">reactor</span></tt></a> point of view, there is a need for
+an object which associates an asynchronous function to its
+callbacks. From the point of view of the user of Twisted, he (or she!)
+will want to process the result: the Twisted abstraction returned by
+asynchronous functions is called a <em>Deferred</em> object, it is meant as a
+<strong>promise of a result</strong> and have a method <tt class="xref docutils literal"><span class="pre">addCallback()</span></tt>. Now for
+the user, a promise of a result is almost the same as a result except
+for extra lines of code. It was to be expected, as the result is not
+available yet, you need to be a bit more patient and type some more
+code, obviously.</p>
+<p>Deferreds, callbacks and the reactor are three central objects of the
+Twisted framework, understanding how they relate is a good step toward
+Twisted. Here is how a traditional <tt class="docutils literal"><span class="pre">mangle_html(</span> <span class="pre">urlopen(</span> <span class="pre">url</span> <span class="pre">))</span></tt> is
+rewritten with this mental shift:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">d</span> <span class="o">=</span> <span class="n">getPage</span><span class="p">(</span> <span class="n">url</span> <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">mangle</span><span class="p">(</span> <span class="n">html</span> <span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="n">the_result_of_my_mangling</span>
+
+<span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span> <span class="n">mangle</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Surprising huh? The good news is that Python offers a really powerful
+keyword <tt class="xref docutils literal"><span class="pre">yield</span></tt> to simplify the boilerplate of deferred and
+callback manipulation. <tt class="xref docutils literal"><span class="pre">yield</span></tt> allows for returning from a
+function half-way through and continuing later on at the point where
+the function returned. For asynchronous functions decorated with
+<tt class="xref docutils literal"><span class="pre">inlineCallbacks()</span></tt>, Twisted leverages <tt class="xref docutils literal"><span class="pre">yield</span></tt> : the reactor
+passes the result when it is available and continues the function
+where it exited.</p>
+<p>Here is the strict minimum needed to use Twisted:</p>
+<dl class="function">
+<dt id="getStuffAsynchronously">
+<tt class="descname">getStuffAsynchronously</tt><big>(</big><em>args</em><big>)</big> &rarr; Deferred<a class="headerlink" href="#getStuffAsynchronously" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronous in Twisted implies returning a Deferred which fires a
+result, and that a callback must have been attached to the Deferred
+to process the result. A callback can be either synchronous or
+asynchronous, it just needs to expect the result of the requesting
+functions as its first argument. A request must be asynchronous, it
+is the whole point of Twisted.</p>
+<ol class="arabic simple">
+<li>decorate this function with <tt class="xref docutils literal"><span class="pre">inlineCallbacks()</span></tt>,</li>
+<li>use a Twisted asynchronous primitive to do a request,</li>
+<li><tt class="xref docutils literal"><span class="pre">yield</span></tt> this function call, resulting in giving back control to
+the reactor to run other callback, and eventually calling back
+<a title="getStuffAsynchronously" class="reference internal" href="#getStuffAsynchronously"><tt class="xref docutils literal"><span class="pre">getStuffAsynchronously()</span></tt></a> with the result,</li>
+<li>stores the return value of the yield (the result of the request)
+in a variable. The code manipulating the variable is the
+callback inline with the request in the same function, hence the
+name <tt class="xref docutils literal"><span class="pre">inlineCallbacks()</span></tt>,</li>
+<li>if you want to return something, use <tt class="xref docutils literal"><span class="pre">returnValue()</span></tt>. As an
+asynchronous function return a deferred, the decorator will make
+this function will return a deferred,</li>
+</ol>
+<p>Here is an example of an asynchronous function which respect these rules:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">twisted.foobar</span> <span class="kn">import</span> <span class="n">getSpam</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">inlineCallbacks</span>
+
+<span class="k">def</span> <span class="nf">stuff</span><span class="p">():</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">getSpam</span><span class="p">(</span> <span class="s">&#39;foobar://spam_server&#39;</span> <span class="p">)</span>
+    <span class="n">returnValue</span><span class="p">(</span> <span class="n">mangle</span><span class="p">(</span> <span class="n">result</span> <span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="reactor">
+<em class="property">
+class </em><tt class="descname">reactor</tt><a class="headerlink" href="#reactor" title="Permalink to this definition">¶</a></dt>
+<dd><p>The import, <tt class="docutils literal"><span class="pre">from</span> <span class="pre">twisted.internet</span> <span class="pre">import</span> <span class="pre">reactor</span></tt>, must be the
+first line of the script. The reactor is a module attribute of the
+<tt class="xref docutils literal"><span class="pre">twisted.internet</span></tt> module to make sure there is only one
+reactor per application. The reactor is typically mentionned three
+times in a twisted application (an import, a start and a stop),
+then you can forget about it.</p>
+<dl class="method">
+<dt id="reactor.start">
+<tt class="descname">start</tt><big>(</big><em>Deferred</em><big>)</big> &rarr; never returns<a class="headerlink" href="#reactor.start" title="Permalink to this definition">¶</a></dt>
+<dd>Starts the main loop. The <a title="reactor.start" class="reference internal" href="#reactor.start"><tt class="xref docutils literal"><span class="pre">reactor.start()</span></tt></a> must be the last
+line of your program: it blocks and never returns.</dd></dl>
+
+<dl class="method">
+<dt id="reactor.stop">
+<tt class="descname">stop</tt><big>(</big><big>)</big><a class="headerlink" href="#reactor.stop" title="Permalink to this definition">¶</a></dt>
+<dd>Stops the main loop, effectively terminating the
+application. This function must be used in the callback of the
+last event of the application.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="a-short-example">
+<h2>A short example<a class="headerlink" href="#a-short-example" title="Permalink to this headline">¶</a></h2>
+<p>The following simple example shows side by side two codes which
+download, 30 times, the main page of <em>twistedmatrix.com</em> to extract
+and print the title. The first snippet is sequential, and the second
+is concurrent.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># sequential.py</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="mf">30</span> <span class="p">):</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="s">&#39;http://twistedmatrix.com&#39;</span> <span class="p">)</span>
+    <span class="k">print</span> <span class="n">parse</span><span class="p">(</span> <span class="n">fd</span> <span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="s">&#39;/html/head/title&#39;</span> <span class="p">)[</span><span class="mf">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># concurrent.py</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">DeferredList</span><span class="p">,</span> <span class="n">inlineCallbacks</span>
+<span class="kn">from</span> <span class="nn">twisted.web.client</span> <span class="kn">import</span> <span class="n">getPage</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">fromstring</span>
+
+<span class="nd">@inlineCallbacks</span>   <span class="c"># 1</span>
+<span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="n">_</span><span class="p">):</span>
+     <span class="n">html</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">getPage</span><span class="p">(</span> <span class="s">&#39;http://twistedmatrix.com&#39;</span> <span class="p">)</span>            <span class="c"># 2 &amp; 3 </span>
+     <span class="k">print</span> <span class="n">fromstring</span><span class="p">(</span> <span class="n">html</span> <span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="s">&#39;/html/head/title&#39;</span> <span class="p">)[</span><span class="mf">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>  <span class="c"># 4</span>
+
+<span class="nd">@inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">barrier</span><span class="p">():</span>
+     <span class="k">yield</span> <span class="n">DeferredList</span><span class="p">(</span> <span class="nb">map</span><span class="p">(</span> <span class="n">title</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mf">30</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>  <span class="c"># 5 </span>
+     <span class="n">reactor</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>                                 
+
+<span class="n">reactor</span><span class="o">.</span><span class="n">run</span><span class="p">(</span> <span class="n">barrier</span><span class="p">()</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is, step by step, how the concurrent code operates:</p>
+<ol class="arabic">
+<li><p class="first">With the <tt class="xref docutils literal"><span class="pre">inlineCallbacks()</span></tt> decorator, <tt class="xref docutils literal"><span class="pre">title()</span></tt> implicitly
+returns a deferred, and the reactor will call the function again
+when an asynchronous result is available.</p>
+</li>
+<li><p class="first"><tt class="xref docutils literal"><span class="pre">getPage()</span></tt> is one of the many (many many actually)
+asynchronous function offered by Twisted, it returns a deferred,
+whose result is the html string. The low level steps composing
+<tt class="xref docutils literal"><span class="pre">getPage()</span></tt> are asynchronous as well: the DNS request turning
+the <tt class="docutils literal"><span class="pre">twistedmatrix.com</span></tt> into an IP address will not block the
+application either !</p>
+<p>Twisted offers asynchronous function for managing UDP and TCP
+socket, but also offers high level functions for making request in
+the following protocol Web, DNS, SMTP, POP, XMPP, SIP, AMQP, etc.</p>
+</li>
+<li><p class="first"><tt class="xref docutils literal"><span class="pre">yield</span></tt> is the Python continuation keyword: the <tt class="xref docutils literal"><span class="pre">title()</span></tt>
+function returns at this point but will be restarted at this point
+at the next call of <tt class="xref docutils literal"><span class="pre">title()</span></tt>. This is crazy and perfect in the
+Twisted context. It is the <a title="reactor" class="reference internal" href="#reactor"><tt class="xref docutils literal"><span class="pre">reactor()</span></tt></a> which will eventually
+call back the <tt class="xref docutils literal"><span class="pre">title()</span></tt> function when the result of the
+deferred - when the response of the asynchronous request - is
+available.</p>
+<p>The result can be manipulated via the label at the left hand side
+of the <tt class="xref docutils literal"><span class="pre">yield</span></tt> assignement. In our example, the response is
+made available in the <tt class="docutils literal"><span class="pre">html</span></tt> placeholder.</p>
+</li>
+<li><p class="first">This line is the callback code, it parses and prints a fragment of
+the result of the asynchronous request. At this point lies the gain
+in performance over <tt class="docutils literal"><span class="pre">urlopen(</span> <span class="pre">url</span> <span class="pre">)</span></tt>: the application was not
+blocked until the return value was available,  <tt class="xref docutils literal"><span class="pre">getPage()</span></tt>
+returned as soon as the request was sent.</p>
+<p><tt class="docutils literal"><span class="pre">[0].text</span></tt> means : from the first element of the list - which is
+an html node, here - take the text content.</p>
+</li>
+<li><p class="first"><tt class="xref docutils literal"><span class="pre">DeferredList()</span></tt> takes a list of deferred as an input and
+returns a deferred whose callback is called after every element of
+the deferred list have been consumed. This function is sometimes
+called a <em>barrier</em> in other concurrency context.</p>
+<p>In our example, the deferred list is composed of the deferreds of
+the 30 calls to the <tt class="xref docutils literal"><span class="pre">title()</span></tt> function, when they are done, it
+is the right time to stop the script by calling
+<a title="reactor.stop" class="reference internal" href="#reactor.stop"><tt class="xref docutils literal"><span class="pre">reactor.stop()</span></tt></a>.</p>
+</li>
+</ol>
+<p>Run the two script the measure the performance difference:</p>
+<div class="highlight-python"><pre>time python sequential.py
+time python concurrent.py</pre>
+</div>
+<p>This is a 4x increase in performance, not bad.</p>
+</div>
+<div class="section" id="a-concurrent-solution">
+<h2>A concurrent solution<a class="headerlink" href="#a-concurrent-solution" title="Permalink to this headline">¶</a></h2>
+<p>Here is a concurrent solution using Twisted to our original
+problem, three times faster than the sequential approach :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">DeferredList</span><span class="p">,</span> <span class="n">inlineCallbacks</span>
+<span class="kn">from</span> <span class="nn">twisted.web.client</span> <span class="kn">import</span> <span class="n">getPage</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">fromstring</span>
+
+<span class="n">clean</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="mf">0</span><span class="p">]</span>
+
+<span class="nd">@inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">first_title</span><span class="p">(</span> <span class="n">url</span> <span class="p">):</span>
+
+    <span class="n">html</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">getPage</span><span class="p">(</span> <span class="n">url</span> <span class="p">)</span>
+    <span class="n">articles</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span> <span class="n">html</span> <span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="s">&#39;//h3/a/@href&#39;</span> <span class="p">)</span>
+
+    <span class="n">html</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">getPage</span><span class="p">(</span> <span class="n">articles</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="p">)</span>
+    <span class="n">titles</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span> <span class="n">html</span> <span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="s">&#39;/html/head/title&#39;</span> <span class="p">)</span>
+
+    <span class="k">print</span> <span class="s">&quot;first article on </span><span class="si">%s</span><span class="s"> : </span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">url</span><span class="p">,</span>
+            <span class="n">articles</span><span class="p">[</span><span class="mf">0</span><span class="p">],</span>
+            <span class="n">clean</span> <span class="p">(</span> <span class="n">titles</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="p">))</span>
+
+<span class="n">planets</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;http://planet.debian.net&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://planetzope.org&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://planet.gnome.org&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://gstreamer.freedesktop.org/planet/&quot;</span><span class="p">]</span>
+
+<span class="n">DeferredList</span><span class="p">(</span> <span class="nb">map</span><span class="p">(</span> <span class="n">first_title</span><span class="p">,</span> <span class="n">planets</span> <span class="p">))</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span><span class="n">reactor</span><span class="o">.</span><span class="n">stop</span><span class="p">())</span> 
+<span class="n">reactor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span> 
+</pre></div>
+</div>
+<p>This short article finishes here but poses as many questions as it
+answers:</p>
+<ul>
+<li><p class="first">Surprise handling is non existent in this script: manipulating
+deferreds explicitly, though more verbose, help creating clearer
+failure code path and help create more robust application and
+libraries.</p>
+<blockquote>
+</blockquote>
+<p>In our script, as well as when building network applications or
+libraries, the following problems may arise: no network, no dns, no
+route, no tcp server, page not found error, html title not
+found. How easy it is to handle them gracefully?</p>
+</li>
+<li><p class="first">Twisted use asynchronous functions to solve concurrency, how does it
+compare to thread or process (the <tt class="xref docutils literal"><span class="pre">threading()</span></tt> and
+<tt class="xref docutils literal"><span class="pre">multiprocessing()</span></tt> python module)? What does it mean for
+shared object and race condition? How does it compare with the
+libdispatch, erlang, haskell or scala ways of doing concurrency?</p>
+</li>
+<li><p class="first">How do reactor and deferreds interoperates? By dissecting the
+getPage function, we should end understanding how it relates to the
+system call on which the reactor is based. The system call is
+<tt class="xref docutils literal"><span class="pre">select()</span></tt> by default, but can be <tt class="xref docutils literal"><span class="pre">epoll()</span></tt> on lLinux or
+<tt class="xref docutils literal"><span class="pre">kqueue()</span></tt> on Freebsd.</p>
+</li>
+<li><p class="first">How to script Twisted versions of telnet, ping, dig, wget, mailx, etc?</p>
+</li>
+<li><p class="first">What is the best way to layout a Twisted development project, or to
+write functional tests for the project?</p>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Concurrent tasks with Twisted</a><ul>
+<li><a class="reference external" href="#problem-introduction">Problem introduction</a></li>
+<li><a class="reference external" href="#twisted-in-brief">Twisted in brief</a></li>
+<li><a class="reference external" href="#a-short-example">A short example</a></li>
+<li><a class="reference external" href="#a-concurrent-solution">A concurrent solution</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="../json.html"
+                                  title="previous chapter">JSON</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../.sources/twisted/concurrent.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../json.html" title="JSON"
+             >previous</a> |</li>
+        <li><a href="../index.html">fiches v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>
