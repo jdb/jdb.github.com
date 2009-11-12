@@ -1,15 +1,17 @@
-i18n primer
-===========
+Internationalization primer
+===========================
 
 I have investigated the standard internationalization (i18n) tools,
-because our clients may request to get messages in the language of
-their choice. These first steps are recorded here.
+because some day users may request to get messages in the language of
+their choice. These first steps are recorded here, first paragraph is
+to get a rough mental representation of how it works, second
+paragraph: how to build such an app.
 
 How does it work at runtime?
 ----------------------------
 
 Here is a super simple internationalized application in Python, called
-*myi18n.py* ::
+*myi18n.py*::
 
   import gettext
   _ = gettext.gettext
@@ -20,8 +22,7 @@ Here is a super simple internationalized application in Python, called
 
   print _("Yozzaaa")
 
-From these sources, you can see the program expects the following
-directory layout ::
+These sources uses the following conventional directory layout::
 
   |-- myi18n.py
   `-- language.d
@@ -71,6 +72,8 @@ The gettext system expects:
 How to build the application?
 -----------------------------
 
+The code presented here is meant to be copied and pasted in a
+terminal, at the end, you get a working app.
 
 #. When writing code, just use the *_()* shortcut around any strings
    that you later want to translate even you do not translate the
@@ -140,5 +143,3 @@ to see how to hack i18n to address different audience.
 .. other
 
 
- 
-:term:`environment`

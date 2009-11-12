@@ -1,6 +1,6 @@
 
-lvm
-===
+Logical volume manager
+======================
 
 Create an lvm partition merged from two fake partitions
 -------------------------------------------------------

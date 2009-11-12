@@ -1,7 +1,7 @@
 
 
-ssh
-===
+Secure shell techniques
+=======================
 
 
 X11 forwarding

@@ -1,7 +1,7 @@
 
-=================================
- debian package and repositories
-=================================
+==================================
+ Debian packages and repositories
+==================================
 
 Specification and softwares shares many concept. Both have tickets,
 sources and deliverable, revision on the sources, and release for the

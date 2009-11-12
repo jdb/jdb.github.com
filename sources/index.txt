@@ -1,13 +1,17 @@
 
 
-My fiches
-=========
-
+Every bit counts
+================
 	
 .. toctree::
    :maxdepth: 1
 
+   twisted/concurrent
    i18n
+   nf01/index
+   backward-compatibility
+   docutils
+   json
    packaging
    ssh
    lvm
@@ -18,14 +22,9 @@ My fiches
    rsync
    partition
    noyau
-   glossary
-   nf01/index
-   docutils
-   kvm
-   backward-compatibility
+   kv
    pty
-   json
-   twisted/concurrent
+
 
 
 Indices and tables
