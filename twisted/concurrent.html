@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Concurrent tasks with Twisted &mdash; bits v0.5 documentation</title>
-    <link rel="stylesheet" href="../static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -38,7 +38,46 @@
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Concurrent tasks with Twisted</a><ul>
+<li><a class="reference external" href="#problem-introduction">Problem introduction</a></li>
+<li><a class="reference external" href="#twisted-in-brief">Twisted in brief</a></li>
+<li><a class="reference external" href="#a-short-example">A short example</a></li>
+<li><a class="reference external" href="#a-concurrent-solution">A concurrent solution</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="../index.html"
+                                  title="previous chapter">Every bit counts</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="../i18n.html"
+                                  title="next chapter">Internationalization primer</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../sources/twisted/concurrent.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -114,17 +153,16 @@ framework.</p>
 <p class="last">A frequently heard reaction at this point is &#8220;Python is a slow
 language to start with, a fast language is the answer to
 performance&#8221;. Notwithstanding the many existing techniques to make
-compiled Python code or make use of multiple processors from
-Twisted, it is not the point, in some case, a fast language like C
-does not help. For example, take the download of a install CD,
-there is an insignificant gain in performance in a downloader
-written in C over an implementation in Python, because (1) both
-implementation are very likely to end up leaving the network stuff,
-and disk writes to the kernel and most importantly because (2) this
-job is inherently bound by the network bandwidth, not by CPU
-computations, where C really shines. Both in C and in Python, in the
-context of multiple downloads, there is a need to run the tasks
-concurrently.</p>
+compiled Python code run on multiple processors, it is not the
+point, in some case, a fast language like C does not help. For
+example, take the download of a install CD, there is an
+insignificant gain in performance in a download client written in C
+over an implementation in Python, because (1) both implementation
+are very likely to end up leaving the network and disk stuff to the
+kernel and most importantly because (2) this job is inherently
+bound by the network bandwidth, not by CPU computations, where C
+shines. Both in C and in Python, in the context of multiple
+downloads, there is a need to run the tasks concurrently.</p>
 </div>
 </div>
 <div class="section" id="twisted-in-brief">
@@ -358,23 +396,22 @@ answers:</p>
 deferreds explicitly, though more verbose, help creating clearer
 failure code path and help create more robust application and
 libraries.</p>
-<blockquote>
-</blockquote>
 <p>In our script, as well as when building network applications or
 libraries, the following problems may arise: no network, no dns, no
 route, no tcp server, page not found error, html title not
 found. How easy it is to handle them gracefully?</p>
 </li>
 <li><p class="first">Twisted use asynchronous functions to solve concurrency, how does it
-compare to thread or process (the <tt class="xref docutils literal"><span class="pre">threading()</span></tt> and
-<tt class="xref docutils literal"><span class="pre">multiprocessing()</span></tt> python module)? What does it mean for
-shared object and race condition? How does it compare with the
-libdispatch, erlang, haskell or scala ways of doing concurrency?</p>
+compare to thread or process (the <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/threading.html#threading"><tt class="xref docutils literal"><span class="pre">threading()</span></tt></a> and
+<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/multiprocessing.html#multiprocessing"><tt class="xref docutils literal"><span class="pre">multiprocessing()</span></tt></a> python module)? What does it mean for shared
+object and race condition? How does it compare with the libdispatch,
+erlang, haskell, stackless python, greenlet, corotwine or scala ways
+of doing concurrency?</p>
 </li>
 <li><p class="first">How do reactor and deferreds interoperates? By dissecting the
 getPage function, we should end understanding how it relates to the
 system call on which the reactor is based. The system call is
-<tt class="xref docutils literal"><span class="pre">select()</span></tt> by default, but can be <tt class="xref docutils literal"><span class="pre">epoll()</span></tt> on lLinux or
+<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/select.html#select"><tt class="xref docutils literal"><span class="pre">select()</span></tt></a> by default, but can be <tt class="xref docutils literal"><span class="pre">epoll()</span></tt> on lLinux or
 <tt class="xref docutils literal"><span class="pre">kqueue()</span></tt> on Freebsd.</p>
 </li>
 <li><p class="first">How to script Twisted versions of telnet, ping, dig, wget, mailx, etc?</p>
@@ -388,45 +425,6 @@ write functional tests for the project?</p>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Concurrent tasks with Twisted</a><ul>
-<li><a class="reference external" href="#problem-introduction">Problem introduction</a></li>
-<li><a class="reference external" href="#twisted-in-brief">Twisted in brief</a></li>
-<li><a class="reference external" href="#a-short-example">A short example</a></li>
-<li><a class="reference external" href="#a-concurrent-solution">A concurrent solution</a></li>
-</ul>
-</li>
-</ul>
-
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="../index.html"
-                                  title="previous chapter">Every bit counts</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="../i18n.html"
-                                  title="next chapter">Internationalization primer</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../sources/twisted/concurrent.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>

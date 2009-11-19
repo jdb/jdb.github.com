@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>phoronix test suite &mdash; bits v0.5 documentation</title>
-    <link rel="stylesheet" href="static/default.css" type="text/css" />
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -38,82 +38,7 @@
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
-  <div class="section" id="phoronix-test-suite">
-<h1>phoronix test suite<a class="headerlink" href="#phoronix-test-suite" title="Permalink to this headline">¶</a></h1>
-<p>For disk, memory and CPU performance, the Phoronix projects offers
-sophisticated benchmarks while being simple to setup and use. Add the
-<em>Phoronix</em> repository to the package repository list and install the
-<em>phoronix-test-suite</em> package.</p>
-<div class="highlight-python"><pre>sudo -s
-echo 'deb http://www.phoronix-test-suite.com/releases/repo pts.debian/' \
-       &gt;&gt; /etc/apt/sources.list
-aptitude update
-aptitude install phoronix-test-suite</pre>
-</div>
-<p>Memorize the default option for batch runs. Enter <em>Yes</em> once for all
-to save the results.</p>
-<div class="highlight-python"><pre>phoronix-test-suite batch-setup
-# Answer 'Yes'</pre>
-</div>
-<p>There dozens of test suites available categorized into types focused
-for instance on the processor, on the disk, on the memory, etc. No
-test suites on the network performance though.</p>
-<div class="highlight-python"><pre>phoronix-test-suite list-suites
-[ ... ]
-
-phoronix-test-suite info memory
-
-&gt; Suite Description: The system memory test suite consists of tests
-  designed to test the computer's system memory (RAM)
-  performance. Among these tests are RAMspeed and Bandwidth.
-
-&gt; memory
-&gt;  * ramspeed
-&gt;  * memory-bandwidth
-
-phoronix-test-suite info ramspeed
-
-&gt; ====================================
-&gt; RAMspeed 2.5.2
-&gt; ====================================
-&gt;
-&gt; Test Version: 1.1.1
-&gt; Project Web-Site: http://www.alasir.com/software/ramspeed/
-&gt;
-&gt; Description: This benchmark tests the system memory (RAM) performance.
-&gt; [ ... ]</pre>
-</div>
-<p>The suite needs to be <em>installed</em>  once prior to execution. Note
-that the installation process is very long as the test suite downloads
-and compile specific software versions. It may be wise to do it during
-the night.</p>
-<div class="highlight-python"><pre># Interesting test suites focusing on the processor
-phoronix-test-suite install compilation compression cryptography multicore
-
-# Test suite of type 'Disk' and memory
-phoronix-test-suite install disk filesystem system-disk memory</pre>
-</div>
-<p>The test suite can be run with <em>run</em> command. Again, they take great
-length to execute.</p>
-<div class="highlight-python"><pre>phoronix-test-suite batch-run compilation compression</pre>
-</div>
-<p>To install the test suite a second time on another machine, there is a
-command to avoid having to download the files again:
-<em>make-download-cache</em>. It is possible to use the file which were
-installed in the first installation.</p>
-</div>
-
-
-          </div>
-        </div>
-      </div>
+    </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
@@ -140,6 +65,83 @@ installed in the first installation.</p>
               </p>
           </div>
           <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="phoronix-test-suite">
+<h1>phoronix test suite<a class="headerlink" href="#phoronix-test-suite" title="Permalink to this headline">¶</a></h1>
+<p>For disk, memory and CPU performance, the Phoronix projects offers
+sophisticated benchmarks while being simple to setup and use.
+Phoronix is a benchmark infrastructure which downloads and compile the
+benchmarks prior to using them.</p>
+<p>Add the <em>Phoronix</em> repository to the package repository list and
+install the <em>phoronix-test-suite</em> package.:</p>
+<div class="highlight-python"><pre>sudo -s
+echo 'deb http://www.phoronix-test-suite.com/releases/repo pts.debian/' \
+       &gt;&gt; /etc/apt/sources.list
+aptitude update
+aptitude install phoronix-test-suite</pre>
+</div>
+<p>Memorize the default option for batch runs:</p>
+<div class="highlight-python"><pre>phoronix-test-suite batch-setup
+# Answer 'Yes' or no depending on your needs</pre>
+</div>
+<p>There are dozens of test suites available focusing for instance on the
+processor, on the disk, on the memory, etc. No test suites on the
+network performance though, Phoronix only tests the local machine
+components:</p>
+<div class="highlight-python"><pre>phoronix-test-suite list-suites
+[ ... ]
+
+phoronix-test-suite info memory
+
+&gt; Suite Description: The system memory test suite consists of tests
+  designed to test the computer's system memory (RAM)
+  performance. Among these tests are RAMspeed and Bandwidth.
+
+&gt; memory
+&gt;  * ramspeed
+&gt;  * memory-bandwidth
+
+phoronix-test-suite info ramspeed
+
+&gt; ====================================
+&gt; RAMspeed 2.5.2
+&gt; ====================================
+&gt;
+&gt; Test VYersion: 1.1.1
+&gt; Project Web-Site: http://www.alasir.com/software/ramspeed/
+&gt;
+&gt; Description: This benchmark tests the system memory (RAM) performance.
+&gt; [ ... ]</pre>
+</div>
+<p>The suite needs to be <em>installed</em>  once prior to execution. Note
+that the installation process is very long as the test suite downloads
+and compile specific software versions. It may be wise to do it during
+the night.</p>
+<div class="highlight-python"><pre># Interesting test suites focusing on the processor
+phoronix-test-suite install compilation compression cryptography multicore
+
+# Test suite of type 'Disk' and memory
+phoronix-test-suite install disk filesystem memory</pre>
+</div>
+<p>The test suite can be run with <em>run</em> command. Again, they take great
+length to execute.</p>
+<div class="highlight-python"><pre>phoronix-test-suite batch-run compilation compression</pre>
+</div>
+<p>To install the test suite a second time on another machine, there is a
+command to avoid having to download the files again:
+<em>make-download-cache</em>. It is possible to use the file which were
+installed in the first installation.</p>
+</div>
+
+
+          </div>
         </div>
       </div>
       <div class="clearer"></div>

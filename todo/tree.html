@@ -5,42 +5,42 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The Zope Component Architecture &mdash; bits v0.5 documentation</title>
-    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <title>Trees in PostgreSQL, not only in: out too &mdash; bits v0.5 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    '../',
         VERSION:     '0.5',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="static/jquery.js"></script>
-    <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="bits v0.5 documentation" href="index.html" /> 
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.5 documentation" href="../index.html" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
+          <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="sources/zca.txt"
+              <li><a href="../sources/todo/tree.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
             <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
+              <form class="search" action="../search.html" method="get">
                 <input type="text" name="q" size="18" />
                 <input type="submit" value="Go" />
                 <input type="hidden" name="check_keywords" value="yes" />
@@ -59,9 +59,26 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="the-zope-component-architecture">
-<h1>The Zope Component Architecture<a class="headerlink" href="#the-zope-component-architecture" title="Permalink to this headline">¶</a></h1>
-<p>cd</p>
+  <div class="section" id="trees-in-postgresql-not-only-in-out-too">
+<h1>Trees in PostgreSQL, not only in: out too<a class="headerlink" href="#trees-in-postgresql-not-only-in-out-too" title="Permalink to this headline">¶</a></h1>
+<p>There is a tree stored in your postgres, the schema is:</p>
+<div class="highlight-python"><pre>create table as mytree ( id int, parent int, int varchar ) ;</pre>
+</div>
+<p>Let&#8217;s put a few values:</p>
+<div class="highlight-python"><pre>insert into mytree values ( null,  0,  '/'    );
+insert into mytree values ( 0,  1,     'home' );
+insert into mytree values ( 1,  2,     'jd'   );
+
+insert into mytree values ( 2,  3,     'foo'  );
+
+insert into mytree values ( 3,  4,     'bar'  );</pre>
+</div>
+<p>In depth or in width first, when you receive a new arc, the first
+element is the parent and the second element is the child and is an
+unknown new node.</p>
+<p>In depth first, the arc adds a new child, to the current node, an
+ancestor of the current node. In width first, the arc adds a child, a
+nephew or a sibling.</p>
 </div>
 
 
@@ -74,9 +91,9 @@
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
+          <a href="../genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

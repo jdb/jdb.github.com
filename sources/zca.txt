@@ -1,6 +1,0 @@
-
-The Zope Component Architecture
-===============================
-
-
-cd

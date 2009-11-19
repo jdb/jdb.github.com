@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Réflexion sur nos propres produits &mdash; bits v0.5 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.5',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.5 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Réflexion sur nos propres produits</a></li>
+<li><a class="reference external" href="#r-centes-success-story">Récentes success story</a></li>
+<li><a class="reference external" href="#cr-dibilit-aupr-s-des-clients">Crédibilité auprès des clients</a></li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../sources/todo/letter2.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="r-flexion-sur-nos-propres-produits">
+<h1>Réflexion sur nos propres produits<a class="headerlink" href="#r-flexion-sur-nos-propres-produits" title="Permalink to this headline">¶</a></h1>
+<p>Si l&#8217;on évalue des technologies, c&#8217;est que l&#8217;on questionne le devenir
+de projets internes: faut t&#8217;il dire aux équipes qui développent ces
+applis depuis 2 ans que le choix n&#8217;était pas le bon?</p>
+<p>Ce n&#8217;est pas un aveu d&#8217;échec, c&#8217;est une inflexion de cap avisée. La
+décision de produire AIPC, par exemple, était la bonne au moment ou
+elle a été prise. La question se pose à la lumière de deux ans
+d&#8217;expérience, cela nous coute t&#8217;il plus cher de continuer a maintenir
+ce logiciel ou d&#8217;autres logiciels présente plus d&#8217;avantages? Si on
+prend l&#8217;exemple d&#8217;Etienne, ou de Sylvain, ils sont conscient (et
+parfois inquiets) des forces et des faiblesses des applis qu&#8217;ils
+maintiennent. Si ils croient dans leur logiciel, c&#8217;est un élément
+important pour le faire évoluer, par contre si eux mêmes ne sont pas
+convaincu, c&#8217;est peut être qu&#8217;ils se rendent compte qu&#8217;il y a des
+alternatives plus avancées.</p>
+<p>Ce n&#8217;est pas une pilule amère que l&#8217;on fait avaler aux développeurs,
+c&#8217;est un caramel qu&#8217;on leur propose! Si ce sont des technologies
+largement utilisées par l&#8217;industrie, ils gagnent en reconnaissance sur
+le marché du travail. Ils sont opérationels immédiatement au lieu
+d&#8217;être experts sur des applications inconnues en dehors de
+l&#8217;entreprise. Elles sont mieux documentées et sont plus simples à
+installer lorsqu&#8217;elles sont disponible chez les distributions
+populaires, ce qui facilite le travail au jour le jour.</p>
+<ol class="arabic simple">
+<li>donner une visibilité aux équipes de dev Sylvain et Etienne</li>
+<li>y a un enthousiasme de hacker qui font des prodiges alors que nos
+équipes sont au 35 effectives !</li>
+<li>Culture de la collaboration qui nous manque</li>
+</ol>
+<p>Avons nous les moyens de nous reposer uniquement sur une debian et un
+compilateur C++ pour construires seuls la pile logicielle de nos
+produits?  Nous ne sommes pas &#8220;intégrateur&#8221; dans la
+mesure ou nous sommes à même de modifier directement les briques du
+produit que l&#8217;on vend. Pourquoi ne pas partir du point de vue inverse
+qui est de dire qu&#8217;un client peut s&#8217;étonner s&#8217;il sait l&#8217;on a
+redéveloppé en interne les protocoles, la persistence, la redondance,
+etc.</p>
+<p>installer la dernière techno a la mode s&#8217;oppose à assembler des
+briques innovantes disponibles.</p>
+<p>problèmes des vieux langages:</p>
+<ul class="simple">
+<li>buffer overflow and memory leak is one thing, really quickly you get
+to think the structure of a process, with its sections bss etc,</li>
+<li>simplification des APIs, par exemple, ces trois fonctions permettent
+d&#8217;éviter des logs pourris. On y a bien réfléchis, et au bout du
+compte, quand nous étions satisfait, j&#8217;ai fait le rapide exercice de
+traduire l&#8217;API en python, et en fait les trois fonctions
+disparaissent. On exprime cette logique particulière avec les
+éléments du langage sans utiliser une librairie ou module
+particulière.</li>
+</ul>
+<p>there is no need to create object if you just need encapsulation, do
+it if you want destructors, inheritance</p>
+<p>Si ça vous intéresse toujours, et que vous avez des remarques...</p>
+</div>
+<div class="section" id="r-centes-success-story">
+<h1>Récentes success story<a class="headerlink" href="#r-centes-success-story" title="Permalink to this headline">¶</a></h1>
+<p><em>Cela n&#8217;a pas beaucoup sens de vouloir faire du business sur de l&#8217;open
+source</em></p>
+<p>KVM a créé un module pour le noyau linux, un produit et une entreprise
+autour, est une startup de qui été rachetées par Red Hat pour
+plusieurs dizaine de millions de dollars. JBoss qui a été rachetée
+pour à peu près la même somme que Netcentrex, la Berkeley DB rachetée
+par Oracle, ou MySQL rachetée pour presque un milliard de dollars par
+Sun.</p>
+<p>Canonical ou Rpath qui sont des experts du déploiement logiciel, ou
+Suse et Red Hat qui proposent des solutions de haute disponibilité
+flexible. Google et Canonical proposent chacun un Chief Open Source
+Officer qui présente la position officielle de l&#8217;entreprise et une
+interface pour la communauté.</p>
+<p>Parmi les grosses entreprises de logiciel IBM, Oracle, Intel, Sun,
+Google, Yahoo, Facebook, Second Life, tous utilisent et développent
+beaucoup de projets open source au sein de leur infrastructure et se
+innovent sur leur coeur de métier.</p>
+</div>
+<div class="section" id="cr-dibilit-aupr-s-des-clients">
+<h1>Crédibilité auprès des clients<a class="headerlink" href="#cr-dibilit-aupr-s-des-clients" title="Permalink to this headline">¶</a></h1>
+<p><em>Sera t&#8217;on crédible auprès des clients si l&#8217;on ne cree plus nous meme
+les logiciels et que nous sommes intégrateur?</em></p>
+<p>Je n&#8217;en vois pas d&#8217;implications entre des décisions circonscrites à la
+R&amp;D et le business model ne change pas. Par exemple, il n&#8217;y a aucun
+besoin de modifier les plaquettes commerciales.</p>
+<ol class="arabic simple">
+<li>le libre le libre, tu nous emmerdes avec le libre. Avant que l&#8217;on
+me mette dans une petite boite sur la croisade du logiciel libre,
+je voulais bien ecrire clairement que c&#8217;est trois points que nous
+avons pas et</li>
+<li>on évalue pas le libre, on s&#8217;inspire de ce qui existe. Partir de la
+techno pour faire un produit, Certaines briques technos sont</li>
+<li>attention au contexte et aux gens a qui je l&#8217;envoie,</li>
+<li>Pour monter un escalier, faire la première marche.</li>
+</ol>
+<p>Chacun à son idée sur la raison pour laquelle Anevia n&#8217;est pas encore
+le prochain Apple ou Youtube, il n&#8217;y a donc pas de raison que je n&#8217;ai
+pas moi même la solution à tout nos problèmes.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, jdb.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>
