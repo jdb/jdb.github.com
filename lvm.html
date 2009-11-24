@@ -96,64 +96,59 @@
 not operate on your real hard drive partitions but on loop partitions.</p>
 <ol class="arabic">
 <li><p class="first">create fake partition just for demonstration purpose with losetup:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># sudo -s</span>
-<span class="c"># dd if=/dev/zero of=hda1 bs=1M count=1G</span>
-<span class="c"># dd if=/dev/zero of=hda2 bs=1M count=1G</span>
-<span class="c"># losetup /dev/loop1 hda1        # for demonstration purpose, I create two fake</span>
-<span class="c"># losetup /dev/loop2 hda2        # partitions from newly created files with losetup.</span>
-</pre></div>
+<div class="highlight-python"><pre>~# sudo -s
+~# dd if=/dev/zero of=hda1 bs=1M count=1G
+~# dd if=/dev/zero of=hda2 bs=1M count=1G
+~# losetup /dev/loop1 hda1        # for demonstration purpose, I create two fake
+~# losetup /dev/loop2 hda2        # partitions from newly created files with losetup.</pre>
 </div>
 </li>
 <li><p class="first">At this point, there are two unused partitions. We can merge them
 into one:</p>
-<div class="highlight-python"><pre># pvcreate /dev/loop1
+<div class="highlight-python"><pre>~# pvcreate /dev/loop1
   Physical volume "/dev/loop1" successfully created
 
-# pvcreate /dev/loop2
+~# pvcreate /dev/loop2
   Physical volume "/dev/loop2" successfully created
 
-# vgcreate datadisks /dev/loop2 /dev/loop1
+~# vgcreate datadisks /dev/loop2 /dev/loop1
   Volume group "datadisks" successfully created
 
-# lvcreate -n muzak -L 24M datadisks
+~# lvcreate -n muzak -L 1500M datadisks
   Logical volume "muzak" created</pre>
 </div>
 </li>
 <li><p class="first">The partition <tt class="docutils literal"><span class="pre">/dev/mapper/datadisks-muzak</span></tt> is free, let&#8217;s create a
 filesystem and put some file on it:</p>
-<div class="highlight-python"><pre># mkfs.ext4 /dev/mapper/datadisks-muzak
-
-# mkdir /mnt/muzak &amp;&amp; mount /dev/mapper/datadisks-muzak /mnt/muzak
-
-# dd if=/dev/zero of=metronomy bs=1M count=1300
-
-# du -sh metronomy
-  22M     metronomy
-
-# cpt metronomy /mnt/muzak</pre>
+<div class="highlight-python"><pre>~# mkfs.ext4 /dev/mapper/datadisks-muzak
+~# mkdir /mnt/muzak &amp;&amp; mount /dev/mapper/datadisks-muzak /mnt/muzak
+~# dd if=/dev/zero of=metronomy bs=1M count=1300
+~# du -sh metronomy
+  1300M     metronomy
+~# cp metronomy /mnt/muzak</pre>
 </div>
-<p>From two partition (20M and 10M), we created a lv of 24M in which we
-copied more data (22M) than available on each of the partitions taken
-separatly.</p>
+<p>From two partition of 1G, we created a <em>logical volume</em> of 1.5G in
+which we copied more data (1.3G) than available on each of the
+partitions taken separatly.</p>
 </li>
 <li><p class="first">cleaning up:</p>
-<div class="highlight-python"><pre># umount /mnt/muzak
+<div class="highlight-python"><pre>~# umount /mnt/muzak
 
-# lvremove datadisks/muzak
+~# lvremove datadisks/muzak
 Do you really want to remove active logical volume "muzak"? [y/n]: y
   Logical volume "muzak" successfully removed
 
-# vgremove datadisks
+~# vgremove datadisks
   Volume group "datadisks" successfully removed
 
-# pvremove /dev/loop1 /dev/loop2
+~# pvremove /dev/loop1 /dev/loop2
   Labels on physical volume "/dev/loop1" successfully wiped
   Labels on physical volume "/dev/loop2" successfully wiped
 
-## lvm cleanup is done by now, let's clean the fake partitions
-# losetup -d /dev/loop2
-# losetup -d /dev/loop1
-# rm hda{1,2} metronomy -r /mnt/muzek</pre>
+~# ### lvm cleanup is done by now, let's clean the fake partitions
+~# losetup -d /dev/loop2
+~# losetup -d /dev/loop1
+~# rm hda{1,2} metronomy -r /mnt/muzek</pre>
 </div>
 </li>
 </ol>
@@ -166,35 +161,32 @@ Now, if the upgrade goes bad, we want a rollback and a short service
 interruption is tolerated.</p>
 <ol class="arabic">
 <li><p class="first">Create a fake physical partition, a lvm group and volume with a filesystem:</p>
-<div class="highlight-python"><pre># cd &amp;&amp; sudo -s
-# dd if=/dev/zero of=hda1 bs=1M count=150
-# losetup /dev/loop1 hda1
-# pvcreate /dev/loop1
+<div class="highlight-python"><pre>~# cd &amp;&amp; sudo -s
+~# dd if=/dev/zero of=hda1 bs=1M count=150
+~# losetup /dev/loop1 hda1
+~# pvcreate /dev/loop1
   Physical volume "/dev/loop1" successfully created
 
-# vgcreate datadisks /dev/loop1
+~# vgcreate datadisks /dev/loop1
   Volume group "datadisks" successfully created
 
-# lvcreate -n website -L 100M datadisks
+~# lvcreate -n website -L 100M datadisks
   Logical volume "website" created
 
-# mkfs.ext4 /dev/mapper/datadisks-website
-
-# mkdir /mnt/website &amp;&amp; mount /dev/mapper/datadisks-website /mnt/website
-
-# touch /mnt/website/{database,index.html}</pre>
+~# mkfs.ext4 /dev/mapper/datadisks-website
+~# mkdir /mnt/website &amp;&amp; mount /dev/mapper/datadisks-website /mnt/website
+~# touch /mnt/website/{database,index.html}</pre>
 </div>
 </li>
 <li><p class="first">Put the system in production and make it public. Everyday, users
 are created in your database:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># echo &quot;name:alice,age:29&quot; &gt;&gt; /mnt/website/database</span>
-<span class="c"># echo &quot;name:bob,age:18&quot; &gt;&gt; /mnt/website/database</span>
-</pre></div>
+<div class="highlight-python"><pre>~# echo "name:alice,age:29" &gt;&gt; /mnt/website/database
+~# echo "name:bob,age:18" &gt;&gt; /mnt/website/database</pre>
 </div>
 </li>
 <li><p class="first">Now you want to upgrade the system, the database schema is modified
 to allow an id field. That&#8217;s the database:</p>
-<div class="highlight-python"><pre># cat /mnt/website/database
+<div class="highlight-python"><pre>~# cat /mnt/website/database
 name:alice,age:29
 name:bob,age:18</pre>
 </div>
@@ -204,18 +196,16 @@ id=002,name:bob,age:18</pre>
 </div>
 <p>Architects and developper gather and we end up with an upgrade
 procedure composed of an lvm snapshot:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># lvcreate -s -n website_backup -L 25M  /dev/datadisks/website</span>
-</pre></div>
+<div class="highlight-python"><pre>~# lvcreate -s -n website_backup -L 25M  /dev/datadisks/website</pre>
 </div>
 <p>of the working database and some database mangling commands:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># nl -n rz -w 5 /mnt/website/database | sed &#39;s/\t/,/; s/^/if:/&#39; &gt; /mnt/website/database.new</span>
-<span class="c"># mv /mnt/website/database{.new,}</span>
-</pre></div>
+<div class="highlight-python"><pre>~# nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/if:/' &gt; /mnt/website/database.new
+~# mv /mnt/website/database{.new,}</pre>
 </div>
 <p>The upgrade procedure require the database to go read only, no new
 users can be created. Comes the night of the upgrade, at dawn, the
 db looks like:</p>
-<div class="highlight-python"><pre># cat /mnt/website/database
+<div class="highlight-python"><pre>~# cat /mnt/website/database
 if=001,name:alice,age:29
 if=002;name:bob,age:18</pre>
 </div>
@@ -224,17 +214,16 @@ database, plus it is written &#8216;if&#8217; everywhere now and we have no
 clue why. We need to go back to the lab, figure out what
 happened... What do we do now? we need roll back so that the
 production site can continue, here is the command:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># mkdir /mnt/backup</span>
-<span class="c"># mount /dev/datadisks/website_backup /mnt/backup</span>
-<span class="c"># cp /mnt/backup/database /mnt/website/database</span>
-<span class="c"># umount /mnt/backup/database</span>
-<span class="c"># lvremove /dev/datadisks/website_backup</span>
-<span class="c"># cat /mnt/website/database</span>
-</pre></div>
+<div class="highlight-python"><pre>~# mkdir /mnt/backup
+~# mount /dev/datadisks/website_backup /mnt/backup
+~# cp /mnt/backup/database /mnt/website/database
+~# umount /mnt/backup/database
+~# lvremove /dev/datadisks/website_backup
+~# cat /mnt/website/database</pre>
 </div>
 </li>
 <li><p class="first">Three weeks later many many more users have been created:</p>
-<div class="highlight-python"><pre># cat /mnt/website/database
+<div class="highlight-python"><pre>~# cat /mnt/website/database
 name:alice,age:29
 name:bob,age:18
 name:robwilco,age:35
@@ -243,14 +232,13 @@ name:duncanmacleod,age:539</pre>
 <p>and R&amp;D has come up with a <em>complete</em> re-design of the upgrade
 procedure: a snapshot and some <em>correct</em> database mangling
 commands:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># lvcreate -s -n website_backup -L 25M  /dev/datadisks/website</span>
-<span class="c"># nl -n rz -w 5 /mnt/website/database | sed &#39;s/\t/,/; s/^/id:/&#39; &gt; /mnt/website/database.new</span>
-<span class="c"># mv /mnt/website/database{.new,}</span>
-</pre></div>
+<div class="highlight-python"><pre>~# lvcreate -s -n website_backup -L 25M  /dev/datadisks/website
+~# nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/id:/' &gt; /mnt/website/database.new
+~# mv /mnt/website/database{.new,}</pre>
 </div>
 <p>At dawn, the database is correct, the snapshot safety was
 thankfully not used:</p>
-<div class="highlight-python"><pre># cat /mnt/website/database
+<div class="highlight-python"><pre>~# cat /mnt/website/database
 id:00001,name:alice,age:29
 id:00002,name:bob,age:18
 id:00003,name:robwilco,age:35
@@ -258,8 +246,8 @@ id:00004,name:duncanmacleod,age:539</pre>
 </div>
 <p>It is possible to remove the snapshot, and even after that the
 database is still up to date:</p>
-<div class="highlight-python"><pre># lvremove /dev/datadisks/website_backup
-# cat /mnt/website/database
+<div class="highlight-python"><pre>~# lvremove /dev/datadisks/website_backup
+~# cat /mnt/website/database
 id:00001,name:alice,age:29
 id:00002,name:bob,age:18
 id:00003,name:robwilco,age:35
@@ -267,13 +255,12 @@ id:00004,name:duncanmacleod,age:539</pre>
 </div>
 </li>
 <li><p class="first">To clean up after this exercice:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># umount /mnt/website/</span>
-<span class="c"># lvremove /dev/datadisks/website</span>
-<span class="c"># vgremove datadisks</span>
-<span class="c"># pvremove /dev/loop1</span>
-<span class="c"># losetup -d /dev/loop1</span>
-<span class="c"># rm hda1</span>
-</pre></div>
+<div class="highlight-python"><pre>~# umount /mnt/website/
+~# lvremove /dev/datadisks/website
+~# vgremove datadisks
+~# pvremove /dev/loop1
+~# losetup -d /dev/loop1
+~# rm hda1</pre>
 </div>
 </li>
 </ol>

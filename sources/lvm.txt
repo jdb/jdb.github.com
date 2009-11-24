@@ -10,65 +10,61 @@ not operate on your real hard drive partitions but on loop partitions.
 
 #. create fake partition just for demonstration purpose with losetup::
 
-     # sudo -s
-     # dd if=/dev/zero of=hda1 bs=1M count=1G
-     # dd if=/dev/zero of=hda2 bs=1M count=1G
-     # losetup /dev/loop1 hda1        # for demonstration purpose, I create two fake 
-     # losetup /dev/loop2 hda2        # partitions from newly created files with losetup.
+     ~# sudo -s
+     ~# dd if=/dev/zero of=hda1 bs=1M count=1G
+     ~# dd if=/dev/zero of=hda2 bs=1M count=1G
+     ~# losetup /dev/loop1 hda1        # for demonstration purpose, I create two fake 
+     ~# losetup /dev/loop2 hda2        # partitions from newly created files with losetup.
 
 
 #. At this point, there are two unused partitions. We can merge them
    into one::
 
-     # pvcreate /dev/loop1
+     ~# pvcreate /dev/loop1
        Physical volume "/dev/loop1" successfully created
      
-     # pvcreate /dev/loop2
+     ~# pvcreate /dev/loop2
        Physical volume "/dev/loop2" successfully created
      
-     # vgcreate datadisks /dev/loop2 /dev/loop1
+     ~# vgcreate datadisks /dev/loop2 /dev/loop1
        Volume group "datadisks" successfully created
      
-     # lvcreate -n muzak -L 24M datadisks
+     ~# lvcreate -n muzak -L 1500M datadisks
        Logical volume "muzak" created
 
 #. The partition ``/dev/mapper/datadisks-muzak`` is free, let's create a
    filesystem and put some file on it::
       
-     # mkfs.ext4 /dev/mapper/datadisks-muzak
-     
-     # mkdir /mnt/muzak && mount /dev/mapper/datadisks-muzak /mnt/muzak
-     
-     # dd if=/dev/zero of=metronomy bs=1M count=1300
-     
-     # du -sh metronomy
-       22M     metronomy
-     
-     # cpt metronomy /mnt/muzak
+     ~# mkfs.ext4 /dev/mapper/datadisks-muzak
+     ~# mkdir /mnt/muzak && mount /dev/mapper/datadisks-muzak /mnt/muzak
+     ~# dd if=/dev/zero of=metronomy bs=1M count=1300
+     ~# du -sh metronomy
+       1300M     metronomy
+     ~# cp metronomy /mnt/muzak
 
-   From two partition (20M and 10M), we created a lv of 24M in which we
-   copied more data (22M) than available on each of the partitions taken
-   separatly.
+   From two partition of 1G, we created a *logical volume* of 1.5G in
+   which we copied more data (1.3G) than available on each of the
+   partitions taken separatly.
 
 #. cleaning up::
 
-     # umount /mnt/muzak
+     ~# umount /mnt/muzak
 
-     # lvremove datadisks/muzak
+     ~# lvremove datadisks/muzak
      Do you really want to remove active logical volume "muzak"? [y/n]: y
        Logical volume "muzak" successfully removed
      
-     # vgremove datadisks
+     ~# vgremove datadisks
        Volume group "datadisks" successfully removed
      
-     # pvremove /dev/loop1 /dev/loop2
+     ~# pvremove /dev/loop1 /dev/loop2
        Labels on physical volume "/dev/loop1" successfully wiped
        Labels on physical volume "/dev/loop2" successfully wiped
      
-     ## lvm cleanup is done by now, let's clean the fake partitions
-     # losetup -d /dev/loop2
-     # losetup -d /dev/loop1
-     # rm hda{1,2} metronomy -r /mnt/muzek 
+     ~# ### lvm cleanup is done by now, let's clean the fake partitions
+     ~# losetup -d /dev/loop2
+     ~# losetup -d /dev/loop1
+     ~# rm hda{1,2} metronomy -r /mnt/muzek 
 
 
 Safe upgrades through rollback
@@ -81,34 +77,32 @@ interruption is tolerated.
 
 #. Create a fake physical partition, a lvm group and volume with a filesystem::
 
-     # cd && sudo -s
-     # dd if=/dev/zero of=hda1 bs=1M count=150
-     # losetup /dev/loop1 hda1 
-     # pvcreate /dev/loop1
+     ~# cd && sudo -s
+     ~# dd if=/dev/zero of=hda1 bs=1M count=150
+     ~# losetup /dev/loop1 hda1 
+     ~# pvcreate /dev/loop1
        Physical volume "/dev/loop1" successfully created
      
-     # vgcreate datadisks /dev/loop1
+     ~# vgcreate datadisks /dev/loop1
        Volume group "datadisks" successfully created
 
-     # lvcreate -n website -L 100M datadisks
+     ~# lvcreate -n website -L 100M datadisks
        Logical volume "website" created
 
-     # mkfs.ext4 /dev/mapper/datadisks-website
-
-     # mkdir /mnt/website && mount /dev/mapper/datadisks-website /mnt/website
-     
-     # touch /mnt/website/{database,index.html}
+     ~# mkfs.ext4 /dev/mapper/datadisks-website
+     ~# mkdir /mnt/website && mount /dev/mapper/datadisks-website /mnt/website
+     ~# touch /mnt/website/{database,index.html}
 
 #. Put the system in production and make it public. Everyday, users
    are created in your database::
 
-     # echo "name:alice,age:29" >> /mnt/website/database
-     # echo "name:bob,age:18" >> /mnt/website/database
+     ~# echo "name:alice,age:29" >> /mnt/website/database
+     ~# echo "name:bob,age:18" >> /mnt/website/database
 
 #. Now you want to upgrade the system, the database schema is modified
    to allow an id field. That's the database::
 
-     # cat /mnt/website/database
+     ~# cat /mnt/website/database
      name:alice,age:29
      name:bob,age:18
 
@@ -120,18 +114,18 @@ interruption is tolerated.
    Architects and developper gather and we end up with an upgrade
    procedure composed of an lvm snapshot::
 
-     # lvcreate -s -n website_backup -L 25M  /dev/datadisks/website
+     ~# lvcreate -s -n website_backup -L 25M  /dev/datadisks/website
 
    of the working database and some database mangling commands::
 
-     # nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/if:/' > /mnt/website/database.new
-     # mv /mnt/website/database{.new,}
+     ~# nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/if:/' > /mnt/website/database.new
+     ~# mv /mnt/website/database{.new,}
 
    The upgrade procedure require the database to go read only, no new
    users can be created. Comes the night of the upgrade, at dawn, the
    db looks like::
 
-     # cat /mnt/website/database
+     ~# cat /mnt/website/database
      if=001,name:alice,age:29
      if=002;name:bob,age:18
 
@@ -141,16 +135,16 @@ interruption is tolerated.
    happened... What do we do now? we need roll back so that the
    production site can continue, here is the command::
 
-     # mkdir /mnt/backup
-     # mount /dev/datadisks/website_backup /mnt/backup
-     # cp /mnt/backup/database /mnt/website/database
-     # umount /mnt/backup/database
-     # lvremove /dev/datadisks/website_backup 
-     # cat /mnt/website/database
+     ~# mkdir /mnt/backup
+     ~# mount /dev/datadisks/website_backup /mnt/backup
+     ~# cp /mnt/backup/database /mnt/website/database
+     ~# umount /mnt/backup/database
+     ~# lvremove /dev/datadisks/website_backup 
+     ~# cat /mnt/website/database
 
 #. Three weeks later many many more users have been created::
 
-     # cat /mnt/website/database
+     ~# cat /mnt/website/database
      name:alice,age:29
      name:bob,age:18
      name:robwilco,age:35
@@ -160,14 +154,14 @@ interruption is tolerated.
    procedure: a snapshot and some *correct* database mangling
    commands::
 
-     # lvcreate -s -n website_backup -L 25M  /dev/datadisks/website
-     # nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/id:/' > /mnt/website/database.new
-     # mv /mnt/website/database{.new,}
+     ~# lvcreate -s -n website_backup -L 25M  /dev/datadisks/website
+     ~# nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/id:/' > /mnt/website/database.new
+     ~# mv /mnt/website/database{.new,}
 
    At dawn, the database is correct, the snapshot safety was
    thankfully not used::
 
-     # cat /mnt/website/database
+     ~# cat /mnt/website/database
      id:00001,name:alice,age:29
      id:00002,name:bob,age:18
      id:00003,name:robwilco,age:35
@@ -176,8 +170,8 @@ interruption is tolerated.
    It is possible to remove the snapshot, and even after that the
    database is still up to date::
 
-     # lvremove /dev/datadisks/website_backup 
-     # cat /mnt/website/database
+     ~# lvremove /dev/datadisks/website_backup 
+     ~# cat /mnt/website/database
      id:00001,name:alice,age:29
      id:00002,name:bob,age:18
      id:00003,name:robwilco,age:35
@@ -185,12 +179,12 @@ interruption is tolerated.
 
 #. To clean up after this exercice::
 
-     # umount /mnt/website/
-     # lvremove /dev/datadisks/website 
-     # vgremove datadisks 
-     # pvremove /dev/loop1
-     # losetup -d /dev/loop1
-     # rm hda1
+     ~# umount /mnt/website/
+     ~# lvremove /dev/datadisks/website 
+     ~# vgremove datadisks 
+     ~# pvremove /dev/loop1
+     ~# losetup -d /dev/loop1
+     ~# rm hda1
 
 
 Tips
