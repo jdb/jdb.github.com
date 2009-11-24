@@ -52,6 +52,9 @@ is made of two coordinates, one for the horizontal position and one
 for the vertical position.
 
 .. figure:: fig/square-cercle.png
+   :height: 226pt
+   :width: 453pt
+
 
 This figure makes it clear is that the point is in the circle if
 and only if the distance between the point and the center is
@@ -62,6 +65,8 @@ where x represents the horizontal position and y represents the
 vertical position.
 
 .. figure:: fig/pythagoras.png
+   :height: 226pt
+   :width: 453pt
 
 
 .. In right triangles, the two short sides squared and summed, is the long side squared.
@@ -72,6 +77,8 @@ multiply by four. Serve with a slice of lemon and a small quantity of
 salt.
 
 .. figure:: fig/frequency.png
+   :height: 226pt
+   :width: 453pt
 
 
 A procedural and a functional algorithm
