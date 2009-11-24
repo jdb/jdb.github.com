@@ -93,7 +93,7 @@ paragraph: how to build such an app.</p>
 <h2>How does it work at runtime?<a class="headerlink" href="#how-does-it-work-at-runtime" title="Permalink to this headline">¶</a></h2>
 <p>Here is a super simple internationalized application in Python, called
 <em>myi18n.py</em>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">gettext</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">import</span> <span class="nn">gettext</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">gettext</span><span class="o">.</span><span class="n">gettext</span>
 
 <span class="n">gettext</span><span class="o">.</span><span class="n">bindtextdomain</span><span class="p">(</span> <span class="s">&quot;myi18n&quot;</span><span class="p">,</span> <span class="s">&quot;language.d&quot;</span><span class="p">)</span>
@@ -153,7 +153,7 @@ terminal, at the end, you get a working app.</p>
 that you later want to translate even you do not translate the
 application right away: it is not harmful anyway</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">cat</span> <span class="o">&gt;</span> <span class="n">myi18n</span><span class="o">.</span><span class="n">py</span> <span class="o">&lt;&lt;</span> <span class="n">EOF</span>
-<span class="kn">import</span> <span class="nn">gettext</span>
+<span class="k">import</span> <span class="nn">gettext</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">gettext</span><span class="o">.</span><span class="n">gettext</span>
 
 <span class="n">gettext</span><span class="o">.</span><span class="n">bindtextdomain</span><span class="p">(</span> <span class="s">&quot;myi18n&quot;</span><span class="p">,</span> <span class="s">&quot;language.d&quot;</span><span class="p">)</span>
@@ -235,7 +235,7 @@ to see how to hack i18n to address different audience.</p>
     </div>
     <div class="footer">
       &copy; Copyright 2009, jdb.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
     </div>
   </body>
 </html>

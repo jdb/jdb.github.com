@@ -207,3 +207,9 @@ regarding the version and the changelog:
    the source package to make it easy to apply a patch from the source
    package to upstream
 
+Open questions
+==============
+
+- How to know which package can be upgraded from the command line
+
+- How to know which repository holds this or that software

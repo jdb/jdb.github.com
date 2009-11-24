@@ -2,67 +2,91 @@
 An example of functional programming
 ====================================
 
-We are going to compare two styles of programming: procedural and
-functional, for solving a problem of an approximation of Pi. The idea
-of the approximation is pretty cool, it only needs random numbers!
+We are going to compare two styles of computer programming,
+*procedural* and *functional*, for finding an approximation of Pi. The
+idea of the approximation is pretty cool: it only needs random
+numbers!
 
 The math of the problem
 -----------------------
 
-#. Take a square and the circle which fits into the square, a random
-   point of the square can be either in the circle or outside. Now,
-   the frequency for a random point to be part of the circle can be
-   computed as the ratio between the number of points of the circle
-   and the total number of points.
+#. Take a square and the circle which fits into the square. A random
+   point of the square can be either in the circle or outside of the
+   circle. Now, the **frequency for a random point to be part of the
+   circle** can be computed as *the ratio between the number of points of
+   the circle and the total number of points*. In math, this is
+   summarized as:
+
+   .. math:: frequency = \frac{number\ of\ points\ in\ the\ circle}{total\ number\ of\ points} 
 
 #. The *number of points in a shape* is another name for the *surface*
    of the shape, that is:
 
    .. math:: 
 
-      Circle surface = Pi * radius^2 
+      Circle\ surface = \pi . radius^2 
 
-      Square surface = side^2. 
+      Square\ surface = side^2
 
-#. So the frequency for a random point of the square to be in the
-   circle is :math:`Pi * radius^2 / side^2` 
+#. Because the square contains all the points, and because the
+   *surface of a shape* is the set of points contained in the shape,
+   the frequency in 1. becomes:
 
-   Take a circle with a radius of 1, and its containing square with a
-   side length of 2, the relation is simply :math:`frequency = Pi*1^2/2^2 = Pi/4`
-   and from this you :math:`Pi = frequency * 4`
+   .. math:: frequency = \frac{ \pi . radius^2 }{ side^2 } 
 
-   If you can to build an experiment which gives you an approximation
-   of this frequency then an approximation of Pi is four times the
-   frequency.
+   To make things simple, take a circle with a radius of *1*, and its
+   containing square with a side length of *2*, the frequency is
+   simply
 
-#. Let's picture the square, the circle, and two random points. The
-   square and circle are centered on zero, the radius for the circle
-   is 1 and it fits into the square with a side of 2. A random point
-   is made of two coordinates, one for the horizontal position and one
-   for the vertical position.
+   .. math:: frequency = \frac{\pi}{4}
 
-   .. figure:: fig/square-cercle.svg
+   This means that if you can build an experiment which gives you
+   an approximation of this frequency then an approximation of **Pi is
+   four times the frequency**.
 
-   This figure makes it clear is that the point is in the circle if
-   and only if the distance between the point and the center is
-   smaller than the radius, which means here: smaller than one. The
-   method to compute the distance to the center has not changed for
-   thousands years, it is still, :math:`distance = \sqrt{x^2 + y^2 }`,
-   where x represents the horizontal position and y represents the
-   vertical position.
 
-   .. figure:: fig/pythagoras.svg
+Let's picture the square, the circle, and two random points. The
+square and circle are centered on zero, the radius for the circle
+is 1 and it fits into the square with a side of 2. A random point
+is made of two coordinates, one for the horizontal position and one
+for the vertical position.
+
+.. figure:: fig/square-cercle.svg
+   :height: 250pt
+   :width: 700pt
+
+This figure makes it clear is that the point is in the circle if
+and only if the distance between the point and the center is
+smaller than the radius, which means here: smaller than one. The
+method to compute the distance to the center has not changed for
+thousands years, it is still: :math:`distance = \sqrt{x^2 + y^2 }`,
+where x represents the horizontal position and y represents the
+vertical position.
+
+.. figure:: fig/pythagoras.svg
+   :height: 250pt
+   :width:  470pt
+
+.. In right triangles, the two short sides squared and summed, is the long side squared.
 
 To sum up the recipe for Pi, take a million random points in
 the square, count the points in the circle, divide by a million and
 multiply by four. Serve with a slice of lemon and a small quantity of
 salt.
 
-.. figure:: fig/sumup.svg
+.. figure:: fig/frequency.svg
+   :height: 250pt
+   :width:  470pt
 
+A procedural and a functional algorithm
+---------------------------------------
 
-A procedural and a functional solution
---------------------------------------
+That was for the theory, let's *implement* the recipe which means
+let's make a working example out of the design. Actually, we will make two
+working examples in the Python_ programming language and compare the
+styles. 
+
+.. _Python: http://www.python.org/doc/2.6.4/howto/advocacy.html
 
 In either styles, we will use the functions :func:`math.sqrt` and
 :func:`random.uniform`: the latter returns the *square root* of the
@@ -70,129 +94,142 @@ argument given as an input, the latter returns a random decimal number
 uniformly distributed between the values of the first and the second
 arguments. Also, both scripts will take the number of points (the
 sample size) as the first argument, so we will need :attr:`sys.argv`:
-it holds the command line parameter of the script ::
+it holds the command line parameters of the script ::
 
   #!/usr/bin/env python
   from random import uniform
   from math import sqrt
   from sys import argv 
 
-The procedural algorithm consist of, as many times as there are points
+The **procedural algorithm** consist of: as many times as there are points
 in the sample, to take a random point, then to test the inclusion of
 the point in the circle and when it's inside, increment a counter by
 one. When the loop is finished, print the counter divided by the
-sample size and multiplied by four. ::
+sample size and multiplied by four. Here it is, written in *Python*::
 
   size = int( argv[1] )
   counter = 0
-  for i in xrange(n):
+  for i in xrange( size ):
       if sqrt( uniform(-1,1)**2 + uniform(-1,1)**2 ) < 1:
           counter+=1
   
-  print( 'An approximation of Pi is : %s ' % ( counter * 4.0 / size ))
+  print( '   Pi ~ %s ' % ( counter * 4.0 / size ))
 
-The equivalent functional algorithm is: make a function which returns
+The equivalent **functional algorithm** is: make a function which returns
 a list of random points as big a the requested sample size. Then make
-another function which returns True if the input point is in the
+another function which tests if the input point is in the
 circle. Finally, print the length of the list of points filtered by
 the test function, and as before, divide by the sample size and
-multply by four::
+multiply by four::
 
   size = int( argv[1] )
   
-  points = lambda n : [ (uniform(-1,1), uniform(-1,1)) for i in range( size ) ]
+  points = lambda n : [ (uniform(-1,1), uniform(-1,1)) for i in xrange( n ) ]
   in_circle = lambda p : sqrt( p[0]**2 + p[1]**2 ) < 1
   
-  print( len( filter( in_circle, points( size ) ) ) * 4.0 / size )
+  print( '   Pi ~ %s' % ( len( filter( in_circle, points( size ) ) ) * 4.0 / size ) )
 
-Now if we test it in a command line, it does approximate Pi, but it
-converges pretty slowly::
+Now if we test it in a command line, it does approximate Pi, but as
+simple as it is, it converges pretty slowly::
 
-  procedural.py 1000
-  An approximation of Pi is : 3.112 
+  ~$ procedural.py 1000
+  Pi ~ 3.112 
 
-  procedural.py 100000
-  An approximation of Pi is : 3.14192 
+  ~$ procedural.py 100000
+  Pi ~ 3.14192 
 
-  functional.py 500000
-  3.140128 
+  ~$ functional.py 500000
+  Pi ~ 3.140128 
 
 In your opinion, which style fits the job best? I am not a big fan of
-the procedural style here, it is a sequence of intruction without much
-structure. The functional style cleanly analyze the problem into
-simpler bits, and solve the problem one by one.
+the procedural style here, it is a sequence of instruction without
+much structure. The functional style cleanly analyzes the problem into
+simpler bits which solve the problems one by one.
 
 Performance and lazyness
 ------------------------
 
-Now, for the brave and curious, how do the two solutions compare on
-for huge samples? ::
+For the brave and curious, by comparing the behavior of the two
+solutions with regard to huge samples, we will hit an interesting
+problem which will allow me to present the differences between the
+*list* and the python magic called *generator*. Let's execute the
+script with 200 000, one million and five million points in the sample
+::
 
-  alias time='/usr/bin/time --format "duration: %e seconds"'
-  test_it () { for i in 200000 1000000 50000000; do time $1 $i ; done ; }
+  ~$ alias time='/usr/bin/time --format "   duration: %e seconds"'
+  ~$ test_it () { for i in 200000 1000000 5000000; do time $1 $i ; done ; }
 
-  test_it procedural.py
-  An approximation of Pi is : 3.14268 
-  duration: 1.25 seconds
-  An approximation of Pi is : 3.140336 
-  duration: 2.39 seconds
-  An approximation of Pi is : 3.1435264 
-  duration: 12.08 seconds
+  ~$ test_it ./procedural.py 
+     Pi ~ 3.13974 
+     duration: 0.56 seconds
+     Pi ~ 3.141572 
+     duration: 2.19 seconds
+     Pi ~ 3.1412144 
+     duration: 10.97 seconds
  
-  test_it functional.py     
-  3.142344 
-  duration: 1.64 seconds
-  3.141684 
-  duration: 3.68 seconds
-  3.1412824 
-  duration: 37.27 seconds
-
-  # Do not hesitate to send the stop signal if it takes too long
-  # on your computer:  Ctrl-C or Ctrl-Z
+  ~$ test_it functional.py     
+     Pi ~ 3.13992
+     duration: 0.61 seconds
+     Pi ~ 3.141356
+     duration: 3.39 seconds
+     Pi ~ 3.1416272
+     duration: 32.71 seconds
+     Pi ~ 3.1409
+   
+  ~$ # Do not hesitate to send the stop signal if it takes too long
+  ~$ # on your computer:  Ctrl-C or Ctrl-Z
   
 Mmmh, the functional version takes longer and it does not scale. The
-problem stems from the fact that the range, :func:`points` and
-:func:`filter` make up lists of several million elements stored in the
-laptop memory, which is too small to handle them all efficiently. It
-is no use to store them all, in this problem, we only need one at the
-same time.
+problem stems from the fact that :func:`points` and :func:`filter`
+make up lists of several million elements stored in the laptop memory,
+which is too small to handle them all efficiently. It is no use to
+store them all, in this problem, we only need one at the same time.
 
 A solution is to use is a `generator
 <http://docs.python.org/reference/expressions.html#yieldexpr>`_ , it
 is a kind of Python magic which behaves like a list, but which only
 *generates* the element of the list when they are requested by the
 function which manipulates the generator. They are not stored, it is
-*on demand*.This technique is also called *lazy evaluation*.
+*on demand*. This technique is also called *lazy evaluation*.
 
-The :func:`points` function is modified: this expression, which returns a list::
+The :func:`points` function is modified: this expression, which returns a list ::
 
-  [ (uniform(-1,1), uniform(-1,1)) for i in range( size ) ]
+  [ (uniform(-1,1), uniform(-1,1)) for i in xrange( size ) ]
 
 is substituted by this expression, which returns a generator::
 
   ( (uniform(-1,1), uniform(-1,1)) for i in xrange( size ) )
 
 The :func:`filter` function is substituted by its
-*generator-returning* counterpart :func:`itertools.ifilter`
-module. One last change: a generator has no length, so :func:`len` is
-substituted by a trick: sum a list of one for each point in the
-circle::
+*generator-returning* counterpart :func:`~itertools.ifilter` in the
+:mod:`itertools` module. One last change: a generator has no length,
+so :func:`len` is substituted by a trick: sum a list of *ones* for
+each point in the circle::
 
   from itertools import ifilter
   
-  n = int( sys.argv[1] )
+  n = int( argv[1] )
   
   points = lambda n : ( (uniform(-1,1), uniform(-1,1)) for i in xrange(n) )
   in_circle = lambda p : sqrt( p[0]**2 + p[1]**2 ) < 1
   
-  print("A smarter implementation : %s " %
+  print("   Pi ~ %s" %
         ( sum( ( 1 for _ in ifilter( in_circle, points( n ) ) ) ) * 4.0 / n ))
   
-The :func:`test_it` function shows the that *lazy* implementation
-operate in 1.41, 2.77 and 11.93 seconds which leads to a performance
-boost of 14%, 25% and 55% over the previous functional implementation,
-but still 10% worse than the procedural style. At this point, the two
-style are technically rougly equivalent but the functional style needs
-more care, and reads less straightforward.
+The :func:`test_it` function shows the that *lazy* functional
+implementation operates with a performance boost of 14%, 25% and 55%
+over the previous functional implementation ::
+
+  ~$ test_it ./harder_better_stronger_faster.py 
+     Pi ~ 3.13988
+     duration: 0.54 seconds
+     Pi ~ 3.143804
+     duration: 2.62 seconds
+     Pi ~ 3.141496
+     duration: 13.10 seconds
+
+At this point, the two styles are technically rougly equivalent, the
+functional style needs more care in Python, reads less
+straightforward, and is 10% slower than the procedural counterpart.
 
 
