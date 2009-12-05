@@ -5,9 +5,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Concurrent tasks with Twisted &mdash; bits v0.5 documentation</title>
-    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <title>Concurrent programming with Twisted &mdash; bits v0.5 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -17,10 +17,10 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="bits v0.5 documentation" href="../index.html" />
-    <link rel="next" title="Internationalization primer" href="../i18n.html" />
+    <link rel="next" title="One application, multiple languages" href="../i18n.html" />
     <link rel="prev" title="An example of functional programming" href="../functional.html" /> 
   </head>
   <body>
@@ -31,7 +31,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="../i18n.html" title="Internationalization primer"
+          <a href="../i18n.html" title="One application, multiple languages"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="../functional.html" title="An example of functional programming"
@@ -43,7 +43,7 @@
         <div class="sphinxsidebarwrapper">
             <h3><a href="../index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">Concurrent tasks with Twisted</a><ul>
+<li><a class="reference external" href="">Concurrent programming with Twisted</a><ul>
 <li><a class="reference external" href="#problem-introduction">Problem introduction</a></li>
 <li><a class="reference external" href="#twisted-in-brief">Twisted in brief</a></li>
 <li><a class="reference external" href="#a-short-example">A short example</a></li>
@@ -57,10 +57,10 @@
                                   title="previous chapter">An example of functional programming</a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="../i18n.html"
-                                  title="next chapter">Internationalization primer</a></p>
+                                  title="next chapter">One application, multiple languages</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="../sources/twisted/concurrent.txt"
+              <li><a href="../_sources/twisted/concurrent.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -84,8 +84,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="concurrent-tasks-with-twisted">
-<h1>Concurrent tasks with Twisted<a class="headerlink" href="#concurrent-tasks-with-twisted" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="concurrent-programming-with-twisted">
+<h1>Concurrent programming with Twisted<a class="headerlink" href="#concurrent-programming-with-twisted" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="problem-introduction">
 <h2>Problem introduction<a class="headerlink" href="#problem-introduction" title="Permalink to this headline">¶</a></h2>
 <p>Concurrency is a key concept particularly useful for performance: take
@@ -112,8 +112,8 @@ returns the html content of the response as tree structure,</dd></dl>
 matching the <em>xpath</em> pattern: can find urls or page title.</dd></dl>
 
 <p>Here is the script:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">lxml.html</span> <span class="k">import</span> <span class="n">parse</span>
-<span class="k">from</span> <span class="nn">urllib2</span> <span class="k">import</span> <span class="n">urlopen</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
 
 <span class="n">getpage</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">url</span> <span class="p">:</span> <span class="n">parse</span><span class="p">(</span> <span class="n">urlopen</span><span class="p">(</span> <span class="n">url</span> <span class="p">)</span> <span class="p">)</span>
 
@@ -234,8 +234,8 @@ asynchronous function return a deferred, the decorator will make
 this function will return a deferred,</li>
 </ol>
 <p>Here is an example of an asynchronous function which respect these rules:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">twisted.foobar</span> <span class="k">import</span> <span class="n">getSpam</span>
-<span class="k">from</span> <span class="nn">twisted.internet.defer</span> <span class="k">import</span> <span class="n">inlineCallbacks</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">twisted.foobar</span> <span class="kn">import</span> <span class="n">getSpam</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">inlineCallbacks</span>
 
 <span class="k">def</span> <span class="nf">stuff</span><span class="p">():</span>
     <span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">getSpam</span><span class="p">(</span> <span class="s">&#39;foobar://spam_server&#39;</span> <span class="p">)</span>
@@ -246,7 +246,8 @@ this function will return a deferred,</li>
 
 <dl class="class">
 <dt id="reactor">
-<em class="property">class </em><tt class="descname">reactor</tt><a class="headerlink" href="#reactor" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descname">reactor</tt><a class="headerlink" href="#reactor" title="Permalink to this definition">¶</a></dt>
 <dd><p>The import, <tt class="docutils literal"><span class="pre">from</span> <span class="pre">twisted.internet</span> <span class="pre">import</span> <span class="pre">reactor</span></tt>, must be the
 first line of the script. The reactor is a module attribute of the
 <tt class="xref docutils literal"><span class="pre">twisted.internet</span></tt> module to make sure there is only one
@@ -276,8 +277,8 @@ download, 30 times, the main page of <em>twistedmatrix.com</em> to extract
 and print the title. The first snippet is sequential, and the second
 is concurrent.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># sequential.py</span>
-<span class="k">from</span> <span class="nn">lxml.html</span> <span class="k">import</span> <span class="n">parse</span>
-<span class="k">from</span> <span class="nn">urllib2</span> <span class="k">import</span> <span class="n">urlopen</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="mf">30</span> <span class="p">):</span>
     <span class="n">fd</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span> <span class="s">&#39;http://twistedmatrix.com&#39;</span> <span class="p">)</span>
@@ -285,10 +286,10 @@ is concurrent.</p>
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># concurrent.py</span>
-<span class="k">from</span> <span class="nn">twisted.internet</span> <span class="k">import</span> <span class="n">reactor</span>
-<span class="k">from</span> <span class="nn">twisted.internet.defer</span> <span class="k">import</span> <span class="n">DeferredList</span><span class="p">,</span> <span class="n">inlineCallbacks</span>
-<span class="k">from</span> <span class="nn">twisted.web.client</span> <span class="k">import</span> <span class="n">getPage</span>
-<span class="k">from</span> <span class="nn">lxml.html</span> <span class="k">import</span> <span class="n">fromstring</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">DeferredList</span><span class="p">,</span> <span class="n">inlineCallbacks</span>
+<span class="kn">from</span> <span class="nn">twisted.web.client</span> <span class="kn">import</span> <span class="n">getPage</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">fromstring</span>
 
 <span class="nd">@inlineCallbacks</span>   <span class="c"># 1</span>
 <span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="n">_</span><span class="p">):</span>
@@ -358,10 +359,10 @@ time python concurrent.py</pre>
 <h2>A concurrent solution<a class="headerlink" href="#a-concurrent-solution" title="Permalink to this headline">¶</a></h2>
 <p>Here is a concurrent solution using Twisted to our original
 problem, three times faster than the sequential approach :</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">twisted.internet</span> <span class="k">import</span> <span class="n">reactor</span>
-<span class="k">from</span> <span class="nn">twisted.internet.defer</span> <span class="k">import</span> <span class="n">DeferredList</span><span class="p">,</span> <span class="n">inlineCallbacks</span>
-<span class="k">from</span> <span class="nn">twisted.web.client</span> <span class="k">import</span> <span class="n">getPage</span>
-<span class="k">from</span> <span class="nn">lxml.html</span> <span class="k">import</span> <span class="n">fromstring</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">DeferredList</span><span class="p">,</span> <span class="n">inlineCallbacks</span>
+<span class="kn">from</span> <span class="nn">twisted.web.client</span> <span class="kn">import</span> <span class="n">getPage</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">fromstring</span>
 
 <span class="n">clean</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="mf">0</span><span class="p">]</span>
 
@@ -423,6 +424,9 @@ write functional tests for the project?</p>
 </div>
 
 
+
+
+
           </div>
         </div>
       </div>
@@ -435,7 +439,7 @@ write functional tests for the project?</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="../i18n.html" title="Internationalization primer"
+          <a href="../i18n.html" title="One application, multiple languages"
              >next</a> |</li>
         <li class="right" >
           <a href="../functional.html" title="An example of functional programming"
@@ -445,7 +449,7 @@ write functional tests for the project?</p>
     </div>
     <div class="footer">
       &copy; Copyright 2009, jdb.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
     </div>
   </body>
 </html>

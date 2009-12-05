@@ -5,9 +5,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Logical volume manager &mdash; bits v0.5 documentation</title>
-    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <title>Upgrade safety net with the logical volume manager &mdash; bits v0.5 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
@@ -17,11 +17,11 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="static/jquery.js"></script>
-    <script type="text/javascript" src="static/doctools.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bits v0.5 documentation" href="index.html" />
-    <link rel="next" title="Subversion’s cheatsheet" href="svn.html" />
-    <link rel="prev" title="Secure shell techniques" href="ssh.html" /> 
+    <link rel="next" title="Les pseudo-terminaux" href="pty.html" />
+    <link rel="prev" title="Debian packages and repositories" href="packaging.html" /> 
   </head>
   <body>
     <div class="related">
@@ -31,10 +31,10 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="svn.html" title="Subversion’s cheatsheet"
+          <a href="pty.html" title="Les pseudo-terminaux"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="ssh.html" title="Secure shell techniques"
+          <a href="packaging.html" title="Debian packages and repositories"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
@@ -43,28 +43,25 @@
         <div class="sphinxsidebarwrapper">
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">Logical volume manager</a><ul>
-<li><a class="reference external" href="#create-an-lvm-partition-bigger-than-two-physical-partitions">Create an lvm partition bigger than two physical partitions</a></li>
-<li><a class="reference external" href="#safe-upgrades-through-rollback">Safe upgrades through rollback</a></li>
-<li><a class="reference external" href="#tips">Tips</a><ul>
-<li><a class="reference external" href="#resetting-the-filesystem-after-an-lvm-hot-resize-resize">Resetting the filesystem after an lvm hot resize resize</a></li>
-<li><a class="reference external" href="#mounting-a-logical-volume-from-a-livecd">Mounting a logical volume from a livecd</a></li>
-</ul>
-</li>
-<li><a class="reference external" href="#see-also">See also</a></li>
+<li><a class="reference external" href="">Upgrade safety net with the logical volume manager</a><ul>
+<li><a class="reference external" href="#fake-physical-partitions">Fake physical partitions</a></li>
+<li><a class="reference external" href="#lvm-partition-setup">LVM partition setup</a></li>
+<li><a class="reference external" href="#an-upgrade-plan-in-production">An upgrade plan in production</a></li>
+<li><a class="reference external" href="#filesystem-transactions-with-lvm">Filesystem transactions with lvm</a></li>
+<li><a class="reference external" href="#upgrade-which-goes-well">Upgrade which goes well</a></li>
 </ul>
 </li>
 </ul>
 
             <h4>Previous topic</h4>
-            <p class="topless"><a href="ssh.html"
-                                  title="previous chapter">Secure shell techniques</a></p>
+            <p class="topless"><a href="packaging.html"
+                                  title="previous chapter">Debian packages and repositories</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="svn.html"
-                                  title="next chapter">Subversion&#8217;s cheatsheet</a></p>
+            <p class="topless"><a href="pty.html"
+                                  title="next chapter">Les pseudo-terminaux</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="sources/lvm.txt"
+              <li><a href="_sources/lvm.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -88,104 +85,133 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="logical-volume-manager">
-<h1>Logical volume manager<a class="headerlink" href="#logical-volume-manager" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="create-an-lvm-partition-bigger-than-two-physical-partitions">
-<h2>Create an lvm partition bigger than two physical partitions<a class="headerlink" href="#create-an-lvm-partition-bigger-than-two-physical-partitions" title="Permalink to this headline">¶</a></h2>
-<p>These commands can be copied and pasted with no ill effects. They will
-not operate on your real hard drive partitions but on loop partitions.</p>
-<ol class="arabic">
-<li><p class="first">create fake partition just for demonstration purpose with losetup:</p>
-<div class="highlight-python"><pre>~# sudo -s
-~# dd if=/dev/zero of=hda1 bs=1M count=1G
-~# dd if=/dev/zero of=hda2 bs=1M count=1G
-~# losetup /dev/loop1 hda1        # for demonstration purpose, I create two fake
-~# losetup /dev/loop2 hda2        # partitions from newly created files with losetup.</pre>
-</div>
-</li>
-<li><p class="first">At this point, there are two unused partitions. We can merge them
-into one:</p>
-<div class="highlight-python"><pre>~# pvcreate /dev/loop1
-  Physical volume "/dev/loop1" successfully created
-
-~# pvcreate /dev/loop2
-  Physical volume "/dev/loop2" successfully created
-
-~# vgcreate datadisks /dev/loop2 /dev/loop1
-  Volume group "datadisks" successfully created
-
-~# lvcreate -n muzak -L 1500M datadisks
-  Logical volume "muzak" created</pre>
-</div>
-</li>
-<li><p class="first">The partition <tt class="docutils literal"><span class="pre">/dev/mapper/datadisks-muzak</span></tt> is free, let&#8217;s create a
-filesystem and put some file on it:</p>
-<div class="highlight-python"><pre>~# mkfs.ext4 /dev/mapper/datadisks-muzak
-~# mkdir /mnt/muzak &amp;&amp; mount /dev/mapper/datadisks-muzak /mnt/muzak
-~# dd if=/dev/zero of=metronomy bs=1M count=1300
-~# du -sh metronomy
-  1300M     metronomy
-~# cp metronomy /mnt/muzak</pre>
-</div>
-<p>From two partition of 1G, we created a <em>logical volume</em> of 1.5G in
-which we copied more data (1.3G) than available on each of the
-partitions taken separatly.</p>
-</li>
-<li><p class="first">cleaning up:</p>
-<div class="highlight-python"><pre>~# umount /mnt/muzak
-
-~# lvremove datadisks/muzak
-Do you really want to remove active logical volume "muzak"? [y/n]: y
-  Logical volume "muzak" successfully removed
-
-~# vgremove datadisks
-  Volume group "datadisks" successfully removed
-
-~# pvremove /dev/loop1 /dev/loop2
-  Labels on physical volume "/dev/loop1" successfully wiped
-  Labels on physical volume "/dev/loop2" successfully wiped
-
-~# ### lvm cleanup is done by now, let's clean the fake partitions
-~# losetup -d /dev/loop2
-~# losetup -d /dev/loop1
-~# rm hda{1,2} metronomy -r /mnt/muzek</pre>
-</div>
-</li>
-</ol>
-</div>
-<div class="section" id="safe-upgrades-through-rollback">
-<h2>Safe upgrades through rollback<a class="headerlink" href="#safe-upgrades-through-rollback" title="Permalink to this headline">¶</a></h2>
-<p>The example is a website with a database which gets into production
-and needs to be updated 1. without service interruption, 2. safely.
-Now, if the upgrade goes bad, we want a rollback and a short service
-interruption is tolerated.</p>
-<ol class="arabic">
-<li><p class="first">Create a fake physical partition, a lvm group and volume with a filesystem:</p>
+  <div class="section" id="upgrade-safety-net-with-the-logical-volume-manager">
+<h1>Upgrade safety net with the logical volume manager<a class="headerlink" href="#upgrade-safety-net-with-the-logical-volume-manager" title="Permalink to this headline">¶</a></h1>
+<p>The story is a website with a database which gets into production and
+then, after a while, needs to have its schema corrected and related
+files upgraded safely. As usual, it is always better to get the schema
+right from the beginning but it the real world there is a demand for
+both flexibility and safety. With the logical volume manager, the
+website gets its invasive (read scary) upgrade but there is a good and
+handy safety net in case of a mess.</p>
+<p>The idea is to take a snapshot of the disk <em>partition</em>: it is like
+making a backup of a partition and copy it back later whenever
+required, with the added benefit of</p>
+<ul class="simple">
+<li>the backup is done in almost not time, it is <em>not</em> depending on the
+size of the disk,</li>
+<li>there is no actual copy of the blocks so it is very light on the
+io and space available,</li>
+<li>most importantly, even if the backup happens during a massive
+modification of the filesystem structure, the filesystem data
+structures are coherent.</li>
+</ul>
+<p>It is not magic though, the snapshot itself is a partition and it
+grows along when new data is added to the original partition to which
+the snapshot is attached. Make sure the snapshot partition is big
+enough to contain the updates to the original partition or suppress
+the partition before it gets full.</p>
+<div class="section" id="fake-physical-partitions">
+<h2>Fake physical partitions<a class="headerlink" href="#fake-physical-partitions" title="Permalink to this headline">¶</a></h2>
+<p>Before showing how to setup a logical partition with lvm, let&#8217;s first
+present a cool trick to create <em>virtual physical partitions</em>: it is
+not related to lvm per se but it ease experimentation with RAID or LVM
+without mangling a real disk.</p>
+<p>With <em>losetup</em>&#8216;s fake virtual partitions, it is possible to turn a
+normal file into a disk image device, available in <em>/dev</em>. Here we
+create, with <em>dd</em>, a file of one gigabyte called <em>loop1.raw</em> in the
+current directory, and make it available under <em>/dev/loop1</em></p>
 <div class="highlight-python"><pre>~# cd &amp;&amp; sudo -s
-~# dd if=/dev/zero of=hda1 bs=1M count=150
-~# losetup /dev/loop1 hda1
-~# pvcreate /dev/loop1
-  Physical volume "/dev/loop1" successfully created
+~# dd if=/dev/zero of=loop1.raw bs=1M count=150
 
-~# vgcreate datadisks /dev/loop1
-  Volume group "datadisks" successfully created
+~# cat /proc/partitions
+major minor  #blocks  name
 
-~# lvcreate -n website -L 100M datadisks
+ 8        0  117220824 sda
+ 8        1     104391 sda1
+ 8        2   22964917 sda2
+
+~# losetup /dev/loop1 loop1.raw
+
+~# cat /proc/partitions
+ major minor  #blocks  name
+
+ 7        1     153600 loop1
+ 8        0  117220824 sda
+ 8        1     104391 sda1
+ 8        2   22964917 sda2</pre>
+</div>
+<p>There was no partitions available called <em>loop1</em> and it appeared after
+the <em>losetup command</em>. We will set up the partition to use with lvm in
+the next paragraph.</p>
+</div>
+<div class="section" id="lvm-partition-setup">
+<h2>LVM partition setup<a class="headerlink" href="#lvm-partition-setup" title="Permalink to this headline">¶</a></h2>
+<p>To represent LVM operations, there are three object you need to be
+familiar with, and for each of these objects, there is the
+corresponding shell commands for creating, listing and removing said
+object.</p>
+<dl class="docutils">
+<dt><cite>physical volume</cite>: a physical partitions of one of the physical hard</dt>
+<dd>drive which has been allocated to lvm. Managed with <em>pvcreate</em>,
+<em>pvs</em> and <em>pvremove</em>.</dd>
+<dt><cite>volume group</cite>: aggregation of <strong>physical volumes</strong>. When I first read</dt>
+<dd>documentation about LVM, I thought the volume groups was meant to
+aggregate higher level logical paritions and data, but it is the
+other way round, they aggregate the real partitions. Managed with
+<em>vgcreate</em>, <em>vgs</em> and <em>vgremove</em>.</dd>
+<dt><cite>logical volume</cite>: volume is what you will use in the end with <em>mkfs</em></dt>
+<dd>and <em>mount</em>. This is the device which look like the traditional
+partitions but with additional features like snapshots or resize on
+the fly. Managed with <em>lvcreate</em>, <em>lvs</em> and <em>lvgemove</em>.</dd>
+</dl>
+<p>Initialise the partition for use with lvm:</p>
+<div class="highlight-python"><pre>~# pvcreate /dev/loop1
+  Physical volume "/dev/loop1" successfully created</pre>
+</div>
+<p>A disk can only be added once to a volume group, multiple physical
+disks compose a <em>volume group</em>:</p>
+<div class="highlight-python"><pre>~# vgcreate datadisks /dev/loop1
+  Volume group "datadisks" successfully created</pre>
+</div>
+<p>So far, the partitions available have not changed and the
+<em>/dev/datadisks/website</em> partition does not exists:</p>
+<div class="highlight-python"><pre>~# lvs &amp;&amp; cat /proc/partitions &amp;&amp; ls /dev/datadisks/website
+   # the partitions available have not changed yet and
+   # the /dev/datadisks/website partition does not exists (yet)</pre>
+</div>
+<p>A logical volume (a partition) can now be created, it has a name, a
+size, and is inside a group:</p>
+<div class="highlight-python"><pre>~# lvcreate -n website -L 100M datadisks
   Logical volume "website" created
 
-~# mkfs.ext4 /dev/mapper/datadisks-website
-~# mkdir /mnt/website &amp;&amp; mount /dev/mapper/datadisks-website /mnt/website
-~# touch /mnt/website/{database,index.html}</pre>
+~# lvs &amp;&amp; cat /proc/partitions &amp;&amp; ls /dev/datadisks/website</pre>
 </div>
-</li>
-<li><p class="first">Put the system in production and make it public. Everyday, users
-are created in your database:</p>
-<div class="highlight-python"><pre>~# echo "name:alice,age:29" &gt;&gt; /mnt/website/database
-~# echo "name:bob,age:18" &gt;&gt; /mnt/website/database</pre>
+<p>In the partitions, a new <em>dm</em> (I&#8217;ll be it stands for <em>device mapper</em>)
+entry is shown, the device is available contained in a directory named
+after the volume group.</p>
+<p>As usual, the partition must be formatted and mounted to be integrated
+to the filesystem:</p>
+<div class="highlight-python"><pre>~# mkfs.ext4 /dev/datadisks/website
+~# mkdir /mnt/website &amp;&amp; mount /dev/datadisks/website /mnt/website</pre>
 </div>
-</li>
-<li><p class="first">Now you want to upgrade the system, the database schema is modified
-to allow an id field. That&#8217;s the database:</p>
+</div>
+<div class="section" id="an-upgrade-plan-in-production">
+<h2>An upgrade plan in production<a class="headerlink" href="#an-upgrade-plan-in-production" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s a compose a dummy three-tier website, that we will have to
+upgrade, corrupt, rollback, etc:</p>
+<div class="highlight-python"><pre>~# touch /mnt/website/{database,index.html}
+~# new_user_api () { echo "name:$1,age:$2" &gt;&gt; /mnt/website/database ; }</pre>
+</div>
+<p>With the adapted amount of marketing and public relation, the website
+is put in production and made available to the public. Everyday,
+torrents of new users line up to subscribe:</p>
+<div class="highlight-python"><pre>~# new_user_api alice 29
+~# new_user_api bob 18</pre>
+</div>
+<p><em>Sparky the architect</em> have realised that the database schema must be
+upgraded to include an <em>id</em> for each users. This is the current
+database:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 name:alice,age:29
 name:bob,age:18</pre>
@@ -194,35 +220,71 @@ name:bob,age:18</pre>
 <div class="highlight-python"><pre>id=001,name:alice,age:29
 id=002,name:bob,age:18</pre>
 </div>
-<p>Architects and developper gather and we end up with an upgrade
-procedure composed of an lvm snapshot:</p>
-<div class="highlight-python"><pre>~# lvcreate -s -n website_backup -L 25M  /dev/datadisks/website</pre>
+<p>So the upgrade procedure is:</p>
+<div class="highlight-python"><pre>~# change_schema () {
+    # you don't want to know ...
+    nl -n rz -w 5 /mnt/website/database \
+       | sed 's/\t/,/; s/^/if:/' &gt; /mnt/website/database.new
+    mv /mnt/website/database{.new,} ; }
+
+~# # Version 2 of the API
+~# new_user_api () {
+      echo "id:$RANDOM,name:$1,age:$2" &gt;&gt; /mnt/website/database ; }</pre>
 </div>
-<p>of the working database and some database mangling commands:</p>
-<div class="highlight-python"><pre>~# nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/if:/' &gt; /mnt/website/database.new
-~# mv /mnt/website/database{.new,}</pre>
+<p>Also, the website in production is not web2.0 enough, so a web
+designer has done a great job beautifying a new prototype, which is
+added to the upgrade procedure</p>
+<div class="highlight-python"><pre>~# touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}</pre>
+</div>
+</div>
+<div class="section" id="filesystem-transactions-with-lvm">
+<h2>Filesystem transactions with lvm<a class="headerlink" href="#filesystem-transactions-with-lvm" title="Permalink to this headline">¶</a></h2>
+<p>The system administrator tunes a transaction API and convince the
+operator to use it the day of the upgrade. Before doing any change,
+the operator must use the command <em>transaction</em>. If all is well after
+a few days of testing, the command <em>commit</em> is used, else the operator
+can use the <em>abort</em>.</p>
+<p>The transaction functions are built on top of the LVM snapshot:</p>
+<div class="highlight-python"><pre>~# transaction () {
+      lvcreate -s -n website_backup -L 25M  /dev/datadisks/website ; }
+
+~# commit () { lvremove /dev/datadisks/website_backup ; }
+
+~# abort () {
+      mkdir /mnt/backup
+      mount /dev/datadisks/website_backup /mnt/backup
+      tar c -C /mnt/backup | tar x -C /mnt/website }
+
+~# cleanup () {
+      umount /mnt/backup/database
+      rm -r  /mnt/backup/database
+      lvremove /dev/datadisks/website_backup }</pre>
 </div>
 <p>The upgrade procedure require the database to go read only, no new
-users can be created. Comes the night of the upgrade, at dawn, the
-db looks like:</p>
+users can be created. Comes the night of the upgrade, at dawn, the db
+looks like:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 if=001,name:alice,age:29
 if=002;name:bob,age:18</pre>
 </div>
-<p>Ouuuch man! it is corrupted, there is no &#8216;id&#8217; column in the
-database, plus it is written &#8216;if&#8217; everywhere now and we have no
-clue why. We need to go back to the lab, figure out what
-happened... What do we do now? we need roll back so that the
-production site can continue, here is the command:</p>
-<div class="highlight-python"><pre>~# mkdir /mnt/backup
-~# mount /dev/datadisks/website_backup /mnt/backup
-~# cp /mnt/backup/database /mnt/website/database
-~# umount /mnt/backup/database
-~# lvremove /dev/datadisks/website_backup
-~# cat /mnt/website/database</pre>
+<p>Ouuuch man! it is corrupted, there is no &#8216;id&#8217; column instead it is
+written &#8216;if&#8217; everywhere now and we have no clue why. We need to go
+back to the lab, figure out what happened... What do we do now with
+this mess now? we need roll back so that the production site can
+continue. Easy, here is the command:</p>
+<div class="highlight-python"><pre>~# abort</pre>
 </div>
-</li>
-<li><p class="first">Three weeks later many many more users have been created:</p>
+<p>And just to make sure:</p>
+<div class="highlight-python"><pre>~# cat /mnt/website/database
+name:alice,age:29
+name:bob,age:18</pre>
+</div>
+<p>Ok, the situation is similar as before the upgrade. The service can be
+restored.</p>
+</div>
+<div class="section" id="upgrade-which-goes-well">
+<h2>Upgrade which goes well<a class="headerlink" href="#upgrade-which-goes-well" title="Permalink to this headline">¶</a></h2>
+<p>Three weeks later many many more users have been created:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 name:alice,age:29
 name:bob,age:18
@@ -231,12 +293,14 @@ name:duncanmacleod,age:539</pre>
 </div>
 <p>and R&amp;D has come up with a <em>complete</em> re-design of the upgrade
 procedure: a snapshot and some <em>correct</em> database mangling
-commands:</p>
-<div class="highlight-python"><pre>~# lvcreate -s -n website_backup -L 25M  /dev/datadisks/website
-~# nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/id:/' &gt; /mnt/website/database.new
-~# mv /mnt/website/database{.new,}</pre>
+commands. Only the schema upgrade was modified:</p>
+<div class="highlight-python"><pre>~# change_schema () {
+    # you don't want to know ...
+    nl -n rz -w 5 /mnt/website/database \
+       | sed 's/\t/,/; s/^/if:/' &gt; /mnt/website/database.new
+    mv /mnt/website/database{.new,} ; }</pre>
 </div>
-<p>At dawn, the database is correct, the snapshot safety was
+<p>At dawn, the database is correct, the snapshot safety net was
 thankfully not used:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 id:00001,name:alice,age:29
@@ -244,17 +308,17 @@ id:00002,name:bob,age:18
 id:00003,name:robwilco,age:35
 id:00004,name:duncanmacleod,age:539</pre>
 </div>
-<p>It is possible to remove the snapshot, and even after that the
-database is still up to date:</p>
-<div class="highlight-python"><pre>~# lvremove /dev/datadisks/website_backup
-~# cat /mnt/website/database
+<p>It is possible commit the transaction: remove the snapshot:</p>
+<div class="highlight-python"><pre>~# commit</pre>
+</div>
+<p>and obviously, removing the snapshot does not impact the database:</p>
+<div class="highlight-python"><pre>~# cat /mnt/website/database
 id:00001,name:alice,age:29
 id:00002,name:bob,age:18
 id:00003,name:robwilco,age:35
 id:00004,name:duncanmacleod,age:539</pre>
 </div>
-</li>
-<li><p class="first">To clean up after this exercice:</p>
+<p>We are done with this howto, to clean up after this exercice:</p>
 <div class="highlight-python"><pre>~# umount /mnt/website/
 ~# lvremove /dev/datadisks/website
 ~# vgremove datadisks
@@ -262,49 +326,11 @@ id:00004,name:duncanmacleod,age:539</pre>
 ~# losetup -d /dev/loop1
 ~# rm hda1</pre>
 </div>
-</li>
-</ol>
-</div>
-<div class="section" id="tips">
-<h2>Tips<a class="headerlink" href="#tips" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="resetting-the-filesystem-after-an-lvm-hot-resize-resize">
-<h3>Resetting the filesystem after an lvm hot resize resize<a class="headerlink" href="#resetting-the-filesystem-after-an-lvm-hot-resize-resize" title="Permalink to this headline">¶</a></h3>
-<p>You may need the following so that lvs and df -h agrees on the disk sizes</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">umount</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">mapper</span><span class="o">/</span><span class="n">fnac</span><span class="o">-</span><span class="n">fnac</span>
-<span class="n">e2fsck</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">mapper</span><span class="o">/</span><span class="n">fnac</span><span class="o">-</span><span class="n">fnac</span>
-<span class="n">resize2fs</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">mapper</span><span class="o">/</span><span class="n">fnac</span><span class="o">-</span><span class="n">fnac</span>
-</pre></div>
-</div>
-<p>Is the umount necessary ?</p>
-</div>
-<div class="section" id="mounting-a-logical-volume-from-a-livecd">
-<h3>Mounting a logical volume from a livecd<a class="headerlink" href="#mounting-a-logical-volume-from-a-livecd" title="Permalink to this headline">¶</a></h3>
-<p>You cannot boot a live CD and expect the logical volume to be &#8220;mount
-ready&#8221; as is a standard ext4. You need to type</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">vgscan</span> <span class="o">--</span><span class="n">mknodes</span>
-<span class="n">vgchange</span> <span class="o">-</span><span class="n">ay</span>
-</pre></div>
-</div>
-<p>Now you&#8217;re set</p>
-<div class="highlight-python"><pre>lvscan
-mount /dev/mini/root /mnt/</pre>
-</div>
-<p>Also, I could not <tt class="docutils literal"><span class="pre">vgscan</span></tt>, with the feisty live even after having
-installed <tt class="docutils literal"><span class="pre">lvm2</span></tt> (<tt class="docutils literal"><span class="pre">Unable</span> <span class="pre">to</span> <span class="pre">mount</span> <span class="pre">drive</span> <span class="pre">('LVM2_member')</span></tt>, and
-<tt class="docutils literal"><span class="pre">No</span> <span class="pre">program</span> <span class="pre">“vgscan”</span> <span class="pre">found</span> <span class="pre">for</span> <span class="pre">your</span> <span class="pre">current</span> <span class="pre">version</span> <span class="pre">of</span> <span class="pre">LVM</span></tt>). I had
-to use the Knoppix liveCD v5, instead.</p>
 </div>
 </div>
-<div class="section" id="see-also">
-<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><a class="reference external" href="http://www.debian-administration.org/articles/410">http://www.debian-administration.org/articles/410</a></li>
-<li><a class="reference external" href="http://www.linuxdevcenter.com/pub/a/linux/2006/04/27/managing-disk-space-with-lvm.html">http://www.linuxdevcenter.com/pub/a/linux/2006/04/27/managing-disk-space-with-lvm.html</a></li>
-<li><a class="reference external" href="http://www.howtoforge.com/linux_lvm">http://www.howtoforge.com/linux_lvm</a></li>
-<li><a class="reference external" href="http://tldp.org/HOWTO/LVM-HOWTO/">http://tldp.org/HOWTO/LVM-HOWTO/</a></li>
-</ul>
-</div>
-</div>
+
+
+
 
 
           </div>
@@ -319,17 +345,17 @@ to use the Knoppix liveCD v5, instead.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="svn.html" title="Subversion’s cheatsheet"
+          <a href="pty.html" title="Les pseudo-terminaux"
              >next</a> |</li>
         <li class="right" >
-          <a href="ssh.html" title="Secure shell techniques"
+          <a href="packaging.html" title="Debian packages and repositories"
              >previous</a> |</li>
         <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2009, jdb.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
     </div>
   </body>
 </html>

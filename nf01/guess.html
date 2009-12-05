@@ -6,8 +6,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>tp01: guess the number &mdash; bits v0.5 documentation</title>
-    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -17,12 +17,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
-    <link rel="top" title="bits v0.5 documentation" href="../index.html" />
-    <link rel="up" title="<no title>" href="index.html" />
-    <link rel="next" title="Docutils" href="../docutils.html" />
-    <link rel="prev" title="<no title>" href="index.html" /> 
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="bits v0.5 documentation" href="../index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -31,27 +28,14 @@
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../docutils.html" title="Docutils"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="<no title>"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">&lt;no title&gt;</a> &raquo;</li> 
+        <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="index.html"
-                                  title="previous chapter">&lt;no title&gt;</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="../docutils.html"
-                                  title="next chapter">Docutils</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="../sources/nf01/guess.txt"
+              <li><a href="../_sources/nf01/guess.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -83,7 +67,7 @@
 
 <span class="c"># Regle du jeu et tirage du nombre mystere</span>
 <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Je vais choisir un nombre entre 1 et &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">secret_max</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.</span><span class="se">\n</span><span class="s">...&quot;</span><span class="p">)</span>
-<span class="k">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">random</span>
 <span class="n">secret</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="n">secret_max</span><span class="p">)</span>
 
 <span class="c"># Partie interactive</span>
@@ -119,7 +103,7 @@
 </pre></div>
 </div>
 <p>Internationalized version !</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">import</span> <span class="nn">gettext</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">gettext</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">gettext</span><span class="o">.</span><span class="n">gettext</span>
 
 <span class="n">gettext</span><span class="o">.</span><span class="n">bindtextdomain</span><span class="p">(</span> <span class="s">&quot;guess&quot;</span><span class="p">,</span> <span class="s">&quot;language.d&quot;</span><span class="p">)</span>
@@ -130,7 +114,7 @@
 <span class="n">coups_max</span><span class="p">,</span> <span class="n">secret_max</span> <span class="o">=</span> <span class="mf">15</span><span class="p">,</span> <span class="mf">100</span>
 
 <span class="c"># Regle du jeu et tirage du nombre mystere</span>
-<span class="k">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">random</span>
 <span class="n">secret</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="n">secret_max</span><span class="p">)</span>
 
 <span class="c"># Partie interactive</span>
@@ -231,6 +215,9 @@ string with no error.</p>
 </div>
 
 
+
+
+
           </div>
         </div>
       </div>
@@ -242,19 +229,12 @@ string with no error.</p>
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="../docutils.html" title="Docutils"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="<no title>"
-             >previous</a> |</li>
-        <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li>
-          <li><a href="index.html" >&lt;no title&gt;</a> &raquo;</li> 
+        <li><a href="../index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2009, jdb.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
     </div>
   </body>
 </html>

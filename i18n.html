@@ -5,9 +5,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Internationalization primer &mdash; bits v0.5 documentation</title>
-    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <title>One application, multiple languages &mdash; bits v0.5 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
@@ -17,11 +17,11 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="static/jquery.js"></script>
-    <script type="text/javascript" src="static/doctools.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bits v0.5 documentation" href="index.html" />
-    <link rel="next" title="<no title>" href="nf01/index.html" />
-    <link rel="prev" title="Concurrent tasks with Twisted" href="twisted/concurrent.html" /> 
+    <link rel="next" title="Debian packages and repositories" href="packaging.html" />
+    <link rel="prev" title="Concurrent programming with Twisted" href="twisted/concurrent.html" /> 
   </head>
   <body>
     <div class="related">
@@ -31,10 +31,10 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="nf01/index.html" title="<no title>"
+          <a href="packaging.html" title="Debian packages and repositories"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="twisted/concurrent.html" title="Concurrent tasks with Twisted"
+          <a href="twisted/concurrent.html" title="Concurrent programming with Twisted"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
@@ -43,7 +43,7 @@
         <div class="sphinxsidebarwrapper">
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">Internationalization primer</a><ul>
+<li><a class="reference external" href="">One application, multiple languages</a><ul>
 <li><a class="reference external" href="#how-does-it-work-at-runtime">How does it work at runtime?</a></li>
 <li><a class="reference external" href="#how-to-build-the-application">How to build the application?</a></li>
 </ul>
@@ -52,13 +52,13 @@
 
             <h4>Previous topic</h4>
             <p class="topless"><a href="twisted/concurrent.html"
-                                  title="previous chapter">Concurrent tasks with Twisted</a></p>
+                                  title="previous chapter">Concurrent programming with Twisted</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="nf01/index.html"
-                                  title="next chapter">&lt;no title&gt;</a></p>
+            <p class="topless"><a href="packaging.html"
+                                  title="next chapter">Debian packages and repositories</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="sources/i18n.txt"
+              <li><a href="_sources/i18n.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -82,8 +82,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="internationalization-primer">
-<h1>Internationalization primer<a class="headerlink" href="#internationalization-primer" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="one-application-multiple-languages">
+<h1>One application, multiple languages<a class="headerlink" href="#one-application-multiple-languages" title="Permalink to this headline">¶</a></h1>
 <p>I have investigated the standard internationalization (i18n) tools,
 because some day users may request to get messages in the language of
 their choice. These first steps are recorded here, first paragraph is
@@ -93,7 +93,7 @@ paragraph: how to build such an app.</p>
 <h2>How does it work at runtime?<a class="headerlink" href="#how-does-it-work-at-runtime" title="Permalink to this headline">¶</a></h2>
 <p>Here is a super simple internationalized application in Python, called
 <em>myi18n.py</em>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">import</span> <span class="nn">gettext</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">gettext</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">gettext</span><span class="o">.</span><span class="n">gettext</span>
 
 <span class="n">gettext</span><span class="o">.</span><span class="n">bindtextdomain</span><span class="p">(</span> <span class="s">&quot;myi18n&quot;</span><span class="p">,</span> <span class="s">&quot;language.d&quot;</span><span class="p">)</span>
@@ -153,7 +153,7 @@ terminal, at the end, you get a working app.</p>
 that you later want to translate even you do not translate the
 application right away: it is not harmful anyway</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">cat</span> <span class="o">&gt;</span> <span class="n">myi18n</span><span class="o">.</span><span class="n">py</span> <span class="o">&lt;&lt;</span> <span class="n">EOF</span>
-<span class="k">import</span> <span class="nn">gettext</span>
+<span class="kn">import</span> <span class="nn">gettext</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">gettext</span><span class="o">.</span><span class="n">gettext</span>
 
 <span class="n">gettext</span><span class="o">.</span><span class="n">bindtextdomain</span><span class="p">(</span> <span class="s">&quot;myi18n&quot;</span><span class="p">,</span> <span class="s">&quot;language.d&quot;</span><span class="p">)</span>
@@ -213,6 +213,9 @@ to see how to hack i18n to address different audience.</p>
 </div>
 
 
+
+
+
           </div>
         </div>
       </div>
@@ -225,17 +228,17 @@ to see how to hack i18n to address different audience.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="nf01/index.html" title="<no title>"
+          <a href="packaging.html" title="Debian packages and repositories"
              >next</a> |</li>
         <li class="right" >
-          <a href="twisted/concurrent.html" title="Concurrent tasks with Twisted"
+          <a href="twisted/concurrent.html" title="Concurrent programming with Twisted"
              >previous</a> |</li>
         <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2009, jdb.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
     </div>
   </body>
 </html>
