@@ -3,9 +3,6 @@
  Debian packages and repositories
 ==================================
 
-Specification and softwares shares many concept. Both have tickets,
-sources and deliverable, revision on the sources, and release for the
-deliverables.
 
 Installing package dependencies for building packages
 =====================================================

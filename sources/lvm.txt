@@ -1,232 +1,278 @@
 
-Logical volume manager
-======================
+Upgrade safety net with the logical volume manager
+==================================================
 
-Create an lvm partition bigger than two physical partitions
------------------------------------------------------------
+The story is a website with a database which gets into production and
+then, after a while, needs to have its schema corrected and related
+files upgraded safely. As usual, it is always better to get the schema
+right from the beginning but it the real world there is a demand for
+both flexibility and safety. With the logical volume manager, the
+website gets its invasive (read scary) upgrade but there is a good and
+handy safety net in case of a mess.
 
-These commands can be copied and pasted with no ill effects. They will
-not operate on your real hard drive partitions but on loop partitions.
+The idea is to take a snapshot of the disk *partition*: it is like
+making a backup of a partition and copy it back later whenever
+required, with the added benefit of
 
-#. create fake partition just for demonstration purpose with losetup::
+- the backup is done in almost not time, it is *not* depending on the
+  size of the disk,
 
-     ~# sudo -s
-     ~# dd if=/dev/zero of=hda1 bs=1M count=1G
-     ~# dd if=/dev/zero of=hda2 bs=1M count=1G
-     ~# losetup /dev/loop1 hda1        # for demonstration purpose, I create two fake 
-     ~# losetup /dev/loop2 hda2        # partitions from newly created files with losetup.
+- there is no actual copy of the blocks so it is very light on the
+  io and space available,
+
+- most importantly, even if the backup happens during a massive
+  modification of the filesystem structure, the filesystem data
+  structures are coherent.
+
+It is not magic though, the snapshot itself is a partition and it
+grows along when new data is added to the original partition to which
+the snapshot is attached. Make sure the snapshot partition is big
+enough to contain the updates to the original partition or suppress
+the partition before it gets full.
+
+Fake physical partitions
+------------------------
+
+Before showing how to setup a logical partition with lvm, let's first
+present a cool trick to create *virtual physical partitions*: it is
+not related to lvm per se but it ease experimentation with RAID or LVM
+without mangling a real disk.
+
+With *losetup*'s fake virtual partitions, it is possible to turn a
+normal file into a disk image device, available in */dev*. Here we
+create, with *dd*, a file of one gigabyte called *loop1.raw* in the
+current directory, and make it available under */dev/loop1* ::
+
+  ~# cd && sudo -s
+  ~# dd if=/dev/zero of=loop1.raw bs=1M count=150
+
+  ~# cat /proc/partitions 
+  major minor  #blocks  name
+
+   8        0  117220824 sda
+   8        1     104391 sda1
+   8        2   22964917 sda2
+
+  ~# losetup /dev/loop1 loop1.raw
+
+  ~# cat /proc/partitions 
+   major minor  #blocks  name
+
+   7        1     153600 loop1
+   8        0  117220824 sda
+   8        1     104391 sda1
+   8        2   22964917 sda2
+
+There was no partitions available called *loop1* and it appeared after
+the *losetup command*. We will set up the partition to use with lvm in
+the next paragraph.
+
+LVM partition setup
+-------------------
+
+To represent LVM operations, there are three object you need to be
+familiar with, and for each of these objects, there is the
+corresponding shell commands for creating, listing and removing said
+object.
+
+`physical volume`: a physical partitions of one of the physical hard
+   drive which has been allocated to lvm. Managed with *pvcreate*,
+   *pvs* and *pvremove*.
+
+`volume group`: aggregation of **physical volumes**. When I first read
+   documentation about LVM, I thought the volume groups was meant to
+   aggregate higher level logical paritions and data, but it is the
+   other way round, they aggregate the real partitions. Managed with
+   *vgcreate*, *vgs* and *vgremove*.
+
+`logical volume`: volume is what you will use in the end with *mkfs*
+   and *mount*. This is the device which look like the traditional
+   partitions but with additional features like snapshots or resize on
+   the fly. Managed with *lvcreate*, *lvs* and *lvgemove*.
+
+Initialise the partition for use with lvm::
+
+  ~# pvcreate /dev/loop1
+    Physical volume "/dev/loop1" successfully created
+  
+A disk can only be added once to a volume group, multiple physical
+disks compose a *volume group*::
+
+  ~# vgcreate datadisks /dev/loop1
+    Volume group "datadisks" successfully created
+
+So far, the partitions available have not changed and the
+*/dev/datadisks/website* partition does not exists::
+
+  ~# lvs && cat /proc/partitions && ls /dev/datadisks/website
+     # the partitions available have not changed yet and 
+     # the /dev/datadisks/website partition does not exists (yet)
+
+A logical volume (a partition) can now be created, it has a name, a
+size, and is inside a group::
+
+  ~# lvcreate -n website -L 100M datadisks
+    Logical volume "website" created
+
+  ~# lvs && cat /proc/partitions && ls /dev/datadisks/website
+
+In the partitions, a new *dm* (I'll be it stands for *device mapper*)
+entry is shown, the device is available contained in a directory named
+after the volume group.
+
+As usual, the partition must be formatted and mounted to be integrated
+to the filesystem::
+
+  ~# mkfs.ext4 /dev/datadisks/website
+  ~# mkdir /mnt/website && mount /dev/datadisks/website /mnt/website
 
 
-#. At this point, there are two unused partitions. We can merge them
-   into one::
+An upgrade plan in production
+-----------------------------
 
-     ~# pvcreate /dev/loop1
-       Physical volume "/dev/loop1" successfully created
-     
-     ~# pvcreate /dev/loop2
-       Physical volume "/dev/loop2" successfully created
-     
-     ~# vgcreate datadisks /dev/loop2 /dev/loop1
-       Volume group "datadisks" successfully created
-     
-     ~# lvcreate -n muzak -L 1500M datadisks
-       Logical volume "muzak" created
+Let's a compose a dummy three-tier website, that we will have to
+upgrade, corrupt, rollback, etc::
 
-#. The partition ``/dev/mapper/datadisks-muzak`` is free, let's create a
-   filesystem and put some file on it::
-      
-     ~# mkfs.ext4 /dev/mapper/datadisks-muzak
-     ~# mkdir /mnt/muzak && mount /dev/mapper/datadisks-muzak /mnt/muzak
-     ~# dd if=/dev/zero of=metronomy bs=1M count=1300
-     ~# du -sh metronomy
-       1300M     metronomy
-     ~# cp metronomy /mnt/muzak
+   ~# touch /mnt/website/{database,index.html}
+   ~# new_user_api () { echo "name:$1,age:$2" >> /mnt/website/database ; } 
 
-   From two partition of 1G, we created a *logical volume* of 1.5G in
-   which we copied more data (1.3G) than available on each of the
-   partitions taken separatly.
+With the adapted amount of marketing and public relation, the website
+is put in production and made available to the public. Everyday,
+torrents of new users line up to subscribe::
 
-#. cleaning up::
+   ~# new_user_api alice 29
+   ~# new_user_api bob 18
 
-     ~# umount /mnt/muzak
-
-     ~# lvremove datadisks/muzak
-     Do you really want to remove active logical volume "muzak"? [y/n]: y
-       Logical volume "muzak" successfully removed
-     
-     ~# vgremove datadisks
-       Volume group "datadisks" successfully removed
-     
-     ~# pvremove /dev/loop1 /dev/loop2
-       Labels on physical volume "/dev/loop1" successfully wiped
-       Labels on physical volume "/dev/loop2" successfully wiped
-     
-     ~# ### lvm cleanup is done by now, let's clean the fake partitions
-     ~# losetup -d /dev/loop2
-     ~# losetup -d /dev/loop1
-     ~# rm hda{1,2} metronomy -r /mnt/muzek 
-
-
-Safe upgrades through rollback
-------------------------------
-
-The example is a website with a database which gets into production
-and needs to be updated 1. without service interruption, 2. safely.
-Now, if the upgrade goes bad, we want a rollback and a short service
-interruption is tolerated.
-
-#. Create a fake physical partition, a lvm group and volume with a filesystem::
-
-     ~# cd && sudo -s
-     ~# dd if=/dev/zero of=hda1 bs=1M count=150
-     ~# losetup /dev/loop1 hda1 
-     ~# pvcreate /dev/loop1
-       Physical volume "/dev/loop1" successfully created
-     
-     ~# vgcreate datadisks /dev/loop1
-       Volume group "datadisks" successfully created
-
-     ~# lvcreate -n website -L 100M datadisks
-       Logical volume "website" created
-
-     ~# mkfs.ext4 /dev/mapper/datadisks-website
-     ~# mkdir /mnt/website && mount /dev/mapper/datadisks-website /mnt/website
-     ~# touch /mnt/website/{database,index.html}
-
-#. Put the system in production and make it public. Everyday, users
-   are created in your database::
-
-     ~# echo "name:alice,age:29" >> /mnt/website/database
-     ~# echo "name:bob,age:18" >> /mnt/website/database
-
-#. Now you want to upgrade the system, the database schema is modified
-   to allow an id field. That's the database::
+*Sparky the architect* have realised that the database schema must be
+upgraded to include an *id* for each users. This is the current
+database::
 
      ~# cat /mnt/website/database
      name:alice,age:29
      name:bob,age:18
 
-   It should end up look like this::
+It should end up look like this::
 
      id=001,name:alice,age:29
      id=002,name:bob,age:18
 
-   Architects and developper gather and we end up with an upgrade
-   procedure composed of an lvm snapshot::
+So the upgrade procedure is::
 
-     ~# lvcreate -s -n website_backup -L 25M  /dev/datadisks/website
+      ~# change_schema () {
+          # you don't want to know ... 
+          nl -n rz -w 5 /mnt/website/database \
+             | sed 's/\t/,/; s/^/if:/' > /mnt/website/database.new
+          mv /mnt/website/database{.new,} ; }
 
-   of the working database and some database mangling commands::
+      ~# # Version 2 of the API
+      ~# new_user_api () { 
+            echo "id:$RANDOM,name:$1,age:$2" >> /mnt/website/database ; } 
 
-     ~# nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/if:/' > /mnt/website/database.new
-     ~# mv /mnt/website/database{.new,}
+Also, the website in production is not web2.0 enough, so a web
+designer has done a great job beautifying a new prototype, which is
+added to the upgrade procedure ::
 
-   The upgrade procedure require the database to go read only, no new
-   users can be created. Comes the night of the upgrade, at dawn, the
-   db looks like::
+  ~# touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}
 
-     ~# cat /mnt/website/database
-     if=001,name:alice,age:29
-     if=002;name:bob,age:18
+Filesystem transactions with lvm
+--------------------------------
 
-   Ouuuch man! it is corrupted, there is no 'id' column in the
-   database, plus it is written 'if' everywhere now and we have no
-   clue why. We need to go back to the lab, figure out what
-   happened... What do we do now? we need roll back so that the
-   production site can continue, here is the command::
+The system administrator tunes a transaction API and convince the
+operator to use it the day of the upgrade. Before doing any change,
+the operator must use the command *transaction*. If all is well after
+a few days of testing, the command *commit* is used, else the operator
+can use the *abort*.
 
-     ~# mkdir /mnt/backup
-     ~# mount /dev/datadisks/website_backup /mnt/backup
-     ~# cp /mnt/backup/database /mnt/website/database
-     ~# umount /mnt/backup/database
-     ~# lvremove /dev/datadisks/website_backup 
-     ~# cat /mnt/website/database
+The transaction functions are built on top of the LVM snapshot::
 
-#. Three weeks later many many more users have been created::
+  ~# transaction () {
+        lvcreate -s -n website_backup -L 25M  /dev/datadisks/website ; }
 
-     ~# cat /mnt/website/database
-     name:alice,age:29
-     name:bob,age:18
-     name:robwilco,age:35
-     name:duncanmacleod,age:539
+  ~# commit () { lvremove /dev/datadisks/website_backup ; }
 
-   and R&D has come up with a *complete* re-design of the upgrade
-   procedure: a snapshot and some *correct* database mangling
-   commands::
+  ~# abort () {
+        mkdir /mnt/backup
+        mount /dev/datadisks/website_backup /mnt/backup
+        tar c -C /mnt/backup | tar x -C /mnt/website }
 
-     ~# lvcreate -s -n website_backup -L 25M  /dev/datadisks/website
-     ~# nl -n rz -w 5 /mnt/website/database | sed 's/\t/,/; s/^/id:/' > /mnt/website/database.new
-     ~# mv /mnt/website/database{.new,}
+  ~# cleanup () {
+        umount /mnt/backup/database
+        rm -r  /mnt/backup/database
+        lvremove /dev/datadisks/website_backup }
 
-   At dawn, the database is correct, the snapshot safety was
-   thankfully not used::
+The upgrade procedure require the database to go read only, no new
+users can be created. Comes the night of the upgrade, at dawn, the db
+looks like::
 
-     ~# cat /mnt/website/database
-     id:00001,name:alice,age:29
-     id:00002,name:bob,age:18
-     id:00003,name:robwilco,age:35
-     id:00004,name:duncanmacleod,age:539
+  ~# cat /mnt/website/database
+  if=001,name:alice,age:29
+  if=002;name:bob,age:18
 
-   It is possible to remove the snapshot, and even after that the
-   database is still up to date::
+Ouuuch man! it is corrupted, there is no 'id' column instead it is
+written 'if' everywhere now and we have no clue why. We need to go
+back to the lab, figure out what happened... What do we do now with
+this mess now? we need roll back so that the production site can
+continue. Easy, here is the command::
 
-     ~# lvremove /dev/datadisks/website_backup 
-     ~# cat /mnt/website/database
-     id:00001,name:alice,age:29
-     id:00002,name:bob,age:18
-     id:00003,name:robwilco,age:35
-     id:00004,name:duncanmacleod,age:539
+   ~# abort
 
-#. To clean up after this exercice::
+And just to make sure::
 
-     ~# umount /mnt/website/
-     ~# lvremove /dev/datadisks/website 
-     ~# vgremove datadisks 
-     ~# pvremove /dev/loop1
-     ~# losetup -d /dev/loop1
-     ~# rm hda1
+   ~# cat /mnt/website/database
+   name:alice,age:29
+   name:bob,age:18
+
+Ok, the situation is similar as before the upgrade. The service can be
+restored.
+
+Upgrade which goes well
+-----------------------
+
+Three weeks later many many more users have been created::
+
+  ~# cat /mnt/website/database
+  name:alice,age:29
+  name:bob,age:18
+  name:robwilco,age:35
+  name:duncanmacleod,age:539
+
+and R&D has come up with a *complete* re-design of the upgrade
+procedure: a snapshot and some *correct* database mangling
+commands. Only the schema upgrade was modified::
+
+   ~# change_schema () {
+       # you don't want to know ... 
+       nl -n rz -w 5 /mnt/website/database \
+          | sed 's/\t/,/; s/^/if:/' > /mnt/website/database.new
+       mv /mnt/website/database{.new,} ; }
+
+At dawn, the database is correct, the snapshot safety net was
+thankfully not used::
+
+  ~# cat /mnt/website/database
+  id:00001,name:alice,age:29
+  id:00002,name:bob,age:18
+  id:00003,name:robwilco,age:35
+  id:00004,name:duncanmacleod,age:539
+
+It is possible commit the transaction: remove the snapshot::
+
+  ~# commit
+
+and obviously, removing the snapshot does not impact the database::
+
+  ~# cat /mnt/website/database
+  id:00001,name:alice,age:29
+  id:00002,name:bob,age:18
+  id:00003,name:robwilco,age:35
+  id:00004,name:duncanmacleod,age:539
 
 
-Tips
-----
+We are done with this howto, to clean up after this exercice::
 
-Resetting the filesystem after an lvm hot resize resize
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You may need the following so that lvs and df -h agrees on the disk sizes ::
-
-  umount /dev/mapper/fnac-fnac
-  e2fsck -f /dev/mapper/fnac-fnac
-  resize2fs /dev/mapper/fnac-fnac
-  
-.. question 
-
-Is the umount necessary ?
-
-Mounting a logical volume from a livecd
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You cannot boot a live CD and expect the logical volume to be "mount
-ready" as is a standard ext4. You need to type ::
-
-  vgscan --mknodes
-  vgchange -ay
-
-Now you're set ::
-
-  lvscan
-  mount /dev/mini/root /mnt/
-
-Also, I could not ``vgscan``, with the feisty live even after having
-installed ``lvm2`` (``Unable to mount drive ('LVM2_member')``, and
-``No program “vgscan” found for your current version of LVM``). I had
-to use the Knoppix liveCD v5, instead.
-
-See also
---------
-
-- http://www.debian-administration.org/articles/410
-- http://www.linuxdevcenter.com/pub/a/linux/2006/04/27/managing-disk-space-with-lvm.html
-- http://www.howtoforge.com/linux_lvm
-- http://tldp.org/HOWTO/LVM-HOWTO/
-
+   ~# umount /mnt/website/
+   ~# lvremove /dev/datadisks/website 
+   ~# vgremove datadisks 
+   ~# pvremove /dev/loop1
+   ~# losetup -d /dev/loop1
+   ~# rm hda1

@@ -4,8 +4,9 @@ An example of functional programming
 
 We are going to compare two styles of computer programming,
 *procedural* and *functional*, for finding an approximation of Pi. The
-idea of the approximation is pretty cool: it only needs random
-numbers!
+idea of the approximation is interesting because it only requires
+random numbers and simple knowledge about circles and squares.
+
 
 The math of the problem
 -----------------------

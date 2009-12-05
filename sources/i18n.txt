@@ -1,5 +1,5 @@
-Internationalization primer
-===========================
+One application, multiple languages
+===================================
 
 I have investigated the standard internationalization (i18n) tools,
 because some day users may request to get messages in the language of

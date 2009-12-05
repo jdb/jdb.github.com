@@ -6,8 +6,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>An example of functional programming &mdash; bits v0.5 documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
@@ -17,8 +17,8 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
     <link rel="top" title="bits v0.5 documentation" href="index.html" />
     <link rel="next" title="Concurrent programming with Twisted" href="twisted/concurrent.html" />
     <link rel="prev" title="Every bit counts" href="index.html" /> 
@@ -59,7 +59,7 @@
                                   title="next chapter">Concurrent programming with Twisted</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="_sources/functional.txt"
+              <li><a href="sources/functional.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -99,12 +99,12 @@ circle</strong> can be computed as <em>the ratio between the number of points of
 the circle and the total number of points</em>. In math, this is
 summarized as:</p>
 <div class="math">
-<p><img src="_images/math/2206bd618bd79b326d66a382c37c0b8a74eea8fb.png" alt="frequency = \frac{number\ of\ points\ in\ the\ circle}{total\ number\ of\ points}" />
+<p><img src="images/math/2206bd618bd79b326d66a382c37c0b8a74eea8fb.png" alt="frequency = \frac{number\ of\ points\ in\ the\ circle}{total\ number\ of\ points}" />
 </div></p></li>
 <li><p class="first">The <em>number of points in a shape</em> is another name for the <em>surface</em>
 of the shape, that is:</p>
 <div class="math">
-<p><img src="_images/math/8456560864f2d2046824b08a6b181110e81bad5f.png" alt="Circle\ surface = \pi . radius^2
+<p><img src="images/math/8456560864f2d2046824b08a6b181110e81bad5f.png" alt="Circle\ surface = \pi . radius^2
 
 Square\ surface = side^2" />
 </div></p></li>
@@ -112,12 +112,12 @@ Square\ surface = side^2" />
 <em>surface of a shape</em> is the set of points contained in the shape,
 the frequency in 1. becomes:</p>
 <div class="math">
-<p><img src="_images/math/56f2a5b923c97331c0e3f66d24cf0e9008fba751.png" alt="frequency = \frac{ \pi . radius^2 }{ side^2 }" />
+<p><img src="images/math/56f2a5b923c97331c0e3f66d24cf0e9008fba751.png" alt="frequency = \frac{ \pi . radius^2 }{ side^2 }" />
 </div></p><p>To make things simple, take a circle with a radius of <em>1</em>, and its
 containing square with a side length of <em>2</em>, the frequency is
 simply</p>
 <div class="math">
-<p><img src="_images/math/f4e95e43ecbff5ed6438cf30a440f18fe3879f07.png" alt="frequency = \frac{\pi}{4}" />
+<p><img src="images/math/f4e95e43ecbff5ed6438cf30a440f18fe3879f07.png" alt="frequency = \frac{\pi}{4}" />
 </div></p><p>This means that if you can build an experiment which gives you
 an approximation of this frequency then an approximation of <strong>Pi is
 four times the frequency</strong>.</p>
@@ -129,24 +129,24 @@ is 1 and it fits into the square with a side of 2. A random point
 is made of two coordinates, one for the horizontal position and one
 for the vertical position.</p>
 <div class="figure">
-<img alt="_images/square-cercle.png" src="_images/square-cercle.png" style="width: 453pt; height: 226pt;" />
+<img alt="images/square-cercle.png" src="_images/square-cercle.png" style="width: 453pt; height: 226pt;" />
 </div>
 <p>This figure makes it clear is that the point is in the circle if
 and only if the distance between the point and the center is
 smaller than the radius, which means here: smaller than one. The
 method to compute the distance to the center has not changed for
-thousands years, it is still: <img class="math" src="_images/math/d7a4e731d3312ce4602aa00210e53e2023f0ccb9.png" alt="distance = \sqrt{x^2 + y^2 }"/>,
+thousands years, it is still: <img class="math" src="images/math/d7a4e731d3312ce4602aa00210e53e2023f0ccb9.png" alt="distance = \sqrt{x^2 + y^2 }"/>,
 where x represents the horizontal position and y represents the
 vertical position.</p>
 <div class="figure">
-<img alt="_images/pythagoras.png" src="_images/pythagoras.png" style="width: 453pt; height: 226pt;" />
+<img alt="images/pythagoras.png" src="_images/pythagoras.png" style="width: 453pt; height: 226pt;" />
 </div>
 <p>To sum up the recipe for Pi, take a million random points in
 the square, count the points in the circle, divide by a million and
 multiply by four. Serve with a slice of lemon and a small quantity of
 salt.</p>
 <div class="figure">
-<img alt="_images/frequency.png" src="_images/frequency.png" style="width: 453pt; height: 226pt;" />
+<img alt="images/frequency.png" src="_images/frequency.png" style="width: 453pt; height: 226pt;" />
 </div>
 </div>
 <div class="section" id="a-procedural-and-a-functional-algorithm">

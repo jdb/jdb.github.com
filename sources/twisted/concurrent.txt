@@ -1,9 +1,6 @@
-:author: Jean Daniel Browne
-:date: |today|
- 
-===============================
- Concurrent tasks with Twisted
-===============================
+=====================================
+ Concurrent programming with Twisted
+=====================================
 
 .. todo::
 
