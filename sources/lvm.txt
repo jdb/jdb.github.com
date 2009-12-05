@@ -2,7 +2,7 @@
 Upgrade safety net with the logical volume manager
 ==================================================
 
-The story is a website with a database which gets into production and
+It is the story of a website with a database which gets into production and
 then, after a while, needs to have its schema corrected and related
 files upgraded safely. As usual, it is always better to get the schema
 right from the beginning but it the real world there is a demand for
@@ -38,21 +38,13 @@ present a cool trick to create *virtual physical partitions*: it is
 not related to lvm per se but it ease experimentation with RAID or LVM
 without mangling a real disk.
 
-With *losetup*'s fake virtual partitions, it is possible to turn a
-normal file into a disk image device, available in */dev*. Here we
-create, with *dd*, a file of one gigabyte called *loop1.raw* in the
+With *losetup*'s loopback partitions, it is possible to turn a normal
+file into a disk image device, available in */dev*. Here we create,
+with *dd*, a file of one and a half gigabyte called *loop1.raw* in the
 current directory, and make it available under */dev/loop1* ::
 
-  ~# cd && sudo -s
-  ~# dd if=/dev/zero of=loop1.raw bs=1M count=150
-
-  ~# cat /proc/partitions 
-  major minor  #blocks  name
-
-   8        0  117220824 sda
-   8        1     104391 sda1
-   8        2   22964917 sda2
-
+  ~$ cd && sudo -s
+  ~# dd if=/dev/zero of=loop1.raw bs=1M count=1500
   ~# losetup /dev/loop1 loop1.raw
 
   ~# cat /proc/partitions 
@@ -70,10 +62,10 @@ the next paragraph.
 LVM partition setup
 -------------------
 
-To represent LVM operations, there are three object you need to be
-familiar with, and for each of these objects, there is the
-corresponding shell commands for creating, listing and removing said
-object.
+To represent LVM hot resize, hot backup or physical disk aggregation,
+there are three object you need to be familiar with, and for each of
+these objects, there is the corresponding shell commands for creating,
+listing and removing said object.
 
 `physical volume`: a physical partitions of one of the physical hard
    drive which has been allocated to lvm. Managed with *pvcreate*,
@@ -81,17 +73,19 @@ object.
 
 `volume group`: aggregation of **physical volumes**. When I first read
    documentation about LVM, I thought the volume groups was meant to
-   aggregate higher level logical paritions and data, but it is the
-   other way round, they aggregate the real partitions. Managed with
-   *vgcreate*, *vgs* and *vgremove*.
+   aggregate the logical partitions and data, but it is the other way
+   round, they aggregate the real partitions. Managed with *vgcreate*,
+   *vgs* and *vgremove*.
 
 `logical volume`: volume is what you will use in the end with *mkfs*
    and *mount*. This is the device which look like the traditional
    partitions but with additional features like snapshots or resize on
    the fly. Managed with *lvcreate*, *lvs* and *lvgemove*.
 
-Initialise the partition for use with lvm::
+Use *pvcreate* from the *lvm2* package to initialise the partition for
+use with lvm::
 
+  ~# aptitude install lvm2
   ~# pvcreate /dev/loop1
     Physical volume "/dev/loop1" successfully created
   
@@ -102,23 +96,28 @@ disks compose a *volume group*::
     Volume group "datadisks" successfully created
 
 So far, the partitions available have not changed and the
-*/dev/datadisks/website* partition does not exists::
+*/dev/datadisks/website* partition does not exists. A logical volume
+(a partition) can now be created, it has a name and a size parameter and
+is inside a group::
 
-  ~# lvs && cat /proc/partitions && ls /dev/datadisks/website
-     # the partitions available have not changed yet and 
-     # the /dev/datadisks/website partition does not exists (yet)
-
-A logical volume (a partition) can now be created, it has a name, a
-size, and is inside a group::
-
-  ~# lvcreate -n website -L 100M datadisks
+  ~# lvcreate -n website -L 1000M datadisks
     Logical volume "website" created
 
   ~# lvs && cat /proc/partitions && ls /dev/datadisks/website
+    LV      VG        Attr   LSize   Origin Snap%  Move Log Copy%  Convert
+    website datadisks -wi-a- 100.00M                                      
+   major minor  #blocks  name
 
-In the partitions, a new *dm* (I'll be it stands for *device mapper*)
-entry is shown, the device is available contained in a directory named
-after the volume group.
+   7        1    1536000 loop1
+   8        0  117220824 sda
+   8        1     204800 sda1
+   252        0     102400 dm-0
+
+   /dev/datadisks/website
+
+Among the partitions appears a new *dm* entry is shown (I'll be it
+stands for *device mapper*), the device is available in */dev*
+contained in a directory named after the volume group.
 
 As usual, the partition must be formatted and mounted to be integrated
 to the filesystem::
@@ -130,49 +129,48 @@ to the filesystem::
 An upgrade plan in production
 -----------------------------
 
-Let's a compose a dummy three-tier website, that we will have to
+Let's compose a dummy three-tier website, that we will have to
 upgrade, corrupt, rollback, etc::
 
    ~# touch /mnt/website/{database,index.html}
-   ~# new_user_api () { echo "name:$1,age:$2" >> /mnt/website/database ; } 
+   ~# add_new_user () { 
+          echo "name:$1,age:$2" >> /mnt/website/database ; } 
 
 With the adapted amount of marketing and public relation, the website
 is put in production and made available to the public. Everyday,
 torrents of new users line up to subscribe::
 
-   ~# new_user_api alice 29
-   ~# new_user_api bob 18
+   ~# add_new_user alice 29
+   ~# add_new_user bob 18
+   ~# cat /mnt/website/database
+   name:alice,age:29
+   name:bob,age:18
 
 *Sparky the architect* have realised that the database schema must be
-upgraded to include an *id* for each users. This is the current
-database::
-
-     ~# cat /mnt/website/database
-     name:alice,age:29
-     name:bob,age:18
-
-It should end up look like this::
+upgraded to include an *id* for each user. This is the current
+database. It should end up look like this::
 
      id=001,name:alice,age:29
      id=002,name:bob,age:18
 
-So the upgrade procedure is::
+Also, the website in production is not web2.0 enough, so a designer
+has done a great job beautifying a new prototype, which is added to
+the upgrade procedure. So the upgrade procedure is::
 
-      ~# change_schema () {
-          # you don't want to know ... 
+      ~# upgrade_schema_and_website () {
+
+          # Web changes
+          touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}
+
+	  # API upgrade: now there is an id
+          add_new_user () { 
+            echo "id:$RANDOM,name:$1,age:$2" >> /mnt/website/database ; }
+
+	  # For the db schema, you don't want to know ... 
           nl -n rz -w 5 /mnt/website/database \
              | sed 's/\t/,/; s/^/if:/' > /mnt/website/database.new
-          mv /mnt/website/database{.new,} ; }
-
-      ~# # Version 2 of the API
-      ~# new_user_api () { 
-            echo "id:$RANDOM,name:$1,age:$2" >> /mnt/website/database ; } 
-
-Also, the website in production is not web2.0 enough, so a web
-designer has done a great job beautifying a new prototype, which is
-added to the upgrade procedure ::
-
-  ~# touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}
+          mv /mnt/website/database{.new,} 
+	  } 
 
 Filesystem transactions with lvm
 --------------------------------
@@ -180,29 +178,41 @@ Filesystem transactions with lvm
 The system administrator tunes a transaction API and convince the
 operator to use it the day of the upgrade. Before doing any change,
 the operator must use the command *transaction*. If all is well after
-a few days of testing, the command *commit* is used, else the operator
-can use the *abort*.
+a few days of testing, the command *remove_snapshot* is used, else the operator
+can use the *abort* function.
 
 The transaction functions are built on top of the LVM snapshot::
 
   ~# transaction () {
-        lvcreate -s -n website_backup -L 25M  /dev/datadisks/website ; }
-
-  ~# commit () { lvremove /dev/datadisks/website_backup ; }
+        lvcreate -s -n backup -L 300M  /dev/datadisks/website ; }
 
   ~# abort () {
         mkdir /mnt/backup
-        mount /dev/datadisks/website_backup /mnt/backup
-        tar c -C /mnt/backup | tar x -C /mnt/website }
+        mount /dev/datadisks/website /mnt/backup
+        # tar cf - -C /mnt/backup . | tar  x -C /mnt/website
+	rsync --del -a /mnt/{backup,website}/ ; }
+	
+  ~# remove_snapshot () {
+        umount /dev/datadisks/backup
+        lvremove /dev/datadisks/backup ; }
 
-  ~# cleanup () {
-        umount /mnt/backup/database
-        rm -r  /mnt/backup/database
-        lvremove /dev/datadisks/website_backup }
+.. what happens whenyou copy back the data from the backup which
+.. records the modification from the original. Does the backup
+.. partition size grows or shrink?
 
-The upgrade procedure require the database to go read only, no new
-users can be created. Comes the night of the upgrade, at dawn, the db
-looks like::
+.. can the backup stop recording modification? maybe it is what
+.. happens when the backup is mounted ...
+
+.. mount de la partition de backup doit etre read only. What does write
+.. means for the backup partitions?
+
+The upgrade procedure requires the database to go read only, no new
+users can be created. Comes the night of the upgrade::
+
+  ~# transaction
+  ~# upgrade_schema_and_website
+
+At dawn, the db looks like::
 
   ~# cat /mnt/website/database
   if=001,name:alice,age:29
@@ -216,7 +226,7 @@ continue. Easy, here is the command::
 
    ~# abort
 
-And just to make sure::
+Just to make sure::
 
    ~# cat /mnt/website/database
    name:alice,age:29
@@ -224,6 +234,15 @@ And just to make sure::
 
 Ok, the situation is similar as before the upgrade. The service can be
 restored.
+
+.. note::
+
+  Actually, it is not easy to get the right options to ``rsync`` or
+  ``tar`` to install the backup. The version 2.02.57 of lvm with and
+  the device mapper hopefully integrated into the linux 2.6.33 will
+  make it more convenient by integrating it to the ``lvconvert``
+  command: no need to design a custom ``abort`` function like we did.
+
 
 Upgrade which goes well
 -----------------------
@@ -240,26 +259,36 @@ and R&D has come up with a *complete* re-design of the upgrade
 procedure: a snapshot and some *correct* database mangling
 commands. Only the schema upgrade was modified::
 
-   ~# change_schema () {
-       # you don't want to know ... 
+   ~# upgrade_schema_and_website () {
+
+       # Same as before ...
+       touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}
+
+	  # Same as before ...
+       add_new_user () { 
+         echo "id:$RANDOM,name:$1,age:$2" >> /mnt/website/database ; }
+
+	  # Correction added: substituted 'if' by 'id'
        nl -n rz -w 5 /mnt/website/database \
-          | sed 's/\t/,/; s/^/if:/' > /mnt/website/database.new
-       mv /mnt/website/database{.new,} ; }
+          | sed 's/\t/,/; s/^/id:/' > /mnt/website/database.new
+       mv /mnt/website/database{.new,} ;} 
+
+
+   ~# upgrade_schema_and_website
+
+   ~# cat /mnt/website/database
+   id:00001,name:alice,age:29
+   id:00002,name:bob,age:18
+   id:00003,name:robwilco,age:35
+   id:00004,name:duncanmacleod,age:539
 
 At dawn, the database is correct, the snapshot safety net was
-thankfully not used::
+thankfully not used. It is possible confirm the upgrade by removing
+the snapshot::
 
-  ~# cat /mnt/website/database
-  id:00001,name:alice,age:29
-  id:00002,name:bob,age:18
-  id:00003,name:robwilco,age:35
-  id:00004,name:duncanmacleod,age:539
+  ~# remove_snapshot
 
-It is possible commit the transaction: remove the snapshot::
-
-  ~# commit
-
-and obviously, removing the snapshot does not impact the database::
+And obviously, removing the snapshot does not impact the database::
 
   ~# cat /mnt/website/database
   id:00001,name:alice,age:29
@@ -270,9 +299,10 @@ and obviously, removing the snapshot does not impact the database::
 
 We are done with this howto, to clean up after this exercice::
 
-   ~# umount /mnt/website/
-   ~# lvremove /dev/datadisks/website 
+   ~# umount /mnt/website
+   ~# lvremove /dev/datadisks/website
+
    ~# vgremove datadisks 
    ~# pvremove /dev/loop1
    ~# losetup -d /dev/loop1
-   ~# rm hda1
+   ~# rm -r /mnt/{backup,website} loop1.raw

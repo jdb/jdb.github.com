@@ -87,7 +87,7 @@
             
   <div class="section" id="upgrade-safety-net-with-the-logical-volume-manager">
 <h1>Upgrade safety net with the logical volume manager<a class="headerlink" href="#upgrade-safety-net-with-the-logical-volume-manager" title="Permalink to this headline">¶</a></h1>
-<p>The story is a website with a database which gets into production and
+<p>It is the story of a website with a database which gets into production and
 then, after a while, needs to have its schema corrected and related
 files upgraded safely. As usual, it is always better to get the schema
 right from the beginning but it the real world there is a demand for
@@ -117,20 +117,12 @@ the partition before it gets full.</p>
 present a cool trick to create <em>virtual physical partitions</em>: it is
 not related to lvm per se but it ease experimentation with RAID or LVM
 without mangling a real disk.</p>
-<p>With <em>losetup</em>&#8216;s fake virtual partitions, it is possible to turn a
-normal file into a disk image device, available in <em>/dev</em>. Here we
-create, with <em>dd</em>, a file of one gigabyte called <em>loop1.raw</em> in the
+<p>With <em>losetup</em>&#8216;s loopback partitions, it is possible to turn a normal
+file into a disk image device, available in <em>/dev</em>. Here we create,
+with <em>dd</em>, a file of one and a half gigabyte called <em>loop1.raw</em> in the
 current directory, and make it available under <em>/dev/loop1</em></p>
-<div class="highlight-python"><pre>~# cd &amp;&amp; sudo -s
-~# dd if=/dev/zero of=loop1.raw bs=1M count=150
-
-~# cat /proc/partitions
-major minor  #blocks  name
-
- 8        0  117220824 sda
- 8        1     104391 sda1
- 8        2   22964917 sda2
-
+<div class="highlight-python"><pre>~$ cd &amp;&amp; sudo -s
+~# dd if=/dev/zero of=loop1.raw bs=1M count=1500
 ~# losetup /dev/loop1 loop1.raw
 
 ~# cat /proc/partitions
@@ -147,26 +139,28 @@ the next paragraph.</p>
 </div>
 <div class="section" id="lvm-partition-setup">
 <h2>LVM partition setup<a class="headerlink" href="#lvm-partition-setup" title="Permalink to this headline">¶</a></h2>
-<p>To represent LVM operations, there are three object you need to be
-familiar with, and for each of these objects, there is the
-corresponding shell commands for creating, listing and removing said
-object.</p>
+<p>To represent LVM hot resize, hot backup or physical disk aggregation,
+there are three object you need to be familiar with, and for each of
+these objects, there is the corresponding shell commands for creating,
+listing and removing said object.</p>
 <dl class="docutils">
 <dt><cite>physical volume</cite>: a physical partitions of one of the physical hard</dt>
 <dd>drive which has been allocated to lvm. Managed with <em>pvcreate</em>,
 <em>pvs</em> and <em>pvremove</em>.</dd>
 <dt><cite>volume group</cite>: aggregation of <strong>physical volumes</strong>. When I first read</dt>
 <dd>documentation about LVM, I thought the volume groups was meant to
-aggregate higher level logical paritions and data, but it is the
-other way round, they aggregate the real partitions. Managed with
-<em>vgcreate</em>, <em>vgs</em> and <em>vgremove</em>.</dd>
+aggregate the logical partitions and data, but it is the other way
+round, they aggregate the real partitions. Managed with <em>vgcreate</em>,
+<em>vgs</em> and <em>vgremove</em>.</dd>
 <dt><cite>logical volume</cite>: volume is what you will use in the end with <em>mkfs</em></dt>
 <dd>and <em>mount</em>. This is the device which look like the traditional
 partitions but with additional features like snapshots or resize on
 the fly. Managed with <em>lvcreate</em>, <em>lvs</em> and <em>lvgemove</em>.</dd>
 </dl>
-<p>Initialise the partition for use with lvm:</p>
-<div class="highlight-python"><pre>~# pvcreate /dev/loop1
+<p>Use <em>pvcreate</em> from the <em>lvm2</em> package to initialise the partition for
+use with lvm:</p>
+<div class="highlight-python"><pre>~# aptitude install lvm2
+~# pvcreate /dev/loop1
   Physical volume "/dev/loop1" successfully created</pre>
 </div>
 <p>A disk can only be added once to a volume group, multiple physical
@@ -175,21 +169,27 @@ disks compose a <em>volume group</em>:</p>
   Volume group "datadisks" successfully created</pre>
 </div>
 <p>So far, the partitions available have not changed and the
-<em>/dev/datadisks/website</em> partition does not exists:</p>
-<div class="highlight-python"><pre>~# lvs &amp;&amp; cat /proc/partitions &amp;&amp; ls /dev/datadisks/website
-   # the partitions available have not changed yet and
-   # the /dev/datadisks/website partition does not exists (yet)</pre>
-</div>
-<p>A logical volume (a partition) can now be created, it has a name, a
-size, and is inside a group:</p>
-<div class="highlight-python"><pre>~# lvcreate -n website -L 100M datadisks
+<em>/dev/datadisks/website</em> partition does not exists. A logical volume
+(a partition) can now be created, it has a name and a size parameter and
+is inside a group:</p>
+<div class="highlight-python"><pre>~# lvcreate -n website -L 1000M datadisks
   Logical volume "website" created
 
-~# lvs &amp;&amp; cat /proc/partitions &amp;&amp; ls /dev/datadisks/website</pre>
+~# lvs &amp;&amp; cat /proc/partitions &amp;&amp; ls /dev/datadisks/website
+  LV      VG        Attr   LSize   Origin Snap%  Move Log Copy%  Convert
+  website datadisks -wi-a- 100.00M
+ major minor  #blocks  name
+
+ 7        1    1536000 loop1
+ 8        0  117220824 sda
+ 8        1     204800 sda1
+ 252        0     102400 dm-0
+
+ /dev/datadisks/website</pre>
 </div>
-<p>In the partitions, a new <em>dm</em> (I&#8217;ll be it stands for <em>device mapper</em>)
-entry is shown, the device is available contained in a directory named
-after the volume group.</p>
+<p>Among the partitions appears a new <em>dm</em> entry is shown (I&#8217;ll be it
+stands for <em>device mapper</em>), the device is available in <em>/dev</em>
+contained in a directory named after the volume group.</p>
 <p>As usual, the partition must be formatted and mounted to be integrated
 to the filesystem:</p>
 <div class="highlight-python"><pre>~# mkfs.ext4 /dev/datadisks/website
@@ -198,43 +198,44 @@ to the filesystem:</p>
 </div>
 <div class="section" id="an-upgrade-plan-in-production">
 <h2>An upgrade plan in production<a class="headerlink" href="#an-upgrade-plan-in-production" title="Permalink to this headline">¶</a></h2>
-<p>Let&#8217;s a compose a dummy three-tier website, that we will have to
+<p>Let&#8217;s compose a dummy three-tier website, that we will have to
 upgrade, corrupt, rollback, etc:</p>
 <div class="highlight-python"><pre>~# touch /mnt/website/{database,index.html}
-~# new_user_api () { echo "name:$1,age:$2" &gt;&gt; /mnt/website/database ; }</pre>
+~# add_new_user () {
+       echo "name:$1,age:$2" &gt;&gt; /mnt/website/database ; }</pre>
 </div>
 <p>With the adapted amount of marketing and public relation, the website
 is put in production and made available to the public. Everyday,
 torrents of new users line up to subscribe:</p>
-<div class="highlight-python"><pre>~# new_user_api alice 29
-~# new_user_api bob 18</pre>
-</div>
-<p><em>Sparky the architect</em> have realised that the database schema must be
-upgraded to include an <em>id</em> for each users. This is the current
-database:</p>
-<div class="highlight-python"><pre>~# cat /mnt/website/database
+<div class="highlight-python"><pre>~# add_new_user alice 29
+~# add_new_user bob 18
+~# cat /mnt/website/database
 name:alice,age:29
 name:bob,age:18</pre>
 </div>
-<p>It should end up look like this:</p>
+<p><em>Sparky the architect</em> have realised that the database schema must be
+upgraded to include an <em>id</em> for each user. This is the current
+database. It should end up look like this:</p>
 <div class="highlight-python"><pre>id=001,name:alice,age:29
 id=002,name:bob,age:18</pre>
 </div>
-<p>So the upgrade procedure is:</p>
-<div class="highlight-python"><pre>~# change_schema () {
-    # you don't want to know ...
+<p>Also, the website in production is not web2.0 enough, so a designer
+has done a great job beautifying a new prototype, which is added to
+the upgrade procedure. So the upgrade procedure is:</p>
+<div class="highlight-python"><pre>~# upgrade_schema_and_website () {
+
+    # Web changes
+    touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}
+
+    # API upgrade: now there is an id
+    add_new_user () {
+      echo "id:$RANDOM,name:$1,age:$2" &gt;&gt; /mnt/website/database ; }
+
+    # For the db schema, you don't want to know ...
     nl -n rz -w 5 /mnt/website/database \
        | sed 's/\t/,/; s/^/if:/' &gt; /mnt/website/database.new
-    mv /mnt/website/database{.new,} ; }
-
-~# # Version 2 of the API
-~# new_user_api () {
-      echo "id:$RANDOM,name:$1,age:$2" &gt;&gt; /mnt/website/database ; }</pre>
-</div>
-<p>Also, the website in production is not web2.0 enough, so a web
-designer has done a great job beautifying a new prototype, which is
-added to the upgrade procedure</p>
-<div class="highlight-python"><pre>~# touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}</pre>
+    mv /mnt/website/database{.new,}
+    }</pre>
 </div>
 </div>
 <div class="section" id="filesystem-transactions-with-lvm">
@@ -242,27 +243,28 @@ added to the upgrade procedure</p>
 <p>The system administrator tunes a transaction API and convince the
 operator to use it the day of the upgrade. Before doing any change,
 the operator must use the command <em>transaction</em>. If all is well after
-a few days of testing, the command <em>commit</em> is used, else the operator
-can use the <em>abort</em>.</p>
+a few days of testing, the command <em>remove_snapshot</em> is used, else the operator
+can use the <em>abort</em> function.</p>
 <p>The transaction functions are built on top of the LVM snapshot:</p>
 <div class="highlight-python"><pre>~# transaction () {
-      lvcreate -s -n website_backup -L 25M  /dev/datadisks/website ; }
-
-~# commit () { lvremove /dev/datadisks/website_backup ; }
+      lvcreate -s -n backup -L 300M  /dev/datadisks/website ; }
 
 ~# abort () {
       mkdir /mnt/backup
-      mount /dev/datadisks/website_backup /mnt/backup
-      tar c -C /mnt/backup | tar x -C /mnt/website }
+      mount /dev/datadisks/website /mnt/backup
+      # tar cf - -C /mnt/backup . | tar  x -C /mnt/website
+      rsync --del -a /mnt/{backup,website}/ ; }
 
-~# cleanup () {
-      umount /mnt/backup/database
-      rm -r  /mnt/backup/database
-      lvremove /dev/datadisks/website_backup }</pre>
+~# remove_snapshot () {
+      umount /dev/datadisks/backup
+      lvremove /dev/datadisks/backup ; }</pre>
 </div>
-<p>The upgrade procedure require the database to go read only, no new
-users can be created. Comes the night of the upgrade, at dawn, the db
-looks like:</p>
+<p>The upgrade procedure requires the database to go read only, no new
+users can be created. Comes the night of the upgrade:</p>
+<div class="highlight-python"><pre>~# transaction
+~# upgrade_schema_and_website</pre>
+</div>
+<p>At dawn, the db looks like:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 if=001,name:alice,age:29
 if=002;name:bob,age:18</pre>
@@ -274,13 +276,21 @@ this mess now? we need roll back so that the production site can
 continue. Easy, here is the command:</p>
 <div class="highlight-python"><pre>~# abort</pre>
 </div>
-<p>And just to make sure:</p>
+<p>Just to make sure:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 name:alice,age:29
 name:bob,age:18</pre>
 </div>
 <p>Ok, the situation is similar as before the upgrade. The service can be
 restored.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Actually, it is not easy to get the right options to <tt class="docutils literal"><span class="pre">rsync</span></tt> or
+<tt class="docutils literal"><span class="pre">tar</span></tt> to install the backup. The version 2.02.57 of lvm with and
+the device mapper hopefully integrated into the linux 2.6.33 will
+make it more convenient by integrating it to the <tt class="docutils literal"><span class="pre">lvconvert</span></tt>
+command: no need to design a custom <tt class="docutils literal"><span class="pre">abort</span></tt> function like we did.</p>
+</div>
 </div>
 <div class="section" id="upgrade-which-goes-well">
 <h2>Upgrade which goes well<a class="headerlink" href="#upgrade-which-goes-well" title="Permalink to this headline">¶</a></h2>
@@ -294,24 +304,35 @@ name:duncanmacleod,age:539</pre>
 <p>and R&amp;D has come up with a <em>complete</em> re-design of the upgrade
 procedure: a snapshot and some <em>correct</em> database mangling
 commands. Only the schema upgrade was modified:</p>
-<div class="highlight-python"><pre>~# change_schema () {
-    # you don't want to know ...
+<div class="highlight-python"><pre>~# upgrade_schema_and_website () {
+
+    # Same as before ...
+    touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}
+
+       # Same as before ...
+    add_new_user () {
+      echo "id:$RANDOM,name:$1,age:$2" &gt;&gt; /mnt/website/database ; }
+
+       # Correction added: substituted 'if' by 'id'
     nl -n rz -w 5 /mnt/website/database \
-       | sed 's/\t/,/; s/^/if:/' &gt; /mnt/website/database.new
-    mv /mnt/website/database{.new,} ; }</pre>
-</div>
-<p>At dawn, the database is correct, the snapshot safety net was
-thankfully not used:</p>
-<div class="highlight-python"><pre>~# cat /mnt/website/database
+       | sed 's/\t/,/; s/^/id:/' &gt; /mnt/website/database.new
+    mv /mnt/website/database{.new,} ;}
+
+
+~# upgrade_schema_and_website
+
+~# cat /mnt/website/database
 id:00001,name:alice,age:29
 id:00002,name:bob,age:18
 id:00003,name:robwilco,age:35
 id:00004,name:duncanmacleod,age:539</pre>
 </div>
-<p>It is possible commit the transaction: remove the snapshot:</p>
-<div class="highlight-python"><pre>~# commit</pre>
+<p>At dawn, the database is correct, the snapshot safety net was
+thankfully not used. It is possible confirm the upgrade by removing
+the snapshot:</p>
+<div class="highlight-python"><pre>~# remove_snapshot</pre>
 </div>
-<p>and obviously, removing the snapshot does not impact the database:</p>
+<p>And obviously, removing the snapshot does not impact the database:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 id:00001,name:alice,age:29
 id:00002,name:bob,age:18
@@ -319,12 +340,13 @@ id:00003,name:robwilco,age:35
 id:00004,name:duncanmacleod,age:539</pre>
 </div>
 <p>We are done with this howto, to clean up after this exercice:</p>
-<div class="highlight-python"><pre>~# umount /mnt/website/
+<div class="highlight-python"><pre>~# umount /mnt/website
 ~# lvremove /dev/datadisks/website
+
 ~# vgremove datadisks
 ~# pvremove /dev/loop1
 ~# losetup -d /dev/loop1
-~# rm hda1</pre>
+~# rm -r /mnt/{backup,website} loop1.raw</pre>
 </div>
 </div>
 </div>
