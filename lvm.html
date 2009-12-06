@@ -94,7 +94,7 @@ to get the schema right from the beginning but as errors always happen
 at some point, technologies such as the LVM snapshots exists so that
 the website gets its invasive (read scary) upgrade but there is a good
 safety net in case of a mess.</p>
-<p>The idea is to take a snapshot of the disk <em>partition</em>: it is like
+<p>The idea is to take a <strong>snapshot</strong> of the <em>disk partition</em>: it is like
 making a backup of a partition and copy it back later whenever
 required, with the added benefit of :</p>
 <ul class="simple">
@@ -108,18 +108,18 @@ structures are coherent.</li>
 </ul>
 <p>It is not magic though, the snapshot itself is a partition and it
 grows along when new data is added to the original partition to which
-the snapshot is attached. Make sure the snapshot partition is big
+the snapshot is attached. <em>Make sure the snapshot partition is big
 enough to contain the updates to the original partition or suppress
-the partition before it gets full.</p>
+the partition before it gets full</em>.</p>
 <div class="section" id="a-trick-for-fake-physical-partitions">
 <h2>A trick for fake physical partitions<a class="headerlink" href="#a-trick-for-fake-physical-partitions" title="Permalink to this headline">¶</a></h2>
 <p>Before showing how to setup a logical partition with lvm, let&#8217;s first
 present a cool trick to create <em>virtual physical partitions</em>: it is
-not related to lvm per se but it ease experimentation with RAID or LVM
+not related to lvm per se but it eases experimentation with RAID or LVM
 without mangling a real disk.</p>
 <p>With <em>losetup</em>&#8216;s loopback partitions, it is possible to turn a normal
 file into a disk image device, available in <em>/dev</em>. Here we create,
-with <em>dd</em>, a file of one and a half gigabyte called <em>loop1.raw</em> in the
+with <em>dd</em>, a file of 1.5 gigabyte called <em>loop1.raw</em> in the
 current directory, and make it available under <em>/dev/loop1</em></p>
 <div class="highlight-python"><pre>~$ cd &amp;&amp; sudo -s
 ~# dd if=/dev/zero of=loop1.raw bs=1M count=1500
@@ -141,12 +141,12 @@ the next paragraph.</p>
 <h2>Setting up an logical volume<a class="headerlink" href="#setting-up-an-logical-volume" title="Permalink to this headline">¶</a></h2>
 <p>To represent LVM hot resize, hot backup or physical disk aggregation,
 there are three object you need to be familiar with, and for each of
-these objects, there is the corresponding shell commands for creating,
-listing and removing said object.</p>
+these objects, there is the corresponding shell commands for <em>creating</em>,
+<em>listing</em> and <em>removing</em> said object.</p>
 <dl class="docutils">
 <dt><cite>physical volume</cite>: a physical partitions of one of the physical hard</dt>
 <dd>drive which has been allocated to lvm. Managed with <em>pvcreate</em>,
-<em>pvs</em> and <em>pvremove</em>.</dd>
+<em>pvs</em> and <em>pvremove</em>. The <em>s</em> of <em>pvs</em> is for <em>show</em>.</dd>
 <dt><cite>volume group</cite>: aggregation of <strong>physical volumes</strong>. When I first read</dt>
 <dd>documentation about LVM, I thought the volume groups was meant to
 aggregate the logical partitions and data, but it is the other way
@@ -170,8 +170,8 @@ disks compose a <em>volume group</em>:</p>
 </div>
 <p>So far, the partitions available have not changed and the
 <em>/dev/datadisks/website</em> partition does not exists. A logical volume
-can now be created, it has a name and a size parameter and is inside a
-group:</p>
+can now be created, it has a <em>name</em> and a <em>size</em> parameter and is inside a
+<em>group</em>:</p>
 <div class="highlight-python"><pre>~# lvcreate -n website -L 1000M datadisks
   Logical volume "website" created
 
@@ -188,7 +188,7 @@ group:</p>
 
  /dev/datadisks/website</pre>
 </div>
-<p>Among the partitions appears a new <em>dm</em> entry is shown (I&#8217;ll be it
+<p>Among the partitions, a new <em>dm</em> entry is shown (I&#8217;ll bet it
 stands for <em>device mapper</em>), the device is available in <em>/dev</em>
 contained in a directory named after the volume group.</p>
 <p>As usual, the partition must be formatted and mounted to be integrated
@@ -215,8 +215,7 @@ name:alice,age:29
 name:bob,age:18</pre>
 </div>
 <p><em>Sparky the architect</em> have realised that the database schema must be
-upgraded to include an <em>id</em> for each user. This is the current
-database. It should end up look like this:</p>
+upgraded to include an <em>id</em> for each user. It should end up look like this:</p>
 <div class="highlight-python"><pre>id=001,name:alice,age:29
 id=002,name:bob,age:18</pre>
 </div>
@@ -277,8 +276,8 @@ this mess now: we need roll back so that the production site can
 continue. Easy, here is the command:</p>
 <div class="highlight-python"><pre>~# abort</pre>
 </div>
-<p>The abort is based on the <strong>lvcreate &#8211;snapshot</strong> and really is the
-core of this article. Now, to control the rollback went fine:</p>
+<p>The abort is based on the <tt class="docutils literal"><span class="pre">lvcreate</span> <span class="pre">--snapshot</span></tt> and really is the
+core of this article. Now, to control that the rollback went fine:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 name:alice,age:29
 name:bob,age:18
@@ -307,7 +306,7 @@ distributions in late 2010.</p>
 name:alice,age:29
 name:bob,age:18
 name:robwilco,age:35
-name:duncanmacleod,age:539</pre>
+name:DuncanMcLeod,age:539</pre>
 </div>
 <p>R&amp;D has come up with a <em>complete</em> re-design of the upgrade procedure:
 a snapshot and some <em>correct</em> database mangling commands. Only the
@@ -356,6 +355,7 @@ id:00004,name:duncanmacleod,age:539</pre>
 ~# losetup -d /dev/loop1
 ~# rm -r /mnt/{backup,website} loop1.raw</pre>
 </div>
+<p>December 07, 2009</p>
 </div>
 </div>
 

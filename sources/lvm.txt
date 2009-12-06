@@ -10,7 +10,7 @@ at some point, technologies such as the LVM snapshots exists so that
 the website gets its invasive (read scary) upgrade but there is a good
 safety net in case of a mess.
 
-The idea is to take a snapshot of the disk *partition*: it is like
+The idea is to take a **snapshot** of the *disk partition*: it is like
 making a backup of a partition and copy it back later whenever
 required, with the added benefit of :
 
@@ -26,21 +26,21 @@ required, with the added benefit of :
 
 It is not magic though, the snapshot itself is a partition and it
 grows along when new data is added to the original partition to which
-the snapshot is attached. Make sure the snapshot partition is big
+the snapshot is attached. *Make sure the snapshot partition is big
 enough to contain the updates to the original partition or suppress
-the partition before it gets full.
+the partition before it gets full*.
 
 A trick for fake physical partitions
 ------------------------------------
 
 Before showing how to setup a logical partition with lvm, let's first
 present a cool trick to create *virtual physical partitions*: it is
-not related to lvm per se but it ease experimentation with RAID or LVM
+not related to lvm per se but it eases experimentation with RAID or LVM
 without mangling a real disk.
 
 With *losetup*'s loopback partitions, it is possible to turn a normal
 file into a disk image device, available in */dev*. Here we create,
-with *dd*, a file of one and a half gigabyte called *loop1.raw* in the
+with *dd*, a file of 1.5 gigabyte called *loop1.raw* in the
 current directory, and make it available under */dev/loop1* ::
 
   ~$ cd && sudo -s
@@ -64,12 +64,12 @@ Setting up an logical volume
 
 To represent LVM hot resize, hot backup or physical disk aggregation,
 there are three object you need to be familiar with, and for each of
-these objects, there is the corresponding shell commands for creating,
-listing and removing said object.
+these objects, there is the corresponding shell commands for *creating*,
+*listing* and *removing* said object.
 
 `physical volume`: a physical partitions of one of the physical hard
    drive which has been allocated to lvm. Managed with *pvcreate*,
-   *pvs* and *pvremove*.
+   *pvs* and *pvremove*. The *s* of *pvs* is for *show*.
 
 `volume group`: aggregation of **physical volumes**. When I first read
    documentation about LVM, I thought the volume groups was meant to
@@ -97,8 +97,8 @@ disks compose a *volume group*::
 
 So far, the partitions available have not changed and the
 */dev/datadisks/website* partition does not exists. A logical volume
-can now be created, it has a name and a size parameter and is inside a
-group::
+can now be created, it has a *name* and a *size* parameter and is inside a
+*group*::
 
   ~# lvcreate -n website -L 1000M datadisks
     Logical volume "website" created
@@ -116,7 +116,7 @@ group::
 
    /dev/datadisks/website
 
-Among the partitions appears a new *dm* entry is shown (I'll be it
+Among the partitions, a new *dm* entry is shown (I'll bet it
 stands for *device mapper*), the device is available in */dev*
 contained in a directory named after the volume group.
 
@@ -148,8 +148,7 @@ torrents of new users line up to subscribe::
    name:bob,age:18
 
 *Sparky the architect* have realised that the database schema must be
-upgraded to include an *id* for each user. This is the current
-database. It should end up look like this::
+upgraded to include an *id* for each user. It should end up look like this::
 
      id=001,name:alice,age:29
      id=002,name:bob,age:18
@@ -227,8 +226,8 @@ continue. Easy, here is the command::
 
    ~# abort
 
-The abort is based on the **lvcreate --snapshot** and really is the
-core of this article. Now, to control the rollback went fine::
+The abort is based on the ``lvcreate --snapshot`` and really is the
+core of this article. Now, to control that the rollback went fine::
 
    ~# cat /mnt/website/database
    name:alice,age:29
@@ -261,7 +260,7 @@ Three weeks later, many more users have been created::
   name:alice,age:29
   name:bob,age:18
   name:robwilco,age:35
-  name:duncanmacleod,age:539
+  name:DuncanMcLeod,age:539
 
 R&D has come up with a *complete* re-design of the upgrade procedure:
 a snapshot and some *correct* database mangling commands. Only the
@@ -313,3 +312,5 @@ We are done with this howto, to clean up after this exercice::
    ~# pvremove /dev/loop1
    ~# losetup -d /dev/loop1
    ~# rm -r /mnt/{backup,website} loop1.raw
+
+|today|
