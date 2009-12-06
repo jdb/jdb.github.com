@@ -1,18 +1,18 @@
 
-Upgrade safety net with the logical volume manager
-==================================================
+An upgrade safety net with the logical volume manager
+=====================================================
 
-It is the story of a website with a database which gets into production and
-then, after a while, needs to have its schema corrected and related
-files upgraded safely. As usual, it is always better to get the schema
-right from the beginning but it the real world there is a demand for
-both flexibility and safety. With the logical volume manager, the
-website gets its invasive (read scary) upgrade but there is a good and
-handy safety net in case of a mess.
+It is the story of a website with files and a database which gets into
+production and then, after a while, needs to have its schema corrected
+and related files upgraded safely. As usual, it would have been better
+to get the schema right from the beginning but as errors always happen
+at some point, technologies such as the LVM snapshots exists so that
+the website gets its invasive (read scary) upgrade but there is a good
+safety net in case of a mess.
 
 The idea is to take a snapshot of the disk *partition*: it is like
 making a backup of a partition and copy it back later whenever
-required, with the added benefit of
+required, with the added benefit of :
 
 - the backup is done in almost not time, it is *not* depending on the
   size of the disk,
@@ -30,8 +30,8 @@ the snapshot is attached. Make sure the snapshot partition is big
 enough to contain the updates to the original partition or suppress
 the partition before it gets full.
 
-Fake physical partitions
-------------------------
+A trick for fake physical partitions
+------------------------------------
 
 Before showing how to setup a logical partition with lvm, let's first
 present a cool trick to create *virtual physical partitions*: it is
@@ -59,8 +59,8 @@ There was no partitions available called *loop1* and it appeared after
 the *losetup command*. We will set up the partition to use with lvm in
 the next paragraph.
 
-LVM partition setup
--------------------
+Setting up an logical volume
+----------------------------
 
 To represent LVM hot resize, hot backup or physical disk aggregation,
 there are three object you need to be familiar with, and for each of
@@ -80,7 +80,7 @@ listing and removing said object.
 `logical volume`: volume is what you will use in the end with *mkfs*
    and *mount*. This is the device which look like the traditional
    partitions but with additional features like snapshots or resize on
-   the fly. Managed with *lvcreate*, *lvs* and *lvgemove*.
+   the fly. Managed with *lvcreate*, *lvs* and *lvemove*.
 
 Use *pvcreate* from the *lvm2* package to initialise the partition for
 use with lvm::
@@ -97,8 +97,8 @@ disks compose a *volume group*::
 
 So far, the partitions available have not changed and the
 */dev/datadisks/website* partition does not exists. A logical volume
-(a partition) can now be created, it has a name and a size parameter and
-is inside a group::
+can now be created, it has a name and a size parameter and is inside a
+group::
 
   ~# lvcreate -n website -L 1000M datadisks
     Logical volume "website" created
@@ -106,12 +106,13 @@ is inside a group::
   ~# lvs && cat /proc/partitions && ls /dev/datadisks/website
     LV      VG        Attr   LSize   Origin Snap%  Move Log Copy%  Convert
     website datadisks -wi-a- 100.00M                                      
-   major minor  #blocks  name
 
-   7        1    1536000 loop1
-   8        0  117220824 sda
-   8        1     204800 sda1
-   252        0     102400 dm-0
+    major minor  #blocks  name
+
+      7      1    1536000 loop1
+      8      0  117220824 sda
+      8      1     204800 sda1
+    252      0     102400 dm-0
 
    /dev/datadisks/website
 
@@ -126,8 +127,8 @@ to the filesystem::
   ~# mkdir /mnt/website && mount /dev/datadisks/website /mnt/website
 
 
-An upgrade plan in production
------------------------------
+Design of an upgrade plan
+-------------------------
 
 Let's compose a dummy three-tier website, that we will have to
 upgrade, corrupt, rollback, etc::
@@ -172,14 +173,14 @@ the upgrade procedure. So the upgrade procedure is::
           mv /mnt/website/database{.new,} 
 	  } 
 
-Filesystem transactions with lvm
---------------------------------
+Rollback of a failed upgrade
+----------------------------
 
 The system administrator tunes a transaction API and convince the
 operator to use it the day of the upgrade. Before doing any change,
 the operator must use the command *transaction*. If all is well after
-a few days of testing, the command *remove_snapshot* is used, else the operator
-can use the *abort* function.
+a few days of testing, the command *remove_snapshot* is used, else the
+operator can use the *abort* function.
 
 The transaction functions are built on top of the LVM snapshot::
 
@@ -221,33 +222,40 @@ At dawn, the db looks like::
 Ouuuch man! it is corrupted, there is no 'id' column instead it is
 written 'if' everywhere now and we have no clue why. We need to go
 back to the lab, figure out what happened... What do we do now with
-this mess now? we need roll back so that the production site can
+this mess now: we need roll back so that the production site can
 continue. Easy, here is the command::
 
    ~# abort
 
-Just to make sure::
+The abort is based on the **lvcreate --snapshot** and really is the
+core of this article. Now, to control the rollback went fine::
 
    ~# cat /mnt/website/database
    name:alice,age:29
    name:bob,age:18
 
+   ~# ls /mnt/website/ponies.js
+   ls: No such file or directory
+
 Ok, the situation is similar as before the upgrade. The service can be
-restored.
+restored. 
 
 .. note::
 
-  Actually, it is not easy to get the right options to ``rsync`` or
-  ``tar`` to install the backup. The version 2.02.57 of lvm with and
-  the device mapper hopefully integrated into the linux 2.6.33 will
-  make it more convenient by integrating it to the ``lvconvert``
-  command: no need to design a custom ``abort`` function like we did.
+  It is actually not easy to get the right options for ``rsync`` or
+  ``tar`` for re-install the data of the backup. The version 2.02.57 of
+  lvm with the device mapper hopefully integrated into the linux
+  2.6.33 will be more convenient by integrating it to the
+  ``lvconvert`` command of the LVM set of commands: no need for
+  everyone to write (and debug) a custom ``abort`` function like we
+  did. The new lvconvert command will be integrated into the
+  distributions in late 2010.
 
 
-Upgrade which goes well
------------------------
+Fixing and re-applying the upgrade
+----------------------------------
 
-Three weeks later many many more users have been created::
+Three weeks later, many more users have been created::
 
   ~# cat /mnt/website/database
   name:alice,age:29
@@ -255,16 +263,16 @@ Three weeks later many many more users have been created::
   name:robwilco,age:35
   name:duncanmacleod,age:539
 
-and R&D has come up with a *complete* re-design of the upgrade
-procedure: a snapshot and some *correct* database mangling
-commands. Only the schema upgrade was modified::
+R&D has come up with a *complete* re-design of the upgrade procedure:
+a snapshot and some *correct* database mangling commands. Only the
+schema upgrade was modified::
 
    ~# upgrade_schema_and_website () {
 
        # Same as before ...
        touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}
 
-	  # Same as before ...
+       # Same as before ...
        add_new_user () { 
          echo "id:$RANDOM,name:$1,age:$2" >> /mnt/website/database ; }
 
@@ -283,19 +291,18 @@ commands. Only the schema upgrade was modified::
    id:00004,name:duncanmacleod,age:539
 
 At dawn, the database is correct, the snapshot safety net was
-thankfully not used. It is possible confirm the upgrade by removing
+thankfully not used. It is possible to confirm the upgrade by removing
 the snapshot::
 
   ~# remove_snapshot
 
-And obviously, removing the snapshot does not impact the database::
+Obviously, removing the snapshot does not impact the original partition::
 
   ~# cat /mnt/website/database
   id:00001,name:alice,age:29
   id:00002,name:bob,age:18
   id:00003,name:robwilco,age:35
   id:00004,name:duncanmacleod,age:539
-
 
 We are done with this howto, to clean up after this exercice::
 

@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Upgrade safety net with the logical volume manager &mdash; bits v0.5 documentation</title>
+    <title>An upgrade safety net with the logical volume manager &mdash; bits v0.5 documentation</title>
     <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -43,12 +43,12 @@
         <div class="sphinxsidebarwrapper">
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">Upgrade safety net with the logical volume manager</a><ul>
-<li><a class="reference external" href="#fake-physical-partitions">Fake physical partitions</a></li>
-<li><a class="reference external" href="#lvm-partition-setup">LVM partition setup</a></li>
-<li><a class="reference external" href="#an-upgrade-plan-in-production">An upgrade plan in production</a></li>
-<li><a class="reference external" href="#filesystem-transactions-with-lvm">Filesystem transactions with lvm</a></li>
-<li><a class="reference external" href="#upgrade-which-goes-well">Upgrade which goes well</a></li>
+<li><a class="reference external" href="">An upgrade safety net with the logical volume manager</a><ul>
+<li><a class="reference external" href="#a-trick-for-fake-physical-partitions">A trick for fake physical partitions</a></li>
+<li><a class="reference external" href="#setting-up-an-logical-volume">Setting up an logical volume</a></li>
+<li><a class="reference external" href="#design-of-an-upgrade-plan">Design of an upgrade plan</a></li>
+<li><a class="reference external" href="#rollback-of-a-failed-upgrade">Rollback of a failed upgrade</a></li>
+<li><a class="reference external" href="#fixing-and-re-applying-the-upgrade">Fixing and re-applying the upgrade</a></li>
 </ul>
 </li>
 </ul>
@@ -85,18 +85,18 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="upgrade-safety-net-with-the-logical-volume-manager">
-<h1>Upgrade safety net with the logical volume manager<a class="headerlink" href="#upgrade-safety-net-with-the-logical-volume-manager" title="Permalink to this headline">¶</a></h1>
-<p>It is the story of a website with a database which gets into production and
-then, after a while, needs to have its schema corrected and related
-files upgraded safely. As usual, it is always better to get the schema
-right from the beginning but it the real world there is a demand for
-both flexibility and safety. With the logical volume manager, the
-website gets its invasive (read scary) upgrade but there is a good and
-handy safety net in case of a mess.</p>
+  <div class="section" id="an-upgrade-safety-net-with-the-logical-volume-manager">
+<h1>An upgrade safety net with the logical volume manager<a class="headerlink" href="#an-upgrade-safety-net-with-the-logical-volume-manager" title="Permalink to this headline">¶</a></h1>
+<p>It is the story of a website with files and a database which gets into
+production and then, after a while, needs to have its schema corrected
+and related files upgraded safely. As usual, it would have been better
+to get the schema right from the beginning but as errors always happen
+at some point, technologies such as the LVM snapshots exists so that
+the website gets its invasive (read scary) upgrade but there is a good
+safety net in case of a mess.</p>
 <p>The idea is to take a snapshot of the disk <em>partition</em>: it is like
 making a backup of a partition and copy it back later whenever
-required, with the added benefit of</p>
+required, with the added benefit of :</p>
 <ul class="simple">
 <li>the backup is done in almost not time, it is <em>not</em> depending on the
 size of the disk,</li>
@@ -111,8 +111,8 @@ grows along when new data is added to the original partition to which
 the snapshot is attached. Make sure the snapshot partition is big
 enough to contain the updates to the original partition or suppress
 the partition before it gets full.</p>
-<div class="section" id="fake-physical-partitions">
-<h2>Fake physical partitions<a class="headerlink" href="#fake-physical-partitions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="a-trick-for-fake-physical-partitions">
+<h2>A trick for fake physical partitions<a class="headerlink" href="#a-trick-for-fake-physical-partitions" title="Permalink to this headline">¶</a></h2>
 <p>Before showing how to setup a logical partition with lvm, let&#8217;s first
 present a cool trick to create <em>virtual physical partitions</em>: it is
 not related to lvm per se but it ease experimentation with RAID or LVM
@@ -137,8 +137,8 @@ current directory, and make it available under <em>/dev/loop1</em></p>
 the <em>losetup command</em>. We will set up the partition to use with lvm in
 the next paragraph.</p>
 </div>
-<div class="section" id="lvm-partition-setup">
-<h2>LVM partition setup<a class="headerlink" href="#lvm-partition-setup" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="setting-up-an-logical-volume">
+<h2>Setting up an logical volume<a class="headerlink" href="#setting-up-an-logical-volume" title="Permalink to this headline">¶</a></h2>
 <p>To represent LVM hot resize, hot backup or physical disk aggregation,
 there are three object you need to be familiar with, and for each of
 these objects, there is the corresponding shell commands for creating,
@@ -155,7 +155,7 @@ round, they aggregate the real partitions. Managed with <em>vgcreate</em>,
 <dt><cite>logical volume</cite>: volume is what you will use in the end with <em>mkfs</em></dt>
 <dd>and <em>mount</em>. This is the device which look like the traditional
 partitions but with additional features like snapshots or resize on
-the fly. Managed with <em>lvcreate</em>, <em>lvs</em> and <em>lvgemove</em>.</dd>
+the fly. Managed with <em>lvcreate</em>, <em>lvs</em> and <em>lvemove</em>.</dd>
 </dl>
 <p>Use <em>pvcreate</em> from the <em>lvm2</em> package to initialise the partition for
 use with lvm:</p>
@@ -170,20 +170,21 @@ disks compose a <em>volume group</em>:</p>
 </div>
 <p>So far, the partitions available have not changed and the
 <em>/dev/datadisks/website</em> partition does not exists. A logical volume
-(a partition) can now be created, it has a name and a size parameter and
-is inside a group:</p>
+can now be created, it has a name and a size parameter and is inside a
+group:</p>
 <div class="highlight-python"><pre>~# lvcreate -n website -L 1000M datadisks
   Logical volume "website" created
 
 ~# lvs &amp;&amp; cat /proc/partitions &amp;&amp; ls /dev/datadisks/website
   LV      VG        Attr   LSize   Origin Snap%  Move Log Copy%  Convert
   website datadisks -wi-a- 100.00M
- major minor  #blocks  name
 
- 7        1    1536000 loop1
- 8        0  117220824 sda
- 8        1     204800 sda1
- 252        0     102400 dm-0
+  major minor  #blocks  name
+
+    7      1    1536000 loop1
+    8      0  117220824 sda
+    8      1     204800 sda1
+  252      0     102400 dm-0
 
  /dev/datadisks/website</pre>
 </div>
@@ -196,8 +197,8 @@ to the filesystem:</p>
 ~# mkdir /mnt/website &amp;&amp; mount /dev/datadisks/website /mnt/website</pre>
 </div>
 </div>
-<div class="section" id="an-upgrade-plan-in-production">
-<h2>An upgrade plan in production<a class="headerlink" href="#an-upgrade-plan-in-production" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="design-of-an-upgrade-plan">
+<h2>Design of an upgrade plan<a class="headerlink" href="#design-of-an-upgrade-plan" title="Permalink to this headline">¶</a></h2>
 <p>Let&#8217;s compose a dummy three-tier website, that we will have to
 upgrade, corrupt, rollback, etc:</p>
 <div class="highlight-python"><pre>~# touch /mnt/website/{database,index.html}
@@ -238,13 +239,13 @@ the upgrade procedure. So the upgrade procedure is:</p>
     }</pre>
 </div>
 </div>
-<div class="section" id="filesystem-transactions-with-lvm">
-<h2>Filesystem transactions with lvm<a class="headerlink" href="#filesystem-transactions-with-lvm" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="rollback-of-a-failed-upgrade">
+<h2>Rollback of a failed upgrade<a class="headerlink" href="#rollback-of-a-failed-upgrade" title="Permalink to this headline">¶</a></h2>
 <p>The system administrator tunes a transaction API and convince the
 operator to use it the day of the upgrade. Before doing any change,
 the operator must use the command <em>transaction</em>. If all is well after
-a few days of testing, the command <em>remove_snapshot</em> is used, else the operator
-can use the <em>abort</em> function.</p>
+a few days of testing, the command <em>remove_snapshot</em> is used, else the
+operator can use the <em>abort</em> function.</p>
 <p>The transaction functions are built on top of the LVM snapshot:</p>
 <div class="highlight-python"><pre>~# transaction () {
       lvcreate -s -n backup -L 300M  /dev/datadisks/website ; }
@@ -272,44 +273,51 @@ if=002;name:bob,age:18</pre>
 <p>Ouuuch man! it is corrupted, there is no &#8216;id&#8217; column instead it is
 written &#8216;if&#8217; everywhere now and we have no clue why. We need to go
 back to the lab, figure out what happened... What do we do now with
-this mess now? we need roll back so that the production site can
+this mess now: we need roll back so that the production site can
 continue. Easy, here is the command:</p>
 <div class="highlight-python"><pre>~# abort</pre>
 </div>
-<p>Just to make sure:</p>
+<p>The abort is based on the <strong>lvcreate &#8211;snapshot</strong> and really is the
+core of this article. Now, to control the rollback went fine:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 name:alice,age:29
-name:bob,age:18</pre>
+name:bob,age:18
+
+~# ls /mnt/website/ponies.js
+ls: No such file or directory</pre>
 </div>
 <p>Ok, the situation is similar as before the upgrade. The service can be
 restored.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Actually, it is not easy to get the right options to <tt class="docutils literal"><span class="pre">rsync</span></tt> or
-<tt class="docutils literal"><span class="pre">tar</span></tt> to install the backup. The version 2.02.57 of lvm with and
-the device mapper hopefully integrated into the linux 2.6.33 will
-make it more convenient by integrating it to the <tt class="docutils literal"><span class="pre">lvconvert</span></tt>
-command: no need to design a custom <tt class="docutils literal"><span class="pre">abort</span></tt> function like we did.</p>
+<p class="last">It is actually not easy to get the right options for <tt class="docutils literal"><span class="pre">rsync</span></tt> or
+<tt class="docutils literal"><span class="pre">tar</span></tt> for re-install the data of the backup. The version 2.02.57 of
+lvm with the device mapper hopefully integrated into the linux
+2.6.33 will be more convenient by integrating it to the
+<tt class="docutils literal"><span class="pre">lvconvert</span></tt> command of the LVM set of commands: no need for
+everyone to write (and debug) a custom <tt class="docutils literal"><span class="pre">abort</span></tt> function like we
+did. The new lvconvert command will be integrated into the
+distributions in late 2010.</p>
 </div>
 </div>
-<div class="section" id="upgrade-which-goes-well">
-<h2>Upgrade which goes well<a class="headerlink" href="#upgrade-which-goes-well" title="Permalink to this headline">¶</a></h2>
-<p>Three weeks later many many more users have been created:</p>
+<div class="section" id="fixing-and-re-applying-the-upgrade">
+<h2>Fixing and re-applying the upgrade<a class="headerlink" href="#fixing-and-re-applying-the-upgrade" title="Permalink to this headline">¶</a></h2>
+<p>Three weeks later, many more users have been created:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 name:alice,age:29
 name:bob,age:18
 name:robwilco,age:35
 name:duncanmacleod,age:539</pre>
 </div>
-<p>and R&amp;D has come up with a <em>complete</em> re-design of the upgrade
-procedure: a snapshot and some <em>correct</em> database mangling
-commands. Only the schema upgrade was modified:</p>
+<p>R&amp;D has come up with a <em>complete</em> re-design of the upgrade procedure:
+a snapshot and some <em>correct</em> database mangling commands. Only the
+schema upgrade was modified:</p>
 <div class="highlight-python"><pre>~# upgrade_schema_and_website () {
 
     # Same as before ...
     touch /mnt/website/{social-caramels.js,ponies.js,eye-candy.css}
 
-       # Same as before ...
+    # Same as before ...
     add_new_user () {
       echo "id:$RANDOM,name:$1,age:$2" &gt;&gt; /mnt/website/database ; }
 
@@ -328,11 +336,11 @@ id:00003,name:robwilco,age:35
 id:00004,name:duncanmacleod,age:539</pre>
 </div>
 <p>At dawn, the database is correct, the snapshot safety net was
-thankfully not used. It is possible confirm the upgrade by removing
+thankfully not used. It is possible to confirm the upgrade by removing
 the snapshot:</p>
 <div class="highlight-python"><pre>~# remove_snapshot</pre>
 </div>
-<p>And obviously, removing the snapshot does not impact the database:</p>
+<p>Obviously, removing the snapshot does not impact the original partition:</p>
 <div class="highlight-python"><pre>~# cat /mnt/website/database
 id:00001,name:alice,age:29
 id:00002,name:bob,age:18
