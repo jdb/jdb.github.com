@@ -247,8 +247,8 @@ restored.
   2.6.33 will be more convenient by integrating it to the
   ``lvconvert`` command of the LVM set of commands: no need for
   everyone to write (and debug) a custom ``abort`` function like we
-  did. The new lvconvert command will be integrated into the
-  distributions in late 2010.
+  did. The new lvconvert command could be available into the
+  distributions in the second half of 2010.
 
 
 Fixing and re-applying the upgrade
