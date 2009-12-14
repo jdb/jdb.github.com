@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>An example of functional programming &mdash; bits v0.5 documentation</title>
+    <title>An example of functional programming &mdash; bits v0.6 documentation</title>
     <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.5',
+        VERSION:     '0.6',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="bits v0.5 documentation" href="index.html" />
+    <link rel="top" title="bits v0.6 documentation" href="index.html" />
     <link rel="next" title="Concurrent programming with Twisted" href="twisted/concurrent.html" />
     <link rel="prev" title="Every bit counts" href="index.html" /> 
   </head>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="index.html" title="Every bit counts"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -99,26 +99,26 @@ circle</strong> can be computed as <em>the ratio between the number of points of
 the circle and the total number of points</em>. In math, this is
 summarized as:</p>
 <div class="math">
-<p><img src="images/math/2206bd618bd79b326d66a382c37c0b8a74eea8fb.png" alt="frequency = \frac{number\ of\ points\ in\ the\ circle}{total\ number\ of\ points}" />
-</div></p></li>
+<p><img src="images/math/2206bd618bd79b326d66a382c37c0b8a74eea8fb.png" alt="frequency = \frac{number\ of\ points\ in\ the\ circle}{total\ number\ of\ points}" /></p>
+</div></li>
 <li><p class="first">The <em>number of points in a shape</em> is another name for the <em>surface</em>
 of the shape, that is:</p>
 <div class="math">
 <p><img src="images/math/8456560864f2d2046824b08a6b181110e81bad5f.png" alt="Circle\ surface = \pi . radius^2
 
-Square\ surface = side^2" />
-</div></p></li>
+Square\ surface = side^2" /></p>
+</div></li>
 <li><p class="first">Because the square contains all the points, and because the
 <em>surface of a shape</em> is the set of points contained in the shape,
 the frequency in 1. becomes:</p>
 <div class="math">
-<p><img src="images/math/56f2a5b923c97331c0e3f66d24cf0e9008fba751.png" alt="frequency = \frac{ \pi . radius^2 }{ side^2 }" />
-</div></p><p>To make things simple, take a circle with a radius of <em>1</em>, and its
+<p><img src="images/math/56f2a5b923c97331c0e3f66d24cf0e9008fba751.png" alt="frequency = \frac{ \pi . radius^2 }{ side^2 }" /></p>
+</div><p>To make things simple, take a circle with a radius of <em>1</em>, and its
 containing square with a side length of <em>2</em>, the frequency is
 simply</p>
 <div class="math">
-<p><img src="images/math/f4e95e43ecbff5ed6438cf30a440f18fe3879f07.png" alt="frequency = \frac{\pi}{4}" />
-</div></p><p>This means that if you can build an experiment which gives you
+<p><img src="images/math/f4e95e43ecbff5ed6438cf30a440f18fe3879f07.png" alt="frequency = \frac{\pi}{4}" /></p>
+</div><p>This means that if you can build an experiment which gives you
 an approximation of this frequency then an approximation of <strong>Pi is
 four times the frequency</strong>.</p>
 </li>
@@ -129,7 +129,7 @@ is 1 and it fits into the square with a side of 2. A random point
 is made of two coordinates, one for the horizontal position and one
 for the vertical position.</p>
 <div class="figure">
-<img alt="images/square-cercle.png" src="images/square-cercle.png" style="width: 453pt; height: 226pt;" />
+<object data="images/square-cercle.svg" height="226pt" type="image/svg+xml" width="453pt"><embed height="226pt" src="images/square-cercle.svg" type="image/svg+xml" width="453pt" /></object>
 </div>
 <p>This figure makes it clear is that the point is in the circle if
 and only if the distance between the point and the center is
@@ -139,14 +139,14 @@ thousands years, it is still: <img class="math" src="images/math/d7a4e731d3312ce
 where x represents the horizontal position and y represents the
 vertical position.</p>
 <div class="figure">
-<img alt="images/pythagoras.png" src="images/pythagoras.png" style="width: 453pt; height: 226pt;" />
+<object data="images/pythagoras.svg" height="226pt" type="image/svg+xml" width="453pt"><embed height="226pt" src="images/pythagoras.svg" type="image/svg+xml" width="453pt" /></object>
 </div>
 <p>To sum up the recipe for Pi, take a million random points in
 the square, count the points in the circle, divide by a million and
 multiply by four. Serve with a slice of lemon and a small quantity of
 salt.</p>
 <div class="figure">
-<img alt="images/frequency.png" src="images/frequency.png" style="width: 453pt; height: 226pt;" />
+<object data="images/frequency.svg" height="226pt" type="image/svg+xml" width="453pt"><embed height="226pt" src="images/frequency.svg" type="image/svg+xml" width="453pt" /></object>
 </div>
 </div>
 <div class="section" id="a-procedural-and-a-functional-algorithm">
@@ -155,12 +155,12 @@ salt.</p>
 let&#8217;s make a working example out of the design. Actually, we will make two
 working examples in the <a class="reference external" href="http://www.python.org/doc/2.6.4/howto/advocacy.html">Python</a> programming language and compare the
 styles.</p>
-<p>In either styles, we will use the functions <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/math.html#math.sqrt"><tt class="xref docutils literal"><span class="pre">math.sqrt()</span></tt></a> and
-<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/random.html#random.uniform"><tt class="xref docutils literal"><span class="pre">random.uniform()</span></tt></a>: the latter returns the <em>square root</em> of the
+<p>In either styles, we will use the functions <tt class="xref docutils literal"><span class="pre">math.sqrt()</span></tt> and
+<tt class="xref docutils literal"><span class="pre">random.uniform()</span></tt>: the latter returns the <em>square root</em> of the
 argument given as an input, the latter returns a random decimal number
 uniformly distributed between the values of the first and the second
 arguments. Also, both scripts will take the number of points (the
-sample size) as the first argument, so we will need <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/sys.html#sys.argv"><tt class="xref docutils literal"><span class="pre">sys.argv</span></tt></a>:
+sample size) as the first argument, so we will need <tt class="xref docutils literal"><span class="pre">sys.argv</span></tt>:
 it holds the command line parameters of the script</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">uniform</span>
@@ -243,7 +243,7 @@ script with 200 000, one million and five million points in the sample</p>
 ~$ # on your computer:  Ctrl-C or Ctrl-Z</pre>
 </div>
 <p>Mmmh, the functional version takes longer and it does not scale. The
-problem stems from the fact that <tt class="xref docutils literal"><span class="pre">points()</span></tt> and <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a>
+problem stems from the fact that <tt class="xref docutils literal"><span class="pre">points()</span></tt> and <tt class="xref docutils literal"><span class="pre">filter()</span></tt>
 make up lists of several million elements stored in the laptop memory,
 which is too small to handle them all efficiently. It is no use to
 store them all, in this problem, we only need one at the same time.</p>
@@ -260,10 +260,10 @@ function which manipulates the generator. They are not stored, it is
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="n">size</span> <span class="p">)</span> <span class="p">)</span>
 </pre></div>
 </div>
-<p>The <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a> function is substituted by its
-<em>generator-returning</em> counterpart <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/itertools.html#itertools.ifilter"><tt class="xref docutils literal"><span class="pre">ifilter()</span></tt></a> in the
-<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/itertools.html#module-itertools"><tt class="xref docutils literal"><span class="pre">itertools</span></tt></a> module. One last change: a generator has no length,
-so <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#len"><tt class="xref docutils literal"><span class="pre">len()</span></tt></a> is substituted by a trick: sum a list of <em>ones</em> for
+<p>The <tt class="xref docutils literal"><span class="pre">filter()</span></tt> function is substituted by its
+<em>generator-returning</em> counterpart <tt class="xref docutils literal"><span class="pre">ifilter()</span></tt> in the
+<tt class="xref docutils literal"><span class="pre">itertools</span></tt> module. One last change: a generator has no length,
+so <tt class="xref docutils literal"><span class="pre">len()</span></tt> is substituted by a trick: sum a list of <em>ones</em> for
 each point in the circle:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">ifilter</span>
 
@@ -294,9 +294,6 @@ straightforward, and is 10% slower than the procedural counterpart.</p>
 </div>
 
 
-
-
-
           </div>
         </div>
       </div>
@@ -314,12 +311,12 @@ straightforward, and is 10% slower than the procedural counterpart.</p>
         <li class="right" >
           <a href="index.html" title="Every bit counts"
              >previous</a> |</li>
-        <li><a href="index.html">bits v0.5 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2009, jdb.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
     </div>
   </body>
 </html>

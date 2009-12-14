@@ -9,7 +9,6 @@ Every bit counts
    functional
    twisted/concurrent
    i18n
-   packaging
    lvm
    pty
  
