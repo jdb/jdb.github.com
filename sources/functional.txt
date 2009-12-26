@@ -52,7 +52,7 @@ is 1 and it fits into the square with a side of 2. A random point
 is made of two coordinates, one for the horizontal position and one
 for the vertical position.
 
-.. figure:: functional.d/square-cercle.*
+.. figure:: functional.d/square-cercle.png
    :height: 226pt
    :width: 453pt
 
@@ -65,7 +65,7 @@ thousands years, it is still: :math:`distance = \sqrt{x^2 + y^2 }`,
 where x represents the horizontal position and y represents the
 vertical position.
 
-.. figure:: functional.d/pythagoras.*
+.. figure:: functional.d/pythagoras.png
    :height: 226pt
    :width: 453pt
 
@@ -77,7 +77,7 @@ the square, count the points in the circle, divide by a million and
 multiply by four. Serve with a slice of lemon and a small quantity of
 salt.
 
-.. figure:: functional.d/frequency.*
+.. figure:: functional.d/frequency.png
    :height: 226pt
    :width: 453pt
 
