@@ -7,7 +7,7 @@ Every bit counts
    :maxdepth: 1
 
    functional
-   twisted/concurrent
+   concurrent
    i18n
    lvm
    pty

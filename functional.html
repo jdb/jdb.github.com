@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>An example of functional programming &mdash; bits v0.6 documentation</title>
+    <title>An example of functional programming &mdash; bits v documentation</title>
     <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.6',
+        VERSION:     '',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,8 +19,8 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="bits v0.6 documentation" href="index.html" />
-    <link rel="next" title="Concurrent programming with Twisted" href="twisted/concurrent.html" />
+    <link rel="top" title="bits v documentation" href="index.html" />
+    <link rel="next" title="Concurrent programming with Twisted" href="concurrent.html" />
     <link rel="prev" title="Every bit counts" href="index.html" /> 
   </head>
   <body>
@@ -31,12 +31,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="twisted/concurrent.html" title="Concurrent programming with Twisted"
+          <a href="concurrent.html" title="Concurrent programming with Twisted"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Every bit counts"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -46,7 +46,7 @@
 <li><a class="reference external" href="">An example of functional programming</a><ul>
 <li><a class="reference external" href="#the-math-of-the-problem">The math of the problem</a></li>
 <li><a class="reference external" href="#a-procedural-and-a-functional-algorithm">A procedural and a functional algorithm</a></li>
-<li><a class="reference external" href="#performance-and-lazyness">Performance and lazyness</a></li>
+<li><a class="reference external" href="#better-performance-through-lazyness">Better performance through <em>lazyness</em></a></li>
 </ul>
 </li>
 </ul>
@@ -55,7 +55,7 @@
             <p class="topless"><a href="index.html"
                                   title="previous chapter">Every bit counts</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="twisted/concurrent.html"
+            <p class="topless"><a href="concurrent.html"
                                   title="next chapter">Concurrent programming with Twisted</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
@@ -85,54 +85,53 @@
             
   <div class="section" id="an-example-of-functional-programming">
 <h1>An example of functional programming<a class="headerlink" href="#an-example-of-functional-programming" title="Permalink to this headline">¶</a></h1>
-<p>We are going to compare two styles of computer programming,
-<em>procedural</em> and <em>functional</em>, for finding an approximation of Pi. The
-idea of the approximation is interesting because it only requires
-random numbers and simple knowledge about circles and squares.</p>
+<p><em>Procedural</em> and <em>functional</em> are two styles of computer programming,
+which can be used for finding an approximation of <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/>. The
+math on which the approximation relies is interesting because it only
+requires random numbers and simple knowledge about circles and
+squares.</p>
+<p>The first part presents the math of the problem, then the second part
+compares the differences between the functional and procedural styles
+and finally we will present the details of their respective
+performance.</p>
 <div class="section" id="the-math-of-the-problem">
 <h2>The math of the problem<a class="headerlink" href="#the-math-of-the-problem" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p class="first">Take a square and the circle which fits into the square. A random
 point of the square can be either in the circle or outside of the
-circle. Now, the <strong>frequency for a random point to be part of the
-circle</strong> can be computed as <em>the ratio between the number of points of
-the circle and the total number of points</em>. In math, this is
-summarized as:</p>
+circle. Now, the frequency for a random point to be part of the
+circle can be calculated as <em>the ratio between the number of points
+of the circle and the total number of points</em>. In math, this is
+summarised as:</p>
 <div class="math">
 <p><img src="images/math/2206bd618bd79b326d66a382c37c0b8a74eea8fb.png" alt="frequency = \frac{number\ of\ points\ in\ the\ circle}{total\ number\ of\ points}" />
 </div></p></li>
 <li><p class="first">The <em>number of points in a shape</em> is another name for the <em>surface</em>
 of the shape, that is:</p>
 <div class="math">
-<p><img src="images/math/8456560864f2d2046824b08a6b181110e81bad5f.png" alt="Circle\ surface = \pi . radius^2
-
-Square\ surface = side^2" />
+<p><img src="images/math/ce8467839c160c7771458b91dca0f5fa8b5ed808.png" alt="frequency = \frac{ Circle\ surface}{Square\ surface} = \frac{\pi . radius^2 }{side^2}" />
 </div></p></li>
-<li><p class="first">Because the square contains all the points, and because the
-<em>surface of a shape</em> is the set of points contained in the shape,
-the frequency in 1. becomes:</p>
-<div class="math">
-<p><img src="images/math/56f2a5b923c97331c0e3f66d24cf0e9008fba751.png" alt="frequency = \frac{ \pi . radius^2 }{ side^2 }" />
-</div></p><p>To make things simple, take a circle with a radius of <em>1</em>, and its
+<li><p class="first">To make things simple, take a circle with a radius of <em>1</em>, and its
 containing square with a side length of <em>2</em>, the frequency is
 simply</p>
 <div class="math">
-<p><img src="images/math/f4e95e43ecbff5ed6438cf30a440f18fe3879f07.png" alt="frequency = \frac{\pi}{4}" />
-</div></p><p>This means that if you can build an experiment which gives you
-an approximation of this frequency then an approximation of <strong>Pi is
-four times the frequency</strong>.</p>
+<p><img src="images/math/6e8248603babf8c0b4f1c65e908ed53431583cbf.png" alt="frequency = \frac{\pi.1^2}{2^2} = \frac{\pi}{4}" />
+</div></p><p>This means that if you can build an experiment which gives you an
+approximation of the frequency then an approximation of
+<img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/> is <strong>four times the frequency for a random point of the
+sqaure to be in the circle</strong>.</p>
 </li>
 </ol>
-<p>Let&#8217;s picture the square, the circle, and two random points. The
-square and circle are centered on zero, the radius for the circle
-is 1 and it fits into the square with a side of 2. A random point
-is made of two coordinates, one for the horizontal position and one
-for the vertical position.</p>
+<p>To build such an experiment, let&#8217;s picture the square, the circle, and
+two random points. The square and circle are centered on zero, the
+radius for the circle is 1 and it fits into the square with a side
+of 2. A random point is made of two coordinates, one for the
+horizontal position and one for the vertical position.</p>
 <div class="figure">
 <img alt="images/square-cercle.png" src="images/square-cercle.png" style="width: 453pt; height: 226pt;" />
 </div>
-<p>This figure makes it clear is that the point is in the circle if
-and only if the distance between the point and the center is
+<p>This figure makes it clear is that the point is in the circle if,
+<em>and only if,</em> the distance between the point and the center is
 smaller than the radius, which means here: smaller than one. The
 method to compute the distance to the center has not changed for
 thousands years, it is still: <img class="math" src="images/math/d7a4e731d3312ce4602aa00210e53e2023f0ccb9.png" alt="distance = \sqrt{x^2 + y^2 }"/>,
@@ -141,7 +140,7 @@ vertical position.</p>
 <div class="figure">
 <img alt="images/pythagoras.png" src="images/pythagoras.png" style="width: 453pt; height: 226pt;" />
 </div>
-<p>To sum up the recipe for Pi, take a million random points in
+<p>To sum up the recipe for <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/>, take a million random points in
 the square, count the points in the circle, divide by a million and
 multiply by four. Serve with a slice of lemon and a small quantity of
 salt.</p>
@@ -152,77 +151,83 @@ salt.</p>
 <div class="section" id="a-procedural-and-a-functional-algorithm">
 <h2>A procedural and a functional algorithm<a class="headerlink" href="#a-procedural-and-a-functional-algorithm" title="Permalink to this headline">¶</a></h2>
 <p>That was for the theory, let&#8217;s <em>implement</em> the recipe which means
-let&#8217;s make a working example out of the design. Actually, we will make two
-working examples in the <a class="reference external" href="http://www.python.org/doc/2.6.4/howto/advocacy.html">Python</a> programming language and compare the
-styles.</p>
-<p>In either styles, we will use the functions <tt class="xref docutils literal"><span class="pre">math.sqrt()</span></tt> and
-<tt class="xref docutils literal"><span class="pre">random.uniform()</span></tt>: the latter returns the <em>square root</em> of the
-argument given as an input, the latter returns a random decimal number
-uniformly distributed between the values of the first and the second
+let&#8217;s make a working example. Actually, we will make two working
+examples in the <a class="reference external" href="http://www.python.org/doc/2.6.4/howto/advocacy.html">Python</a> programming language and compare the styles.</p>
+<p>In either styles, we will use the functions <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/math.html#math.sqrt"><tt class="xref docutils literal"><span class="pre">math.sqrt()</span></tt></a> and
+<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/random.html#random.uniform"><tt class="xref docutils literal"><span class="pre">random.uniform()</span></tt></a>: the former returns the <em>square root</em> of the
+argument given as input, the latter returns a random decimal number
+<em>uniformly</em> distributed between the values of the first and the second
 arguments. Also, both scripts will take the number of points (the
-sample size) as the first argument, so we will need <tt class="xref docutils literal"><span class="pre">sys.argv</span></tt>:
+sample size) as the first argument, so we will need <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/sys.html#sys.argv"><tt class="xref docutils literal"><span class="pre">sys.argv</span></tt></a>:
 it holds the command line parameters of the script</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">uniform</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
-<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">argv</span>
+<span class="kn">import</span> <span class="nn">sys</span> 
 </pre></div>
 </div>
-<p>The <strong>procedural algorithm</strong> consist of: as many times as there are points
-in the sample, to take a random point, then to test the inclusion of
-the point in the circle and when it&#8217;s inside, increment a counter by
-one. When the loop is finished, print the counter divided by the
-sample size and multiplied by four. Here it is, written in <em>Python</em>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">argv</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span> <span class="p">)</span>
-<span class="n">counter</span> <span class="o">=</span> <span class="mf">0</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="n">size</span> <span class="p">):</span>
+<p>The <strong>procedural algorithm</strong> consist of: as many times as there are
+points in the sample, to take a random point, then to test whether the
+point is within the circle or not and when it is inside: increment a
+counter by one. When the loop is finished, print the counter divided
+by the sample size and multiplied by 4. Here it is, written in
+<em>Python</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span> <span class="p">)</span>
+<span class="n">somme</span><span class="o">=</span><span class="mf">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">sqrt</span><span class="p">(</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">)</span><span class="o">**</span><span class="mf">2</span> <span class="o">+</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">)</span><span class="o">**</span><span class="mf">2</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1</span><span class="p">:</span>
-        <span class="n">counter</span><span class="o">+=</span><span class="mf">1</span>
+        <span class="n">somme</span><span class="o">+=</span><span class="mf">1</span>
 
-<span class="k">print</span><span class="p">(</span> <span class="s">&#39;   Pi ~ </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">counter</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="n">size</span> <span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;An approximation of Pi is : </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">somme</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="n">n</span> <span class="p">))</span>
 </pre></div>
 </div>
 <p>The equivalent <strong>functional algorithm</strong> is: make a function which returns
 a list of random points as big a the requested sample size. Then make
 another function which tests if the input point is in the
 circle. Finally, print the length of the list of points filtered by
-the test function, and as before, divide by the sample size and
+the test function, and, as before, divide by the sample size and
 multiply by four:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">argv</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span> <span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">uniform</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+<span class="kn">import</span> <span class="nn">sys</span> 
 
-<span class="n">points</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span> <span class="p">:</span> <span class="p">[</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="n">n</span> <span class="p">)</span> <span class="p">]</span>
+<span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span> <span class="p">)</span>
+
+<span class="n">points</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span> <span class="p">:</span> <span class="p">[</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">]</span>
 <span class="n">in_circle</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span> <span class="p">:</span> <span class="n">sqrt</span><span class="p">(</span> <span class="n">p</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="o">**</span><span class="mf">2</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span><span class="o">**</span><span class="mf">2</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1</span>
 
-<span class="k">print</span><span class="p">(</span> <span class="s">&#39;   Pi ~ </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="nb">filter</span><span class="p">(</span> <span class="n">in_circle</span><span class="p">,</span> <span class="n">points</span><span class="p">(</span> <span class="n">size</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="n">size</span> <span class="p">)</span> <span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;Another approximation of Pi is: </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span>
+      <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="nb">filter</span><span class="p">(</span> <span class="n">in_circle</span><span class="p">,</span> <span class="n">points</span><span class="p">(</span> <span class="n">n</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="n">n</span> <span class="p">))</span>
 </pre></div>
 </div>
-<p>Now if we test it in a command line, it does approximate Pi, but as
-simple as it is, it converges pretty slowly:</p>
-<div class="highlight-python"><pre>~$ procedural.py 1000
+<p>Now if we test it in a command line, it does approximate <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/>,
+it gets more precise with more points but it is rather slow:</p>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>./procedural.py 1000
 Pi ~ 3.112
 
-~$ procedural.py 100000
+~<span class="nv">$ </span>./procedural.py 100000
 Pi ~ 3.14192
 
-~$ functional.py 500000
-Pi ~ 3.140128</pre>
+~<span class="nv">$ </span>./functional.py 500000
+Pi ~ 3.140128
+</pre></div>
 </div>
-<p>In your opinion, which style fits the job best? I am not a big fan of
-the procedural style here, it is a sequence of instruction without
-much structure. The functional style cleanly analyzes the problem into
-simpler bits which solve the problems one by one.</p>
+<p>In your opinion, which style fits the job best? I would say the
+procedural style is a sequence of tiny operation, without much
+structure. The functional style cleanly analyzes the problem into
+simpler bits whose integration solve the problem .</p>
 </div>
-<div class="section" id="performance-and-lazyness">
-<h2>Performance and lazyness<a class="headerlink" href="#performance-and-lazyness" title="Permalink to this headline">¶</a></h2>
-<p>For the brave and curious, by comparing the behavior of the two
-solutions with regard to huge samples, we will hit an interesting
-problem which will allow me to present the differences between the
-<em>list</em> and the python magic called <em>generator</em>. Let&#8217;s execute the
-script with 200 000, one million and five million points in the sample</p>
-<div class="highlight-python"><pre>~$ alias time='/usr/bin/time --format "   duration: %e seconds"'
-~$ test_it () { for i in 200000 1000000 5000000; do time $1 $i ; done ; }
+<div class="section" id="better-performance-through-lazyness">
+<h2>Better performance through <em>lazyness</em><a class="headerlink" href="#better-performance-through-lazyness" title="Permalink to this headline">¶</a></h2>
+<p>For the brave and curious, when comparing the performance of the two
+solutions, we hit a problem which is an opportunity to present
+the Python magic called <em>generator</em>. Let&#8217;s execute the script with 200
+000, one million and five million points in the sample:</p>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span><span class="nb">alias time</span><span class="o">=</span><span class="s1">&#39;/usr/bin/time --format &quot;   duration: %e seconds&quot;&#39;</span>
+~<span class="nv">$ </span>test_it <span class="o">()</span> <span class="o">{</span> <span class="k">for </span>i in 200000 1000000 5000000; <span class="k">do </span><span class="nb">time</span> <span class="nv">$1</span> <span class="nv">$i</span> ; <span class="k">done</span> ; <span class="o">}</span>
 
-~$ test_it ./procedural.py
+~<span class="nv">$ </span>test_it ./procedural.py
    Pi ~ 3.13974
    duration: 0.56 seconds
    Pi ~ 3.141572
@@ -230,7 +235,7 @@ script with 200 000, one million and five million points in the sample</p>
    Pi ~ 3.1412144
    duration: 10.97 seconds
 
-~$ test_it functional.py
+~<span class="nv">$ </span>test_it ./functional.py
    Pi ~ 3.13992
    duration: 0.61 seconds
    Pi ~ 3.141356
@@ -239,19 +244,21 @@ script with 200 000, one million and five million points in the sample</p>
    duration: 32.71 seconds
    Pi ~ 3.1409
 
-~$ # Do not hesitate to send the stop signal if it takes too long
-~$ # on your computer:  Ctrl-C or Ctrl-Z</pre>
+~<span class="nv">$ </span><span class="c"># Do not hesitate to send the stop signal if it takes too long</span>
+~<span class="nv">$ </span><span class="c"># on your computer:  Ctrl-C or Ctrl-Z</span>
+</pre></div>
 </div>
-<p>Mmmh, the functional version takes longer and it does not scale. The
-problem stems from the fact that <tt class="xref docutils literal"><span class="pre">points()</span></tt> and <tt class="xref docutils literal"><span class="pre">filter()</span></tt>
-make up lists of several million elements stored in the laptop memory,
-which is too small to handle them all efficiently. It is no use to
-store them all, in this problem, we only need one at the same time.</p>
+<p>Mmh, the functional version takes longer and it does not scale. The
+problem stems from the fact that <tt class="xref docutils literal"><span class="pre">points()</span></tt> and <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a>
+make up lists of several million elements stored in the laptop memory
+where the script was tested, which is too small to handle them all
+efficiently. It is no use to store them all, in this problem, we only
+need one at a time.</p>
 <p>A solution is to use is a <a class="reference external" href="http://docs.python.org/reference/expressions.html#yieldexpr">generator</a> , it
-is a kind of Python magic which behaves like a list, but which only
-<em>generates</em> the element of the list when they are requested by the
-function which manipulates the generator. They are not stored, it is
-<em>on demand</em>. This technique is also called <em>lazy evaluation</em>.</p>
+is a kind of Python magic which behaves like a list, but which
+<em>generates</em> the element of the list on the fly when they are requested
+by the function which manipulates the generator. They are not stored,
+it is <em>on demand</em>. This technique is also called <em>lazy evaluation</em>.</p>
 <p>The <tt class="xref docutils literal"><span class="pre">points()</span></tt> function is modified: this expression, which returns a list</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">[</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="n">size</span> <span class="p">)</span> <span class="p">]</span>
 </pre></div>
@@ -260,36 +267,63 @@ function which manipulates the generator. They are not stored, it is
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="n">size</span> <span class="p">)</span> <span class="p">)</span>
 </pre></div>
 </div>
-<p>The <tt class="xref docutils literal"><span class="pre">filter()</span></tt> function is substituted by its
-<em>generator-returning</em> counterpart <tt class="xref docutils literal"><span class="pre">ifilter()</span></tt> in the
-<tt class="xref docutils literal"><span class="pre">itertools</span></tt> module. One last change: a generator has no length,
-so <tt class="xref docutils literal"><span class="pre">len()</span></tt> is substituted by a trick: sum a list of <em>ones</em> for
-each point in the circle:</p>
+<p>The <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a> function is substituted by its
+<em>generator-returning</em> counterpart <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/itertools.html#itertools.ifilter"><tt class="xref docutils literal"><span class="pre">ifilter()</span></tt></a> in the
+<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/itertools.html#module-itertools"><tt class="xref docutils literal"><span class="pre">itertools</span></tt></a> module. One last change: a generator has no length,
+so <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#len"><tt class="xref docutils literal"><span class="pre">len()</span></tt></a> is substituted by a trick: sum a list of <em>ones</em> for
+each point in the circle</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">ifilter</span>
 
-<span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">argv</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span> <span class="p">)</span>
+<span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span> <span class="p">)</span>
 
 <span class="n">points</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span> <span class="p">:</span> <span class="p">(</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="mf">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">)</span>
 <span class="n">in_circle</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span> <span class="p">:</span> <span class="n">sqrt</span><span class="p">(</span> <span class="n">p</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="o">**</span><span class="mf">2</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span><span class="o">**</span><span class="mf">2</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s">&quot;   Pi ~ </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;A slightly faster implementation o Pi: </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span>
       <span class="p">(</span> <span class="nb">sum</span><span class="p">(</span> <span class="p">(</span> <span class="mf">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ifilter</span><span class="p">(</span> <span class="n">in_circle</span><span class="p">,</span> <span class="n">points</span><span class="p">(</span> <span class="n">n</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="n">n</span> <span class="p">))</span>
 </pre></div>
 </div>
 <p>The <tt class="xref docutils literal"><span class="pre">test_it()</span></tt> function shows the that <em>lazy</em> functional
 implementation operates with a performance boost of 14%, 25% and 55%
-over the previous functional implementation</p>
-<div class="highlight-python"><pre>~$ test_it ./harder_better_stronger_faster.py
+over the previous functional implementation:</p>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>test_it ./harder_better_stronger_faster.py
    Pi ~ 3.13988
    duration: 0.54 seconds
    Pi ~ 3.143804
    duration: 2.62 seconds
    Pi ~ 3.141496
-   duration: 13.10 seconds</pre>
+   duration: 13.10 seconds
+</pre></div>
 </div>
 <p>At this point, the two styles are technically rougly equivalent, the
 functional style needs more care in Python, reads less
-straightforward, and is 10% slower than the procedural counterpart.</p>
+straightforward, and is 10% slower than the procedural counterpart. To
+conclude, here is a real fast formula to approximate Pi known as the
+Bailey-Borwein-Plouffe formula :</p>
+<div class="math">
+<p><img src="images/math/6af0cefff23af40cc4dc11765f0841461f50e59b.png" alt="\pi \approx \sum_{k=0}^{\infty} \frac{1}{16^k} \left(\frac{4}{8k+1}-\frac{2}{8k+4}-\frac{1}{8k+5}-\frac{1}{8k+6}\right)" />
+</div></p><p>This translate into the <em>bbp</em> function, below, in Python, for which
+<em>bbp(10)</em> is already correct for all 13 digits printed here (the
+pointy bracket indicates the lines come from a Python interactive
+shell).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">bbp</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">sum</span><span class="p">([</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mf">16</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">4.</span><span class="o">/</span><span class="p">(</span><span class="mf">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mf">1</span><span class="p">)</span><span class="o">-</span><span class="mf">2.</span><span class="o">/</span><span class="p">(</span><span class="mf">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mf">4</span><span class="p">)</span><span class="o">-</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mf">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mf">5</span><span class="p">)</span><span class="o">-</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mf">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mf">6</span><span class="p">))</span>
+<span class="gp">... </span>                      <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">bbp</span><span class="p">(</span><span class="mf">2</span><span class="p">)</span>
+<span class="go">3.14142246642</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">bbp</span><span class="p">(</span><span class="mf">5</span><span class="p">)</span>
+<span class="go">3.14159264546</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">bbp</span><span class="p">(</span><span class="mf">10</span><span class="p">)</span>
+<span class="go">3.14159265359</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bbp</span><span class="p">(</span><span class="mf">10</span><span class="p">)</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">&lt;</span> <span class="mf">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">14</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p><em>Tue, 09 Feb 2010</em></p>
+<p>This article was verified with the <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/doctest.html#module-doctest"><tt class="xref docutils literal"><span class="pre">doctest</span></tt></a> module.</p>
 </div>
 </div>
 
@@ -306,12 +340,12 @@ straightforward, and is 10% slower than the procedural counterpart.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="twisted/concurrent.html" title="Concurrent programming with Twisted"
+          <a href="concurrent.html" title="Concurrent programming with Twisted"
              >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Every bit counts"
              >previous</a> |</li>
-        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

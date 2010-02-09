@@ -5,43 +5,43 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Concurrent programming with Twisted &mdash; bits v0.6 documentation</title>
-    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <title>Concurrent programming with Twisted &mdash; bits v documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.6',
+        URL_ROOT:    '',
+        VERSION:     '',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
-    <link rel="top" title="bits v0.6 documentation" href="../index.html" />
-    <link rel="next" title="One application, multiple languages" href="../i18n.html" />
-    <link rel="prev" title="An example of functional programming" href="../functional.html" /> 
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v documentation" href="index.html" />
+    <link rel="next" title="One application, multiple languages" href="i18n.html" />
+    <link rel="prev" title="An example of functional programming" href="functional.html" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
+          <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="../i18n.html" title="One application, multiple languages"
+          <a href="i18n.html" title="One application, multiple languages"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="../functional.html" title="An example of functional programming"
+          <a href="functional.html" title="An example of functional programming"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
 <li><a class="reference external" href="">Concurrent programming with Twisted</a><ul>
 <li><a class="reference external" href="#problem-introduction">Problem introduction</a></li>
@@ -53,19 +53,19 @@
 </ul>
 
             <h4>Previous topic</h4>
-            <p class="topless"><a href="../functional.html"
+            <p class="topless"><a href="functional.html"
                                   title="previous chapter">An example of functional programming</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="../i18n.html"
+            <p class="topless"><a href="i18n.html"
                                   title="next chapter">One application, multiple languages</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="../sources/twisted/concurrent.txt"
+              <li><a href="sources/concurrent.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
             <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
+              <form class="search" action="search.html" method="get">
                 <input type="text" name="q" size="18" />
                 <input type="submit" value="Go" />
                 <input type="hidden" name="check_keywords" value="yes" />
@@ -402,8 +402,8 @@ route, no tcp server, page not found error, html title not
 found. How easy it is to handle them gracefully?</p>
 </li>
 <li><p class="first">Twisted use asynchronous functions to solve concurrency, how does it
-compare to thread or process (the <tt class="xref docutils literal"><span class="pre">threading()</span></tt> and
-<tt class="xref docutils literal"><span class="pre">multiprocessing()</span></tt> python module)? What does it mean for shared
+compare to thread or process (the <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/threading.html#threading"><tt class="xref docutils literal"><span class="pre">threading()</span></tt></a> and
+<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/multiprocessing.html#multiprocessing"><tt class="xref docutils literal"><span class="pre">multiprocessing()</span></tt></a> python module)? What does it mean for shared
 object and race condition? How does it compare with the libdispatch,
 erlang, haskell, stackless python, greenlet, corotwine or scala ways
 of doing concurrency?</p>
@@ -411,7 +411,7 @@ of doing concurrency?</p>
 <li><p class="first">How do reactor and deferreds interoperates? By dissecting the
 getPage function, we should end understanding how it relates to the
 system call on which the reactor is based. The system call is
-<tt class="xref docutils literal"><span class="pre">select()</span></tt> by default, but can be <tt class="xref docutils literal"><span class="pre">epoll()</span></tt> on lLinux or
+<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/select.html#select"><tt class="xref docutils literal"><span class="pre">select()</span></tt></a> by default, but can be <tt class="xref docutils literal"><span class="pre">epoll()</span></tt> on lLinux or
 <tt class="xref docutils literal"><span class="pre">kqueue()</span></tt> on Freebsd.</p>
 </li>
 <li><p class="first">How to script Twisted versions of telnet, ping, dig, wget, mailx, etc?</p>
@@ -433,15 +433,15 @@ write functional tests for the project?</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
+          <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="../i18n.html" title="One application, multiple languages"
+          <a href="i18n.html" title="One application, multiple languages"
              >next</a> |</li>
         <li class="right" >
-          <a href="../functional.html" title="An example of functional programming"
+          <a href="functional.html" title="An example of functional programming"
              >previous</a> |</li>
-        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

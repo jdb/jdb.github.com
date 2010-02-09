@@ -45,7 +45,7 @@ we will use:
 Here is the script:
 
 
-.. include:: concurrent.d/getpage_sequential.py
+.. include:: concurrent/getpage_sequential.py
    :literal:
 
 This solution has a fondamental problem: when there are *n* element in
@@ -196,11 +196,11 @@ download, 30 times, the main page of *twistedmatrix.com* to extract
 and print the title. The first snippet is sequential, and the second
 is concurrent.
 
-.. include:: concurrent.d/sequential.py
+.. include:: concurrent/sequential.py
    :literal:
    
 
-.. include:: concurrent.d/concurrent.py
+.. include:: concurrent/concurrent.py
    :literal:
 
 Here is, step by step, how the concurrent code operates:
@@ -265,7 +265,7 @@ A concurrent solution
 Here is a concurrent solution using Twisted to our original
 problem, three times faster than the sequential approach :
 
-.. include:: concurrent.d/getpage.py
+.. include:: concurrent/getpage.py
    :literal:
 
 
@@ -299,4 +299,5 @@ answers:
 
 - What is the best way to layout a Twisted development project, or to
   write functional tests for the project?
+
 

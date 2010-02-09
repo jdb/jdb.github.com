@@ -1,9 +1,9 @@
 # Sphinx inventory version 1
 # Project: bits
-# Version: 0.6
-xpath function twisted/concurrent.html
-getStuffAsynchronously function twisted/concurrent.html
-reactor class twisted/concurrent.html
-reactor.start method twisted/concurrent.html
-getpage function twisted/concurrent.html
-reactor.stop method twisted/concurrent.html
+# Version: 0.5
+xpath function concurrent.html
+getStuffAsynchronously function concurrent.html
+reactor class concurrent.html
+reactor.start method concurrent.html
+getpage function concurrent.html
+reactor.stop method concurrent.html
