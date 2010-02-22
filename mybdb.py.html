@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>SilverCity</title>
+<content="text/html; charset=UTF-8"><link href="default.css" rel="STYLESHEET">
+</head>
+<body>
+<span class="p_word">from</span><span class="p_default">&nbsp;</span><span class="p_identifier">bsddb</span><span class="p_default">&nbsp;</span><span class="p_word">import</span><span class="p_default">&nbsp;</span><span class="p_identifier">db</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_identifier">TS_SIZE</span><span class="p_operator">=</span><span class="p_number">188</span><span class="p_default"><br/>
+</span><span class="p_identifier">EXT3_PAGESIZE</span><span class="p_operator">=</span><span class="p_number">4</span><span class="p_operator">*</span><span class="p_number">1024</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_identifier">d</span><span class="p_default">&nbsp;</span><span class="p_operator">=</span><span class="p_default">&nbsp;</span><span class="p_identifier">db</span><span class="p_operator">.</span><span class="p_identifier">DB</span><span class="p_operator">()</span><span class="p_default"><br/>
+</span><span class="p_identifier">d</span><span class="p_operator">.</span><span class="p_identifier">set_re_len</span><span class="p_operator">(</span><span class="p_identifier">TS_SIZE</span><span class="p_operator">)</span><span class="p_default"><br/>
+</span><span class="p_identifier">d</span><span class="p_operator">.</span><span class="p_identifier">set_pagesize</span><span class="p_operator">(</span><span class="p_identifier">EXT3_PAGESIZE</span><span class="p_operator">)</span><span class="p_default"><br/>
+</span><span class="p_identifier">db</span><span class="p_operator">.</span><span class="p_identifier">open</span><span class="p_operator">(</span><span class="p_character">'toto.db'</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_word">None</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">DB_QUEUE</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">DB_CREATE</span><span class="p_operator">|</span><span class="p_identifier">DB_THREAD</span><span class="p_operator">)</span><span class="p_default"><br/>
+</span><span class="p_identifier">db</span><span class="p_operator">.</span><span class="p_identifier">append</span><span class="p_operator">(</span><span class="p_character">'tata'</span><span class="p_operator">)</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_word">from</span><span class="p_default">&nbsp;</span><span class="p_identifier">zope</span><span class="p_operator">.</span><span class="p_identifier">interface</span><span class="p_default">&nbsp;</span><span class="p_word">import</span><span class="p_default">&nbsp;</span><span class="p_identifier">Interface</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">Attribute</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_word">class</span><span class="p_default">&nbsp;</span><span class="p_classname">Icircularbuffer</span><span class="p_operator">(</span><span class="p_default">&nbsp;</span><span class="p_identifier">Interface</span><span class="p_default">&nbsp;</span><span class="p_operator">):</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_tripledouble">"""Interface&nbsp;for&nbsp;the&nbsp;circular&nbsp;buffer"""</span><span class="p_default"><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_identifier">source</span><span class="p_default">&nbsp;</span><span class="p_operator">=</span><span class="p_default">&nbsp;</span><span class="p_identifier">Attribute</span><span class="p_operator">(</span><span class="p_string">"address&nbsp;and&nbsp;port&nbsp;of&nbsp;the&nbsp;live&nbsp;stream.&nbsp;ex:&nbsp;'224.0.0.1:1024'"</span><span class="p_operator">)</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_identifier">length</span><span class="p_default">&nbsp;</span><span class="p_operator">=</span><span class="p_default">&nbsp;</span><span class="p_identifier">Attribute</span><span class="p_operator">(</span><span class="p_string">"Maximum&nbsp;length&nbsp;of&nbsp;the&nbsp;circular&nbsp;buffer&nbsp;in&nbsp;minutes.&nbsp;ex:&nbsp;120"</span><span class="p_operator">)</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_identifier">size</span><span class="p_default">&nbsp;</span><span class="p_operator">=</span><span class="p_default">&nbsp;</span><span class="p_identifier">Attribute</span><span class="p_operator">(</span><span class="p_string">"Maximum&nbsp;size&nbsp;on&nbsp;disk&nbsp;in&nbsp;GB.&nbsp;ex:&nbsp;1"</span><span class="p_operator">)</span><span class="p_default"><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">def</span><span class="p_default">&nbsp;</span><span class="p_defname">play</span><span class="p_operator">():</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_tripledouble">"""Plays&nbsp;the&nbsp;circular&nbsp;buffer.&nbsp;Starts&nbsp;a&nbsp;few&nbsp;seconds&nbsp;before&nbsp;live."""</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">def</span><span class="p_default">&nbsp;</span><span class="p_defname">pause</span><span class="p_operator">():</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_tripledouble">"""Pause.&nbsp;When&nbsp;the&nbsp;current&nbsp;frame&nbsp;is&nbsp;about&nbsp;to&nbsp;be&nbsp;forgotten,&nbsp;then&nbsp;the&nbsp;stream&nbsp;is&nbsp;switched&nbsp;back&nbsp;to&nbsp;play"""</span><span class="p_default"><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">def</span><span class="p_default">&nbsp;</span><span class="p_defname">seek</span><span class="p_operator">(</span><span class="p_identifier">date</span><span class="p_operator">=</span><span class="p_word">None</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">offset</span><span class="p_operator">=</span><span class="p_word">None</span><span class="p_operator">):</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_tripledouble">"""Move&nbsp;the&nbsp;current&nbsp;position&nbsp;to&nbsp;the&nbsp;specified&nbsp;date.&nbsp;Date&nbsp;and&nbsp;offset&nbsp;are&nbsp;timestamps.&nbsp;The&nbsp;offset&nbsp;is&nbsp;used<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;relative&nbsp;seek"""</span><span class="p_default"><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">def</span><span class="p_default">&nbsp;</span><span class="p_defname">trickplay</span><span class="p_operator">(</span><span class="p_identifier">scale</span><span class="p_operator">):</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_tripledouble">"""Use&nbsp;this&nbsp;method&nbsp;to&nbsp;build&nbsp;the&nbsp;convenience&nbsp;functions&nbsp;fastforward,&nbsp;rewind,&nbsp;slow&nbsp;motion..."""</span><span class="p_default"><br/>
+<br/>
+<br/>
+</span><span class="p_word">class</span><span class="p_default">&nbsp;</span><span class="p_classname">circularbuffer</span><span class="p_operator">:</span><span class="p_default"><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">def</span><span class="p_default">&nbsp;</span><span class="p_defname">__init__</span><span class="p_operator">(</span><span class="p_identifier">self</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">source</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">duration_min</span><span class="p_operator">=</span><span class="p_number">30</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">size_G</span><span class="p_operator">=</span><span class="p_number">1</span><span class="p_default">&nbsp;</span><span class="p_operator">):</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">pass</span><span class="p_default"><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+</span><span class="p_commentline">#&nbsp;def_append</span><span class="p_default"><br/>
+</span><span class="p_commentline">#&nbsp;_forget</span><span class="p_default"><br/>
+</span><span class="p_commentline">#&nbsp;_init</span><span class="p_default"><br/>
+</span><span class="p_commentline">#&nbsp;lire&nbsp;le&nbsp;paquet&nbsp;de&nbsp;telle&nbsp;date</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_commentline">#&nbsp;lecteur</span><span class="p_default"><br/>
+</span><span class="p_commentline">#&nbsp;base&nbsp;qui&nbsp;s'initialise&nbsp;et&nbsp;qui&nbsp;offrent&nbsp;les&nbsp;methodes&nbsp;:</span><span class="p_default"><br/>
+</span>
+</body></html>

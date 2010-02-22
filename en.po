@@ -1,0 +1,51 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2009-10-13 13:33+CEST\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: guess2.py:18
+msgid "J'ai choisi un nombre mystere entre 1 et %s ; a vous de jouer !"
+msgstr "Mind the gap between the train and the platform: %s !"
+
+#: guess2.py:21
+msgid ""
+"\n"
+"Proposition ?\n"
+msgstr "\nTry ?\n"
+
+#: guess2.py:25
+msgid "On a dit entre 1 et 1000 !"
+msgstr "Hey, we said between 1 and 1000 !"
+
+#: guess2.py:28
+msgid "Trop petit."
+msgstr "Too small"
+
+#: guess2.py:31
+msgid "Trop grand."
+msgstr "Too big."
+
+#: guess2.py:34
+msgid "Mais ca brule !"
+msgstr "Earth, Storm and Fire, Heed my call."
+
+#: guess2.py:38
+msgid "Oui !, Bravo, vous avez trouve le nombre %s en %s coups."
+msgstr "Don't you know, pop it up, you got to pop it up! %s."
+
+#: guess2.py:42
+msgid "Bon, ca va bien maintenant. C'etait %s."
+msgstr "A beulibobol ! Thank a boute it ... I have in ze bilouque! %s."
+

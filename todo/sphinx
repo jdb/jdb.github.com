@@ -1,0 +1,99 @@
+We want to recognize the word uttered in wav files. The softs has a word list, against which it is comparing the sound.
+
+
+
+=== Processing Chain ===
+
+ * step 1. - From the Microphone ...
+  * arecord from the mic and compatible with Sphinx: linear signed 16bit, 16000 Hz {{{
+arecord -f s16 -r 16000 -t raw -d 5 message.raw
+# listen to the file: aplay -f s16 -r 16000 -t raw message.raw}}}
+
+ * step 1-bis - ... or From the Network
+  * tcpdump takes packet concerning the hosts or locahost and writes a pcap file {{{
+tcpdump -i any host 127.0.0.1 or host 10.165.128.147 -w call.cap}}}
+  * tshark takes the file and writes a pcap file containining only the rtp packets {{{
+tshark -R rtp -r call.cap -w rtp.cap
+# You may want to distinguish received and sent rtp streams
+tshark -R rtp and ip.src==10.165.128.147 -r call.cap -w rtp-sent.cap
+tshark -R rtp and ip.dst==10.165.128.147 -r call.cap -w rtp-recv.cap}}}
+  * rtp_dump.pl takes the file and writes a 'raw' file containining only g711ul with a 8000 rate {{{
+rtp_dump.pl rtp.cap message.ul
+sox message.ul -r 16000 -s -w message.raw
+# listen to the file: aplay -f s16 -r 16000 -t raw message.raw
+# only works with g711, and on little endian machines (PC is fine...)
+}}}
+
+ * step 2 - Sphinx
+  * sphinx takes the raw file and write on stdout infos, warnings and results{{{
+}}}
+
+  * an awk filter use sphinx stdout to output the precious words
+
+=== Install ===
+{{{
+sudo aptitude install libpcap0.8-dev install tshark tcpdump
+#
+# download from the wireshark web site:  rtp_dump.pl
+# http://wiki.wireshark.org/RtpDumpScript?action=AttachFile&do=get&target=rtp_dump.pl
+#
+# download from the cpan the perl binding to the libpcap-dev
+# http://search.cpan.org/CPAN/authors/id/S/SA/SAPER/Net-Pcap-0.15_01.tar.gz
+}}}
+
+
+=== Sound file format ===
+
+ Mu Law:: 8 bit, 8000 Hz, one channel, PCM
+
+=== Tools ===
+Debug the processing chain
+ * check that arecord created a 'raw' file containining only g711ul with a 8000 rate
+ * check that a file is pcap and pcap with rtp packets only
+ * check that a 'raw' file is g711ul with a 8000 rate
+ * play a 'raw' file is g711ul with a 8000 rate (maybe play a wav file via sox)
+
+Getting to know the tools
+ * play a 8000 or 44100, wav or raw
+ * arecord in raw or wav with different rate 8000 or 44100 and play them
+ * sox a raw 800 into a wav 44100 and vice versa and play them
+ * sox a example sphinx raw to listen to it
+ * get informations on a wav, rate file
+
+{{{man sox
+man soxexam
+arecord -t cd -d 3 
+
+(16 bit little endian, 44100, stereo [-f S16_LE -c2 -r44100]
+
+sox: Detected file format type: raw
+
+sox: Input file toto.raw: using sample rate 44100
+        size shorts, encoding signed (2's complement), 2 channels
+sox: Writing Wave file: Microsoft PCM format, 2 channels, 44100 samp/sec
+sox:         176400 byte/sec, 4 block align, 16 bits/samp
+sox: Output file b3.wav: using sample rate 44100
+        size shorts, encoding signed (2's complement), 2 channels
+sox: Output file: comment "Processed by SoX"
+
+sox: Finished writing Wave file, 176400 data bytes 44100 samples
+
+sox -V b.wav -w -s -r 44100 -c 2 b.raw
+sox -V -w -s -r 44100 -c 2 toto.raw b-again.wav
+
+}}}
+
+Sounds have frequency sample, a precision sample, and a number of channel. The encoding can be signed, unsigned, U-law, A-law, ADPCM, IMA-ADPCM, gsm, floating point. The bytes can be little endian or big endian.
+
+G711
+
+CD
+
+Sphinx
+
+arecord
+
+Can't we do it by hand rtp_dump.pl with tcpdump only?
+
+---
+TagSoftware, TagHowto

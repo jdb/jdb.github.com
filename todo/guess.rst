@@ -1,0 +1,39 @@
+
+
+tp01: guess the number
+======================
+
+Copy and paste the following Python script in a text file and execute
+: ``python guess.py`` to test it.
+
+.. include:: guess.py
+   :literal:
+
+
+
+Internationalized version !
+
+.. include:: guess2.py
+   :literal:
+
+Look at the commands at the top of the source. The
+internationalization (i18n) tools will look for the translation file:
+
+.. include:: en.po
+   :literal:
+
+This file was created by ::
+
+  pygettext guess2.py
+  sed s/CHARSET/UTF-8/ messages.pot > en.po
+  $EDITOR en.po   # Here I filled in the blank with the english sentence
+  mkdir -p language.d/en/LC_MESSAGES/
+  msgfmt en.po -o language.d/en/LC_MESSAGES/guess.mo
+
+Be erally careful with the filenames and location. The i18n tools
+expect stuff to be where the source code say it should be. If the i18n
+tools can't find the translation file, it fall back on the default
+string with no error.
+
+
+tags: n00b

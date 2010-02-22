@@ -1,0 +1,276 @@
+Gli pseudo-terminali
+
+di Alessandro Rubini
+
+Riprodotto con il permesso di Linux Magazine, Edizioni Master. In queste pagine si spiega cosa sono gli pseudo-terminali (pty) e si mostrano le interfaccie di programmazione esportate dal kernel.
+
+Gli pseudo-terminali, o pty (pseudo-tele-type, in memoria delle vecchie telescriventi), sono un componente estremamente importante dei sistemi Unix e compatibili. Lo pseudo-terminale è il meccanismo alla base di xterm, kterm e tutti gli altri emulatori di terminale (appunto); come pure di sshd, rshd, telnetd e qualunque altro sistema di login remoto; vengono anche usati da emacs in sh-mode e in altre situazioni. Il codice presentato è stato provato su Linux-2.6.5, ma in questo ambito non ci sono cambiamenti rispetto al 2.4.
+
+Cos'è un terminale
+
+In ambiente Unix un «terminale», o tty, è un dispositivo attraverso cui l'utente interattivo può dialogare con un interprete di comandi o altri programmi. Il termine viene usato indifferentemente per indicare il dispositivo fisico composto da tastiera e monitor (si pensi ai vecchi terminali seriali VT100 o VT320) o per indicare il file speciale che viene usato dalle applicazioni per comunicare con la periferica. Poiché i VT100 sono da tempo estinti i VT320 sono una specie a rischio, oggigiorno quando si parla di «terminale» ci si riferisce quasi sempre al concetto astratto di terminale o ad un programma che svolge le stesse funzioni, che è perciò detto «emulatore di terminale».
+
+Un esempio di terminale è la porta seriale (come /dev/ttyS0 o /dev/ttyUSB0), un altro esempio è il "terminale virtuale" della console di testo (/dev/tty1, /dev/tty2 eccetera), un altro ancora è la finestra di xterm o di un programma equivalente (/dev/ttyp0 o /dev/pts/0).
+
+In tutti questi casi, i file speciali in /dev offrono ai processi che vi accedono le funzionalità specifiche di un terminale: i parametri di termios (terminal input/output settings), ovvero tutti quei noiosi ma importanti particolari relativi alla velocità di trasmissione, parità, convenzioni sulle andate a capo e quant'altro, ma anche l'assegnamento di alcune funzionalità speciali ad alcuni caratteri. Si può simulare un fine-file tramite <ctrl-D> o uccidere un processo tramite <ctrl-C> solo perché questi caratteri raggiungono un file speciale associato ad un terminale. Ogni utente può scegliere quali siano i caratteri speciali e nessuno di questi ha un significato speciale al di fuori del contesto di terminale. <!-- a differenza di quanto accade in un noto sistemi operativo obsoleto -->
+
+Per leggere o modificare la configurazione termios di un terminale, si possono usare le funzioni di libreria tcgetattr e tcsetattr (terminal control get/set attributes) o il comando stty (set tty), ricordando che il comando agisce sul suo standard input:
+
+	   burla% stty
+	   speed 38400 baud; line = 0; erase = ^H; -brkint -imaxbel
+	   burla% stty < /dev/ttyS0
+	   speed 9600 baud; line = 0; -brkint -imaxbel
+	   burla% stty < /etc/passwd
+	   stty: standard input: Inappropriate ioctl for device
+
+In entrambi i casi la configurazione viene letta o scritta dal kernel tramite la chiamata di sistema ioctl, con i comandi TCGETA, TCSETA o altri della stessa famiglia, la cui implementazione è nel file drivers/char/tty_io.c.
+
+Cos'è una coppia di pseudo terminali
+
+Mentre un terminale come /dev/ttyS0 è chiaramente associato ad una periferica (la porta seriale) cui può essere collegato un terminale fisico, il dispositivo associato alla finestra di xterm non permette di controllare alcuna periferica hardware e i dati scambiati tra l'interprete di comandi e il file speciale in /dev vengono gestiti da un altro processo sulla stessa macchina, xterm appunto.
+
+In tutte le situazioni in cui occorre eseguire un processo all'interno dell'astrazione "terminale" senza far uso di una vera interfaccia hardware, ci si appoggia al meccanismo degli pseudo-terminali, meccanismo secondo il quale ad ogni pty è associato un altro file speciale che si comporta come se fosse l'altra estremità del cavo seriale. I due, insieme, si chiamano "coppia di pseudo-terminali" o più semplicemente "coppia di terminali", tty pair.
+
+I due componenti della coppia si comportano come una pipe bidirezionale e vengono definiti master e slave. Il comportamento dei file speciali associati non è però completamente simmetrico come succede per i descrittori di file associati a pipe e socket: il terminale slave è un vero e proprio terminale, ma può essere aperto solo dopo il master associato; il terminale master invece può essere aperto una volta sola e non si comporta esattamente come un terminale (per esempio, non può essere aperto più di una volta).
+
+Riquadro 1 - Apertura di una coppia di terminali
+
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+
+int main()
+{
+    int i, j;
+    char devname[]="/dev/pty--";
+    char s1[]="pqrstuvwxyzabcde";
+    char s2[]="0123456789abcdef";
+    int fds, fdm = -1;
+
+    for (i=0; fdm<0 && i<16; i++) {
+        for (j=0; fdm<0 && j<16; j++) {
+            devname[8] = s1[i];
+            devname[9] = s2[j];
+            if ((fdm = open(devname, O_RDWR)) < 0) {
+                if (errno == EIO) continue;
+                exit(1);
+            }
+        }
+    }
+    devname[5]='t'; /* /dev/ttyXY */
+    if ((fds = open(devname, O_RDWR)) < 0)
+	exit(2);
+    exit(0);
+}
+    
+
+L'interfaccia storica
+
+Storicamente, gli pseudo terminali, master e slave, esistevano nella directory /dev, dove si trovano ancora oggi, almeno in alcune distribuzioni. Qualora mancassero, si possono creare invocando il comando "/dev/MAKEDEV pty". I terminali slave hanno major numnber 3 e i loro nomi sono per esempio /dev/ttyp0; i terminali master hanno major number 2 e i loro nomi sono come /dev/ptyp0, dove tutte le p indicano "pseudo". Il codice per gestire queste periferiche è opzionale nel kernel, e viene abilitato dalla voce CONFIGLEGACYPTYS.
+
+I nomi dei file speciali associati a ciascuna coppia di terminali differiscono negli ultimi due caratteri, ciascuno dei quali può assumere uno di 16 valori, per un totale di 256 coppie. Il semplice programma legacy.c, nel riquadro 1, mostra la classica procedura di apertura di una coppia di terminali, cercando il primo master disponibile e poi aprendo lo slave associato. Se un master è già in uso, open ritorna EIO e il ciclo continua; se il supporto non è abilitato nel kernel, la prima open ritornerà ENODEV; se non esistono i file speciali in /dev la prima open ritornerà ENOENT e in entrambi i casi il ciclo termina. Il comportamento del programma può essere osservato con strace.
+
+Un programma che usa i terminali per svolgere qualche compito, come xterm o sshd dovrà naturalmente fare altre operazioni, come cambiare il proprietario e i permessi di accesso al file speciale perché rispecchi l'utente che ne ha preso il controllo e le sue preferenze (si veda "man mesg", per esempio).
+
+I meccanismo con coppie di file appena descritto ha però alcuni problemi no trascurabili: il processo che apre una sessione deve essere privilegiato (per cambiare il proprietario del terminale), l'assegnazione del terminale non è atomica e dà luogo a corse critiche, la scansione dei dispositivi per trovarne uno libero può introdurre ritardi indesiderati.
+
+Infine, 512 file speciali in /dev sono spesso di impiccio, e questo è normalmente un problema con le macchine embedded. Per esempio, il sistema di sviluppo del processore Etrax viene distribuito con la directory /dev su un dispositivo in sola lettura, dove sono state create soltanto tre coppie di terminali, per non sprecare il limitato spazio a disposizione; di conseguenza il server telnet non può accettare più di tre utenti contemporaneamente e non è possibile usare la macchina per fare esercitazione a più di tre studenti per volta, a meno di non riprogrammare la memoria flash con una versione personalizzata del sistema.
+
+L'interfaccia odierna
+
+Alcuni problemi relativi ai terminali virtuali sono stati risolti semplicemente osservando che il master viene aperto una sola volta; è cioè possibile implementare un solo file speciale per gestire tutti i master, facendo sì che il kernel, una volta aperto il file, lo associ ad uno specifico terminale master; un po' come /dev/tty che ha un significato diverso in base al contesto in cui viene aperto. Il processo che ha aperto il terminale master potrà poi chiedere il nome del terminale slave associato. Non è invece possibile unificare tutti i terminali slave in un solo file, perché altri processi devono poter aprire i terminali slave in uso. È così che funzionano i programmi della famiglia di talk, che ritengo ancora preferibile a IRC in alcuni contesti, e altri servizi asincroni per l'utente testuale.
+
+Questo approccio è stato ratificato nello standard ``Unix98'', che ha definito una serie di funzioni per aprire e configurare i terminali. L'uso di tali funzioni nasconde i dettagli di ogni singola implementazione, come i nomi dei file speciali da usare o il meccanismo usato per cambiare il proprietario del terminale slave (spesso tale meccanismo è un processo setuid apposito).
+
+Nel sistema GNU/Linux è stato implementata questa infrastruttura ma si è andati oltre: invece di usare file speciali statici in /dev per i terminali slave, si è creato un filesystem apposito in modo che sia il kernel stesso a rendere visibili i terminali slave in risposta all'accesso al terminale master, evitando che l'integratore di sistema debba scegliere tra occupare prezioso spazio su disco o limitare arbitrariamente il numero di sessioni. L'implementazione del filesystem, tra codice e dati, è meno di 10kB e viene abilitata dall'opzione CONFIG_UNIX98_PTY.
+
+Riquadro 2 - Uso di /dev/ptmx
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+
+int main()
+{
+    int n;
+    int zero=0;
+    char name[16];
+    int fds, fdm;
+
+    if ((fdm = open("/dev/ptmx", O_RDWR)) < 0)
+	exit(1);
+
+    if (ioctl(fdm, TIOCGPTN, &n) < 0)
+	exit(2);
+    sprintf(name, "/dev/pts/%i", n);
+    if (ioctl(fdm, TIOCSPTLCK, &zero) < 0)
+	exit(3);
+
+    if ((fds = open(name, O_RDWR)) < 0)
+	exit(4);
+    exit(0);
+}
+    
+
+L'apertura e la configurazione di una coppia di terminali secondo lo standard Unix98 vengono effettuate attraverso le funzioni di libreria getpt, grantpt, unlockpt, ptsname, di cui è interessante leggere le pagine del manuale. Il programma open.c, nel riquadro 2, mostra invece un'approccio di più basso livello che sfrutta direttamente i meccanismi di Linux (il kernel) a discapito della portabilità.
+
+In questo caso, il terminale master è chiamato /dev/ptmx (pseudo-tty multiplexer) e i terminali slave risiedono nella directory /dev/pts, dove viene montato il filesystem devpts. I due comandi ioctl utilizzati nel programma di esempio sono usati per chiedere al sistema il numero dello slave da aprire (TIOCGPTN, Terminal IOCtl Get PTy Number) e per sbloccarlo, autorizzando quindi l'accesso allo slave (TIOCSPTLCK, Terminal IOCtl Slave PTy LoCK). Il terminale slave scompare automaticamente dal filesystem quando si termina di usarlo; se eseguite open sotto strace vedrete che il programma apre un terminale slave che non vedrete più nel filesystem una volta finita l'esecuzione.
+
+Il filesystem devpts era già disponibile in Linux-2.2 ed è praticamente immutato nella versione 2.6, se non per l'aggiunta degli attributi estesi, una funzionalità disponibile nei principali filesystem ma ad di fuori dei nostri interessi in questo numero. Normalmente il filesystem devpts viene montato durante la procedura di avvio della distribuzione, anche se non presente in /etc/fstab. È possibile smontare /dev/pts solo dopo aver chiuso tutti gli pseudo-terminali in uso; il sistema continuerà a funzionare con il meccanismo precedente (a patto di avere i file speciali in /dev e il supporto relativo nel kernel). È sempre possibile rimontare /dev/pts, facendo convivere i due sistemi:
+
+	burla% who
+	rubini   ttyp1        Apr  6 09:43 (ostro.i.gnudd.com)
+	rubini   ttyp2        Apr  6 09:43 (ostro.i.gnudd.com)
+	rubini   pts/16       Apr  6 09:43 (ostro.i.gnudd.com)
+
+Riquadro 3 - Uso di openpty()
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <pty.h>
+#include <utmp.h>
+#include <sys/time.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+
+int main()
+{
+    int fdm, fds;
+    int pid, i;
+    fd_set set;
+    char buf[64];
+    
+    if (openpty(&fdm, &fds, NULL, NULL, NULL))
+	exit(1);
+    if ((pid = fork()) < 0)
+	exit(2);
+    if (!pid) {
+	/* child */
+	close(fdm);
+	login_tty(fds);
+	execl("/bin/sh", "sh", NULL);
+	exit(3);
+    }
+    /* father: copy stdin/out to/from master */
+    close(fds); system("stty raw -echo");
+    FD_ZERO(&set);
+    while (waitpid(pid, &i, WNOHANG)!=pid) {
+	FD_SET(0, &set);
+	FD_SET(fdm, &set);
+	select(fdm+1, &set, NULL, NULL, NULL);
+	if (FD_ISSET(0, &set)) {
+	    i = read(0, buf, 64);
+	    if (i>0) write(fdm, buf, i);
+	}
+	if (FD_ISSET(fdm, &set)) {
+	    i = read(fdm, buf, 64);
+	    if (i>0) write(1, buf, i);
+	}
+    }
+    system("stty sane");
+    exit(0);
+}
+
+
+Esecuzione di sh in un nuovo terminale
+
+Il programma openpty.c, nel riquadro 3, apre una coppia di terminali ed esegue un interprete di comandi all'interno dello slave. Per semplificare e accorciare il codice sono state usate le funzioni openpty e login_tty. Queste funzioni fanno parte di libutil: non fanno rigorosamente parte di libc ma sono state rese disponibili per evitare che ogni applicativo debba reimplementarsele. Il Makefile che ho usato, perciò, è composto solo di queste due righe:
+
+	 CFLAGS = -ggdb -Wall
+	 LDFLAGS = -lutil
+
+Una volta aperta la coppia di terminali, il programma crea un processo figlio al quale viene assegnato il nuovo terminale slave come terminale di controllo, prima di eseguire sh. Il processo padre, invece, si occupa di copiare il suo stdin verso il terminale master e tutto quello che esce dal terminale master sul suo stdout.
+
+
+Figura 1
+openpty e la shell figlia
+La figura è anche disponibile in PostScript
+
+La situazione risultante è quella rappresentata in figura 1, in cui le frecce entranti e uscenti dai processi rappresentano i file standard di input e output mentre la riga blu uscente da openpty rappresenta il file aperto verso il terminale master. Poiché però standard input e output di openpty staranno probabilmente girando all'interno di un altro terminale (la console, xterm o, come nel mio caso, rshd -- a sua volta controllato da rsh dentro ad un xterm), occorre configurare il terminale ospite per permettere l'uso interattivo (un carattere alla volta) dell'interprete di comandi invocato nel nuovo terminale slave; a questo fine è stato usato il comando stty presentato precedentemente.
+
+openpty funziona sia con i terminali legacy sia con devpts, in quanto la funzione di libreria usa il codice mostrato in legacy.c se fallisce con il metodo standard di Unix98:
+
+	burla% tty
+	/dev/ttyp0
+	burla% ./openpty
+	sh-2.05a$ tty
+	/dev/ttyp1
+	sh-2.05a$ exit
+	exit
+	burla% sudo mount -t devpts none /dev/pts
+	burla% ./openpty 
+	sh-2.05a$ tty
+	/dev/pts/7
+	sh-2.05a$ exit
+	burla% tty
+	/dev/ttyp0
+
+Uso di PPP su uno pseudo-terminale
+
+Gli pseudo-terminali si prestano anche ad usi non convenzionali, sfruttando la loro completa equivalenza, a livello software, con una porta seriale, ovvero con un modem.
+
+Il protocollo PPP (ma anche SLIP) è implementato da una "disciplina di linea", un modulo software che può essere usato su qualsiasi tipo di terminale. La disciplina di linea serve appunto a disciplinare il comportamento del sistema in risposta ai dati che raggiungono il kernel tramite quel terminale, oltre a permettere l'invio di dati verso il terminale. Una discussione approfondita della discplina di linea si può trovare nell'articolo disponibile in rete come www.linux.it/kerneldocs/serial/ .
+
+Ma se PPP può lavorare su qualsiasi terminale, allora è possibile fare un collegamento IP punto-punto tra due macchine remote, a patto di poter creare una coppia di terminali in ognuna di esse. In figura 2 è rappresentato il modo per realizzare tale collegamento instradando il protocollo dentro un canale ssh, invece che su una porta seriale come normalmente si fa con PPP. Ognuno dei due pppd viene fatto comunicare con un terminale slave, che per il software è indistinguibile da un modem, e i due processi ssh, client e server, si occupano di fare da ponte tra il terminale master e il canale cifrato su protocollo IP.
+
+
+Figura 2
+Situazione con ppptunnel
+La figura è anche disponibile in PostScript
+
+Il codice per realizzare tale struttura di processi è riportato nel riquadro 4, questa volta scritto in linguaggio ettcl (una versione di Tcl modificata per poter fare da motore del sistema embedded EtLinux). Su internet si trova una versione di pppptunnel scritta in Perl ed è immediato riscrivere lo strumento in qualsiasi linguaggio sia in grado di aprire una coppia di terminali; la scelta del linguaggio non influsice minimamente sulle prestazioni perché il programma deve solo collegare i file descriptor e passare il controllo ai due pppd, in un caso tramite ssh.
+
+Riquadro 4 - Un tunnel PPP scritto in EtTcl
+
+#!/usr/local/bin/ettclsh
+# -*-tcl-*-
+
+if [llength $argv]!=3 {
+    puts stderr "use: \"$argv0 <remotehost> <local-IP> <remote-IP>\""
+    exit 1
+}
+foreach {host ip1 ip2} $argv {}
+
+sys_ttypair master slave
+if ![set pid [sys_fork]] {
+    # child
+    after 1000
+    sys_dup $slave stdin
+    sys_dup $slave stdout
+    close $slave; close $master
+    set ttyname [file readlink /dev/fd/0]
+    sys_exec sudo \
+	    pppd debug local $ip1:$ip2 nodetach noauth lock $ttyname
+    exit
+}
+# father
+sys_dup $master stdin
+sys_dup $master stdout
+close $master; close $slave
+sys_exec ssh -t $host sudo \
+	pppd debug local $ip2:$ip1 nodetach noauth lock /dev/tty
+
+
+
+Il compito di ppptunnel è quello di aprire una coppia di terminali
+(nel "local tty subsystem" in figura) e chiamare fork. Il processo
+figlio chiude il terminale master ed esegue pppd sul terminale slave;
+il processo padre chiude il terminale slave ed esegue ssh,
+specificando in linea di comando di eseguire pppd sulla macchina
+remota dopo aver aperto un terminale di controllo (cioè un'altra
+coppia di pseudo-terminali, specificando -t).
+
+Per l'esecuzione del comando nella forma in cui è riportato conviene
+che l'utente locale sia autorizzato dall'host remoto e che sudo possa
+funzionare senza password su entrambe le macchine, ma è possibile
+digitare le password relative ad ssh e al sudo locale sul terminale in
+cui viene invocato ppptunnel; è invece necessario che il sudo remoto
+non chieda una password. A livello kernel, questo collegamento si
+appoggia sui normali moduli di PPP: ppp_generic, ppp_async e i moduli
+di compressione.

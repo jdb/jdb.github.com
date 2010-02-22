@@ -1,0 +1,38 @@
+
+
+Trees in PostgreSQL, not only in: out too
+=========================================
+
+There is a tree stored in your postgres, the schema is::
+
+  create table as mytree ( id int, parent int, int varchar ) ;
+
+Let's put a few values::
+
+  insert into mytree values ( null,  0,  '/'    );
+  insert into mytree values ( 0,  1,     'home' );
+  insert into mytree values ( 1,  2,     'jd'   );
+
+  insert into mytree values ( 2,  3,     'foo'  );
+
+  insert into mytree values ( 3,  4,     'bar'  );
+
+In depth or in width first, when you receive a new arc, the first
+element is the parent and the second element is the child and is an
+unknown new node.
+
+In depth first, the arc adds a new child, to the current node, an
+ancestor of the current node. In width first, the arc adds a child, a
+nephew or a sibling.
+ 
+out of postgres via recursive
+ 
+on the screen with graphviz
+ 
+in gtktreeview
+ 
+in a cool js lib
+ 
+in pyjamas
+ 
+

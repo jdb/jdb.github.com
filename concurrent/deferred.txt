@@ -1,0 +1,99 @@
+
+
+The deferred: the *protocol* between a function and its callbacks
+-----------------------------------------------------------------
+
+
+Oh, if you are not familiar with ``lambda``, it is a powerful Python
+shortcut for defining functions, it can be used as an argument to a
+function, or in a list: whenever a function is expected. In our
+example, it is equivalent to
+
+::
+  
+  getTitle = lambda s: fromstring( s ).xpath( '/html/head/title' )[0]
+
+Now, the day getPage gets called by a reactor, you can be sure that
+getTitle be called on the html result.
+
+  def getTile( s ):
+    return fromstring( s ).xpath( '/html/head/title' )
+
+As functions are passed around quite frequently as callbacks in
+Twisted, it is handy to define callbacks on the fly. Be ready to
+stumble upon the following pattern, which is a bit terser, again,
+equivalent to our first example ::
+
+  d = getPage( "http://planet.debian.net" )
+  d.addCallback( lambda s: fromstring( s ).xpath( '/html/head/title' ) )
+
+
+Back to the deferred, the deferred *protocol* goes like this:
+
+- a function which is quick to set up  returns a *deferred*. 
+
+- the addCallback() method of the deferred is used to attach a
+  callback to the future result. The callback functions will be passed
+  the data which is the result of data sink
+
+.. ou est-ce que le reactor trouve la donnée de réponse qu'il passe en
+.. tant que premier argument du callback?
+
+.. Le reactor n'a rien a voir avec 
+
+.. If it is the requesting functions which calls the callback with
+.. the result, when does the reactor has a role
+
+.. the requesting functions can not call the callback, when it has the
+.. result, it already returned looong ago (it returned a deferred, remember)
+
+.. Deferred with a capital, which shows how much respect one must show to the Deferred
+
+.. ou est-ce que la fonction qui retourne un deferred stocke cette
+.. donnée qu'il reçoit, il la passe en argument a deferred.callback
+
+.. how is documented the result of function returning a deferred
+
+.. The last piece of the puzzle is how reactor and deferred relates
+
+.. ampoule must be multiprocessing for twisted
+
+- before returning, as the function itself knows best what to do with
+  the answer, it adds itself the callback. 
+
+this is magical: it returns a deferred or a 
+
+Twisted offer support for many protocols already split into function
+returning deferreds and callback functions. It is indeed possible to
+use the functions of the standard library, or functions that you
+carefully crafted and tested long ago, but more on that later, one
+step at a time.
+
+
+
+Concurrent programming helps you writes efficient code, 
+
+Error path are hardly missed at each step because of the split, and
+because of the errback
+
+exception are not exceptional anymore they are errback just as callback
+
+.. class:: Deferred
+   
+   For the reactor, a Deferred is a list of callback which it files
+   when it receives a response which is meant to the callback.
+
+   .. method:: addCallback( callback [ , 2nd argument, 3rd argument ] ) -> Deferred or a result
+     
+      For the application, a Deferred is the promise a result, to
+      process the result. The first argument is the function which
+      will be called back by the reactor.
+
+      When the callback is synchronous, the return value is directly
+      fed to the next callback, and when the callback has called an
+      asynchrnous function and got a deferred, it just returns the
+      deferred to which it has added the callback.
+
+   .. method:: callback( result [ , 2nd argument, 3rd argument ] ) -> anything, even a Deferred
+
+      The callback is also an asynchronous function

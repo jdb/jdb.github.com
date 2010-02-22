@@ -1,0 +1,54 @@
+=== Access Samba shares ===
+ 1. {{{
+aptitude install smbfs}}}
+ 1. Test it with {{{
+# umount /tmp/sandra
+# smbclient -L sandra -U%
+# smbclient -L sandra -U "COMVERSE\jbrowne"
+Password: 
+# mount -t smbfs -o username="COMVERSE\jbrowne",uid=jbrowne,gid=jbrowne //sandra/users /tmp/sandra
+Password: 
+# mount -t smbfs -o username="COMVERSE\jbrowne",password="mypassword" //sandra/users /tmp/sandra
+# cat > /etc/comverse.credentials && chmod og-rwx /etc/comverse.credentials
+username=COMVERSE\jbrowne
+password=mypassword
+# mount -t smbfs -o credentials=/etc/comverse.credentials //sandra/users /mnt/sandra
+}}} 
+  1. the mandatory "realm" for the username,
+  2. the tricky use of `"' on the command line but not in the credential file
+  3. No spaces in the credential file
+ 1. Mount it at boot time {{{
+# echo '//sandra/users  /mnt/sandra     smbfs   credentials=/etc/comverse.credentials,gid=jbrowne,uid=jbrowne 0 0' \
+     >> /etc/fstab
+# mount -a
+# ls /mnt/sandra
+ [ ... lots of directories ]
+}}} Note the use of 'gid' and 'uid' so that a non root user can access the share.
+ 1. Easy access to the shares :{{{
+$ cd
+$ mkdir  /mnt/sandra/jbrowne/backup && ln -s /mnt/sandra/jbrowne/backup 
+$ mkdir  /mnt/sandra/jbrowne/mycc && ln -s /mnt/sandra/jbrowne/mycc}}}
+
+=== Expose a Samba share ===
+On the server
+ 1. aptitude install samba
+ 1. Useradd netcentrex
+ 1. Modify /etc/passwd so that netcentrex can not log in (modify /bin/bash with the /bin/echo "Can't log")
+ 1. {{{cat > /etc/samba/smb.conf
+[global]
+   workgroup = jdb
+   hosts allow = 127. 10.165.130. 10.165.131.
+   log file = /var/log/samba/log.%m
+[src]
+    comment = mc-fmc sources checkout
+    path = /mnt/src
+    force user = jbrowne
+    writable = yes
+    public = yes
+}}}
+ 1. /etc/init.d/samba restart
+
+For the configuration on the client, check the first paragraph.
+
+----
+TagAdmin

@@ -1,0 +1,76 @@
+
+
+Editing articles
+----------------
+
+- Intro: you may want to include
+
+  - an eye catcher, something in the news, or in the daily use,
+
+  - the issue at hand, which is solved by the technology presented in
+    the article,
+
+  - the boundaries of the article to get a clearer scope of the
+    article,
+
+  - the prerequisite to this page: tutorial, package, buidout. 
+
+    With the last three paragraph, the side effect, is that there is
+    less need to think about an audience: readers will know whether
+    they need it or not.
+
+- Conclusion: you may want to have:
+  
+  - short recap of what was learnt
+
+  - intro to advanced use
+   
+  - see also
+   
+  - cool articles
+    
+  - equivalent technologies
+
+- When showing code, it is a bit raw to begin by the code, shouldn't we
+  first present the intent of the code, then insert the code, and
+  then, dwelve into interesting technical details?
+
+- Maybe we should keep the jargon and acronyms low, it would help
+  keeping the learning curve chewable (yes, I chew curves everyday).
+
+  I propose to substitue whenever possible kgs, ztk, zope3, z3c and
+  zope by *zope tool kit*. This page help but is not enough:
+  http://docs.zope.org/zopetoolkit/about/concepts.html
+
+  When talking about a specific package, make sure to use to nail the
+  complete name several time before abbreviating it, for instance,
+  zope.schema, zope.formlib
+
+
+Accross the Grok site
+---------------------
+
+- Global TOC on the left is not really helpful, and a bit
+  inconsistent. Shouldn't we just talk about **use cases**:
+  installation, URL mappings, forms, search and persistence and make a
+  separate sections about all the sexy **technologies**:: ajax, json,
+  rdb, rest, xml-rpc.
+
+- the favicon is not easily recognizable, too small, better use the caveman
+  smashing tool icon (is it called a *club*?)
+
+- The TOC of an article is not displayed at the top while the page is
+  quite long (navigation is not easy), it would help grasping the
+  general idea of the page to have the article TOC at the top
+
+- For an article page, there is Title/author/part 1/paragraph : 3
+  different fonts, 3 different colors, the author name is weirdly
+  floating a bit, and there is no space between "author" and the
+  author name (does the author string needs to appear, or can it be
+  represented by the font and/layout?)
+
+- On an article page, it is important to show the version and
+  audience if left unspecified?
+
+- The full zope urls are too long and should be hidden behind a nice
+  link title (most browser display the target url in the status bar)

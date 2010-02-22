@@ -1,0 +1,14 @@
+Hello, 
+
+Two obvious points that took some years for me to fully realize:
+
+Without service interruption
+
+
+Migration from point A to point B are painful because:
+1. you do not really really know point B, you can't be working full time at point A and be an expert at point B, this is very hard. If want expertise in B, there is always a tiny voice that says that there are lower hanging fruits in point A and you are wasting every ones time with your pet project (needs dedication)
+
+2. restarting from scratch http://www.joelonsoftware.com/articles/fog0000000069.html
+
+3. the latest source of pain I realized is that to migrate from A to B you need to know where exactly you stand with A. There are so many things taht work in a big product that you take for granted that you don't realize they exist. You never fully realize the ramifications of the change because right now it just works, and you don't really want to spend your time knowing what it is working right now. You get to your new home, and "oh shit, the garage is a tad too small for the fridge plus the car", we never thought this would pose a problem. Reminds me of the sun glasses that I need to send to you Real Soon (tm), now I have the address. Oh did not realize I had so many stuff, and there were so many corner in this appartment. Specifications helps to know where you are (but they take too much work ), powerful technologies that you master help adapting to any problem
+

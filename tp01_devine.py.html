@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>SilverCity</title>
+<content="text/html; charset=UTF-8"><link href="default.css" rel="STYLESHEET">
+</head>
+<body>
+<span class="p_commentline">#!/usr/bin/env&nbsp;python</span><span class="p_default"><br/>
+</span><span class="p_commentline">#&nbsp;-*-&nbsp;coding:&nbsp;utf-8&nbsp;-*-</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_identifier">Ncoups</span><span class="p_operator">=</span><span class="p_number">15</span><span class="p_default"><br/>
+</span><span class="p_identifier">Nmax</span><span class="p_operator">=</span><span class="p_number">1000</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_commentline">#&nbsp;Initialisations</span><span class="p_default"><br/>
+</span><span class="p_identifier">n</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">nb_coup</span><span class="p_default">&nbsp;</span><span class="p_operator">=</span><span class="p_default">&nbsp;</span><span class="p_number">0</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_number">0</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_commentline">#&nbsp;Prise&nbsp;de&nbsp;contact</span><span class="p_default"><br/>
+</span><span class="p_identifier">nom</span><span class="p_operator">=</span><span class="p_identifier">raw_input</span><span class="p_operator">(</span><span class="p_character">'Pour&nbsp;commencer,&nbsp;donner&nbsp;votre&nbsp;nom&nbsp;:&nbsp;\n'</span><span class="p_operator">)</span><span class="p_default"><br/>
+</span><span class="p_identifier">prenom</span><span class="p_operator">=</span><span class="p_identifier">raw_input</span><span class="p_operator">(</span><span class="p_character">'Votre&nbsp;prenom&nbsp;:&nbsp;\n'</span><span class="p_operator">)</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_commentline">#&nbsp;regle&nbsp;du&nbsp;jeu&nbsp;et&nbsp;tirage&nbsp;du&nbsp;nombre&nbsp;mystere</span><span class="p_default"><br/>
+</span><span class="p_word">print</span><span class="p_operator">(</span><span class="p_string">"\nJe&nbsp;vais&nbsp;choisir&nbsp;un&nbsp;nombre&nbsp;entre&nbsp;1&nbsp;et&nbsp;"</span><span class="p_default">&nbsp;</span><span class="p_operator">+</span><span class="p_default">&nbsp;</span><span class="p_identifier">str</span><span class="p_operator">(</span><span class="p_identifier">Nmax</span><span class="p_operator">)</span><span class="p_default">&nbsp;</span><span class="p_operator">+</span><span class="p_default">&nbsp;</span><span class="p_string">".\n..."</span><span class="p_operator">)</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_word">import</span><span class="p_default">&nbsp;</span><span class="p_identifier">random</span><span class="p_default"><br/>
+</span><span class="p_identifier">nb_a_dev</span><span class="p_operator">=</span><span class="p_identifier">random</span><span class="p_operator">.</span><span class="p_identifier">randint</span><span class="p_operator">(</span><span class="p_number">1</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">Nmax</span><span class="p_operator">)</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_word">print</span><span class="p_operator">(</span><span class="p_string">"Voila,&nbsp;c'est&nbsp;fait;&nbsp;à&nbsp;vous&nbsp;de&nbsp;le&nbsp;deviner&nbsp;maintenant&nbsp;!"</span><span class="p_operator">)</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_word">while</span><span class="p_default">&nbsp;</span><span class="p_identifier">nb_coup</span><span class="p_default">&nbsp;</span><span class="p_operator">&lt;</span><span class="p_default">&nbsp;</span><span class="p_identifier">Ncoups</span><span class="p_default">&nbsp;</span><span class="p_word">and</span><span class="p_default">&nbsp;</span><span class="p_identifier">n</span><span class="p_operator">!=</span><span class="p_identifier">nb_a_dev</span><span class="p_operator">:</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_identifier">n</span><span class="p_default">&nbsp;</span><span class="p_operator">=</span><span class="p_default">&nbsp;</span><span class="p_identifier">int</span><span class="p_operator">(</span><span class="p_identifier">raw_input</span><span class="p_operator">(</span><span class="p_string">"\nProposition&nbsp;?\n"</span><span class="p_operator">))</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_identifier">nb_coup</span><span class="p_default">&nbsp;</span><span class="p_operator">=</span><span class="p_default">&nbsp;</span><span class="p_identifier">nb_coup</span><span class="p_default">&nbsp;</span><span class="p_operator">+</span><span class="p_default">&nbsp;</span><span class="p_number">1</span><span class="p_default"><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">if</span><span class="p_default">&nbsp;</span><span class="p_identifier">n</span><span class="p_default">&nbsp;</span><span class="p_operator">&lt;</span><span class="p_default">&nbsp;</span><span class="p_number">1</span><span class="p_default">&nbsp;</span><span class="p_word">or</span><span class="p_default">&nbsp;</span><span class="p_identifier">n</span><span class="p_default">&nbsp;</span><span class="p_operator">&gt;</span><span class="p_default">&nbsp;</span><span class="p_identifier">Nmax</span><span class="p_operator">:</span><span class="p_default">&nbsp;</span><span class="p_word">print</span><span class="p_operator">(</span><span class="p_character">'On&nbsp;a&nbsp;dit&nbsp;entre&nbsp;1&nbsp;et&nbsp;1000&nbsp;!'</span><span class="p_operator">)</span><span class="p_default">&nbsp;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">if</span><span class="p_default">&nbsp;</span><span class="p_identifier">n</span><span class="p_default">&nbsp;</span><span class="p_operator">&lt;</span><span class="p_default">&nbsp;</span><span class="p_identifier">nb_a_dev</span><span class="p_default">&nbsp;</span><span class="p_operator">:</span><span class="p_default">&nbsp;</span><span class="p_word">print</span><span class="p_operator">(</span><span class="p_character">'Trop&nbsp;petit.'</span><span class="p_operator">)</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">elif</span><span class="p_default">&nbsp;</span><span class="p_identifier">n</span><span class="p_default">&nbsp;</span><span class="p_operator">&gt;</span><span class="p_default">&nbsp;</span><span class="p_identifier">nb_a_dev</span><span class="p_default">&nbsp;</span><span class="p_operator">:</span><span class="p_default">&nbsp;</span><span class="p_word">print</span><span class="p_operator">(</span><span class="p_character">'Trop&nbsp;grand.'</span><span class="p_operator">)</span><span class="p_default"><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">if</span><span class="p_default">&nbsp;</span><span class="p_identifier">abs</span><span class="p_operator">(</span><span class="p_identifier">n</span><span class="p_operator">-</span><span class="p_identifier">nb_a_dev</span><span class="p_operator">)==</span><span class="p_number">1</span><span class="p_operator">:</span><span class="p_default">&nbsp;</span><span class="p_word">print</span><span class="p_operator">(</span><span class="p_character">'Mais&nbsp;ca&nbsp;brule&nbsp;!'</span><span class="p_operator">)</span><span class="p_default"><br/>
+<br/>
+</span><span class="p_commentline">#&nbsp;Affichage&nbsp;des&nbsp;resultats</span><span class="p_default"><br/>
+</span><span class="p_word">if</span><span class="p_default">&nbsp;</span><span class="p_identifier">n</span><span class="p_operator">==</span><span class="p_identifier">nb_a_dev</span><span class="p_operator">:</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">print</span><span class="p_operator">(</span><span class="p_character">'Oui&nbsp;!,&nbsp;Bravo,&nbsp;%s&nbsp;%s,&nbsp;&nbsp;vous&nbsp;avez&nbsp;trouve&nbsp;en&nbsp;%s&nbsp;coups.'</span><span class="p_operator">)</span><span class="p_default">&nbsp;</span><span class="p_operator">%</span><span class="p_default">&nbsp;</span><span class="p_operator">(</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_identifier">nom</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">prenom</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">nb_coup</span><span class="p_operator">)</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">print</span><span class="p_operator">(</span><span class="p_character">'Le&nbsp;nombre&nbsp;etait&nbsp;effectivement&nbsp;%s.'</span><span class="p_default">&nbsp;</span><span class="p_operator">%</span><span class="p_default">&nbsp;</span><span class="p_identifier">nb_a_dev</span><span class="p_operator">)</span><span class="p_default"><br/>
+</span><span class="p_word">else</span><span class="p_operator">:</span><span class="p_default"><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="p_word">print</span><span class="p_default">&nbsp;</span><span class="p_tripledouble">"""Bon,&nbsp;ca&nbsp;va&nbsp;bien&nbsp;maintenant&nbsp;%s&nbsp;on&nbsp;jette&nbsp;l'eponge&nbsp;!<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;J'avais&nbsp;choisi&nbsp;%s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Vous&nbsp;n'etes&nbsp;pas&nbsp;encore&nbsp;pret&nbsp;pour&nbsp;le&nbsp;Juste&nbsp;prix"""</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_operator">(</span><span class="p_identifier">nom</span><span class="p_operator">,</span><span class="p_default">&nbsp;</span><span class="p_identifier">nb_a_dev</span><span class="p_operator">)</span><span class="p_default"><br/>
+&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+</span>
+</body></html>
