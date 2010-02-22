@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    '#',
         VERSION:     '0.6',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
@@ -43,7 +43,7 @@
         <div class="sphinxsidebarwrapper">
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">An example of functional programming</a><ul>
+<li><a class="reference external" href="#">An example of functional programming</a><ul>
 <li><a class="reference external" href="#the-math-of-the-problem">The math of the problem</a></li>
 <li><a class="reference external" href="#a-procedural-and-a-functional-algorithm">A procedural and a functional algorithm</a></li>
 <li><a class="reference external" href="#better-performance-through-lazyness">Better performance through <em>lazyness</em></a></li>
@@ -104,19 +104,19 @@ circle can be calculated as <em>the ratio between the number of points
 of the circle and the total number of points</em>. In math, this is
 summarised as:</p>
 <div class="math">
-<p><img src="images/math/2206bd618bd79b326d66a382c37c0b8a74eea8fb.png" alt="frequency = \frac{number\ of\ points\ in\ the\ circle}{total\ number\ of\ points}" />
-</div></p></li>
+<p><img src="images/math/2206bd618bd79b326d66a382c37c0b8a74eea8fb.png" alt="frequency = \frac{number\ of\ points\ in\ the\ circle}{total\ number\ of\ points}" /></p>
+</div></li>
 <li><p class="first">The <em>number of points in a shape</em> is another name for the <em>surface</em>
 of the shape, that is:</p>
 <div class="math">
-<p><img src="images/math/ce8467839c160c7771458b91dca0f5fa8b5ed808.png" alt="frequency = \frac{ Circle\ surface}{Square\ surface} = \frac{\pi . radius^2 }{side^2}" />
-</div></p></li>
+<p><img src="images/math/ce8467839c160c7771458b91dca0f5fa8b5ed808.png" alt="frequency = \frac{ Circle\ surface}{Square\ surface} = \frac{\pi . radius^2 }{side^2}" /></p>
+</div></li>
 <li><p class="first">To make things simple, take a circle with a radius of <em>1</em>, and its
 containing square with a side length of <em>2</em>, the frequency is
 simply</p>
 <div class="math">
-<p><img src="images/math/6e8248603babf8c0b4f1c65e908ed53431583cbf.png" alt="frequency = \frac{\pi.1^2}{2^2} = \frac{\pi}{4}" />
-</div></p><p>This means that if you can build an experiment which gives you an
+<p><img src="images/math/6e8248603babf8c0b4f1c65e908ed53431583cbf.png" alt="frequency = \frac{\pi.1^2}{2^2} = \frac{\pi}{4}" /></p>
+</div><p>This means that if you can build an experiment which gives you an
 approximation of the frequency then an approximation of
 <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/> is <strong>four times the frequency for a random point of the
 sqaure to be in the circle</strong>.</p>
@@ -301,8 +301,8 @@ straightforward, and is 10% slower than the procedural counterpart. To
 conclude, here is a real fast formula to approximate Pi known as the
 Bailey-Borwein-Plouffe formula :</p>
 <div class="math">
-<p><img src="images/math/6af0cefff23af40cc4dc11765f0841461f50e59b.png" alt="\pi \approx \sum_{k=0}^{\infty} \frac{1}{16^k} \left(\frac{4}{8k+1}-\frac{2}{8k+4}-\frac{1}{8k+5}-\frac{1}{8k+6}\right)" />
-</div></p><p>This translate into the <em>bbp</em> function, below, in Python, for which
+<p><img src="images/math/6af0cefff23af40cc4dc11765f0841461f50e59b.png" alt="\pi \approx \sum_{k=0}^{\infty} \frac{1}{16^k} \left(\frac{4}{8k+1}-\frac{2}{8k+4}-\frac{1}{8k+5}-\frac{1}{8k+6}\right)" /></p>
+</div><p>This translate into the <em>bbp</em> function, below, in Python, for which
 <em>bbp(10)</em> is already correct for all 13 digits printed here (the
 pointy bracket indicates the lines come from a Python interactive
 shell).</p>
@@ -350,7 +350,7 @@ shell).</p>
     </div>
     <div class="footer">
       &copy; Copyright 2009, jdb.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
     </div>
   </body>
 </html>
