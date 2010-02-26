@@ -255,7 +255,7 @@ Here is, step by step, how the concurrent code operates:
    is the right time to stop the script by calling
    :func:`reactor.stop`.
 
-Run the two script the measure the performance difference::
+Run the two scripts the measure the performance difference::
 
   time python sequential.py
   time python concurrent.py
