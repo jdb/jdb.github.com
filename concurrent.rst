@@ -260,7 +260,7 @@ Run the two script the measure the performance difference::
   time python sequential.py
   time python concurrent.py
 
-This is a 4x increase in performance, not bad.
+This is a 4x performance increase:  not bad.
 
 A concurrent solution
 =====================
