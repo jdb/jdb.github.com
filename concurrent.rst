@@ -260,13 +260,13 @@ Run the two scripts the measure the performance difference::
   time python sequential.py
   time python concurrent.py
 
-This is a 4x performance increase:  not bad.
+This is a 4x performance increase: not bad.
 
 A concurrent solution
 =====================
 
-Here is a concurrent solution using Twisted to our original
-problem, three times faster than the sequential approach :
+Here is a concurrent solution to our original problem, using Twisted,
+three times faster than the sequential approach :
 
 .. include:: concurrent/getpage.py
    :literal:
