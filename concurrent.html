@@ -359,12 +359,12 @@ is the right time to stop the script by calling
 <div class="highlight-python"><pre>time python sequential.py
 time python concurrent.py</pre>
 </div>
-<p>This is a 4x performance increase:  not bad.</p>
+<p>This is a 4x performance increase: not bad.</p>
 </div>
 <div class="section" id="a-concurrent-solution">
 <h2>A concurrent solution<a class="headerlink" href="#a-concurrent-solution" title="Permalink to this headline">¶</a></h2>
-<p>Here is a concurrent solution using Twisted to our original
-problem, three times faster than the sequential approach :</p>
+<p>Here is a concurrent solution to our original problem, using Twisted,
+three times faster than the sequential approach :</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
 <span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">DeferredList</span><span class="p">,</span> <span class="n">inlineCallbacks</span>
 <span class="kn">from</span> <span class="nn">twisted.web.client</span> <span class="kn">import</span> <span class="n">getPage</span>
