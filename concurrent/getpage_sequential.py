@@ -1,3 +1,4 @@
+# getpage_sequential.py
 from lxml.html import parse
 from urllib2 import urlopen
 

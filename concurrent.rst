@@ -79,8 +79,8 @@ framework.
    downloads, there is a need to run the tasks concurrently.
 
 
-Twisted in brief
-================
+Twisted deferreds and callbacks
+===============================
 
 One of the core ideas is that Twisted functions which make a network
 call should not block the application while the response is not yet
@@ -97,37 +97,125 @@ they use callbacks to process the result, the result is processed
 Now, what does an asynchronous function returns if it does not return
 the result? From the :obj:`reactor` point of view, there is a need for
 an object which associates an asynchronous function to its
-callbacks. From the point of view of the user of Twisted, he (or she!)
-will want to process the result: the Twisted abstraction returned by
+callbacks. From the point of view of the user of Twisted, she will
+want to process the result: the Twisted abstraction returned by
 asynchronous functions is called a *Deferred* object, it is meant as a
 **promise of a result** and have a method :func:`addCallback`. Now for
 the user, a promise of a result is almost the same as a result except
-for extra lines of code. It was to be expected, as the result is not
+for extra lines of code. It was to be expected: as the result is not
 available yet, you need to be a bit more patient and type some more
-code, obviously.
+code in the mean time, obviously.
 
 Deferreds, callbacks and the reactor are three central objects of the
-Twisted framework, understanding how they relate is a good step toward
-Twisted. Here is how a traditional ``mangle_html( urlopen( url ))`` is
-rewritten with this mental shift::
+Twisted framework, understanding how they relate is a big step toward
+Twisted. Here is how a traditional ``manipulation( parse( getPage( url )))``
+is rewritten with this mental shift::
 
   d = getPage( url )
 
-  def mangle( html ):
-      ...
-      return the_result_of_my_mangling
+  def manipulation( html ):
+      
+      parse( html ).xpath( ... )
+      [ ... ]
 
-  d.addCallback( mangle )
+  d.addCallback( manipulation )
  
 
-Surprising huh? The good news is that Python offers a really powerful
-keyword :obj:`yield` to simplify the boilerplate of deferred and
-callback manipulation. :obj:`yield` allows for returning from a
-function half-way through and continuing later on at the point where
-the function returned. For asynchronous functions decorated with
-:func:`inlineCallbacks`, Twisted leverages :obj:`yield` : the reactor
-passes the result when it is available and continues the function
-where it exited.
+Surprising huh? In the next paragraph, we will compare two versions,
+one concurrent, one sequential of a simple script which print the html
+title of the *http://twistedmatrix.com* web site.
+
+
+Download a web page: Twisted vs standard Python
+===============================================
+
+The following simple example shows side by side two codes which
+download, 30 times, the main page of *twistedmatrix.com* to extract
+and print the title. The first snippet is sequential, and the second
+is concurrent.
+
+.. include:: concurrent/sequential.py
+   :literal:
+   
+
+.. include:: concurrent/concurrent_deferred.py
+   :literal:
+
+
+!
+
+``yield`` greatly simplifies a concurrent code
+==============================================
+
+The good news is that Python offers a really powerful keyword
+:obj:`yield` to simplify the boilerplate of deferred and callback
+manipulation. :obj:`yield` allows for returning from a function
+half-way through and continuing later on at the point where the
+function returned. 
+
+*For asynchronous functions decorated with* :func:`inlineCallbacks`,
+*Twisted leverages* :obj:`yield` so that the reactor passes the result
+when it is available and continues the function where it exited*.
+
+.. include:: concurrent/concurrent_deferred.py
+   :literal:
+
+Here is, step by step, how the concurrent code operates:
+
+#. With the :func:`inlineCallbacks` decorator, :func:`title` implicitly
+   returns a deferred, and the reactor will call the function again
+   when an asynchronous result is available.
+
+
+#. :func:`getPage` is one of the many (many many actually)
+   asynchronous function offered by Twisted, it returns a deferred,
+   whose result is the html string. The low level steps composing
+   :func:`getPage` are asynchronous as well: the DNS request turning
+   the ``twistedmatrix.com`` into an IP address will not block the
+   application either !
+
+   Twisted offers asynchronous function for managing UDP and TCP
+   socket, but also offers high level functions for making request in
+   the following protocol Web, DNS, SMTP, POP, XMPP, SIP, AMQP, etc.
+
+#. :obj:`yield` is the Python continuation keyword: the :func:`title`
+   function returns at this point but will be restarted at this point
+   at the next call of :func:`title`. This is crazy and perfect in the
+   Twisted context. It is the :func:`reactor` which will eventually
+   call back the :func:`title` function when the result of the
+   deferred - when the response of the asynchronous request - is
+   available.
+
+   The result can be manipulated via the label at the left hand side
+   of the :obj:`yield` assignement. In our example, the response is
+   made available in the ``html`` placeholder.
+
+#. This line is the callback code, it parses and prints a fragment of
+   the result of the asynchronous request. At this point lies the gain
+   in performance over ``urlopen( url )``: the application was not
+   blocked until the return value was available,  :func:`getPage`
+   returned as soon as the request was sent.
+
+   ``[0].text`` means : from the first element of the list - which is
+   an html node, here - take the text content.
+
+#. :func:`DeferredList` takes a list of deferred as an input and
+   returns a deferred whose callback is called after every element of
+   the deferred list have been consumed. This function is sometimes
+   called a *barrier* in other concurrency context. 
+
+   In our example, the deferred list is composed of the deferreds of
+   the 30 calls to the :func:`title` function, when they are done, it
+   is the right time to stop the script by calling
+   :func:`reactor.stop`.
+
+Run the two script the measure the performance difference::
+
+  time python sequential.py
+  time python concurrent.py
+
+This is a 4x increase in performance, not bad.
+
 
 
 Here is the strict minimum needed to use Twisted:
@@ -188,76 +276,6 @@ Here is the strict minimum needed to use Twisted:
       last event of the application.
 
 
-A short example
-===============
-
-The following simple example shows side by side two codes which
-download, 30 times, the main page of *twistedmatrix.com* to extract
-and print the title. The first snippet is sequential, and the second
-is concurrent.
-
-.. include:: concurrent/sequential.py
-   :literal:
-   
-
-.. include:: concurrent/concurrent.py
-   :literal:
-
-Here is, step by step, how the concurrent code operates:
-
-#. With the :func:`inlineCallbacks` decorator, :func:`title` implicitly
-   returns a deferred, and the reactor will call the function again
-   when an asynchronous result is available.
-
-
-#. :func:`getPage` is one of the many (many many actually)
-   asynchronous function offered by Twisted, it returns a deferred,
-   whose result is the html string. The low level steps composing
-   :func:`getPage` are asynchronous as well: the DNS request turning
-   the ``twistedmatrix.com`` into an IP address will not block the
-   application either !
-
-   Twisted offers asynchronous function for managing UDP and TCP
-   socket, but also offers high level functions for making request in
-   the following protocol Web, DNS, SMTP, POP, XMPP, SIP, AMQP, etc.
-
-#. :obj:`yield` is the Python continuation keyword: the :func:`title`
-   function returns at this point but will be restarted at this point
-   at the next call of :func:`title`. This is crazy and perfect in the
-   Twisted context. It is the :func:`reactor` which will eventually
-   call back the :func:`title` function when the result of the
-   deferred - when the response of the asynchronous request - is
-   available.
-
-   The result can be manipulated via the label at the left hand side
-   of the :obj:`yield` assignement. In our example, the response is
-   made available in the ``html`` placeholder.
-
-#. This line is the callback code, it parses and prints a fragment of
-   the result of the asynchronous request. At this point lies the gain
-   in performance over ``urlopen( url )``: the application was not
-   blocked until the return value was available,  :func:`getPage`
-   returned as soon as the request was sent.
-
-   ``[0].text`` means : from the first element of the list - which is
-   an html node, here - take the text content.
-
-#. :func:`DeferredList` takes a list of deferred as an input and
-   returns a deferred whose callback is called after every element of
-   the deferred list have been consumed. This function is sometimes
-   called a *barrier* in other concurrency context. 
-
-   In our example, the deferred list is composed of the deferreds of
-   the 30 calls to the :func:`title` function, when they are done, it
-   is the right time to stop the script by calling
-   :func:`reactor.stop`.
-
-Run the two script the measure the performance difference::
-
-  time python sequential.py
-  time python concurrent.py
-
-This is a 4x increase in performance, not bad.
 
 A concurrent solution
 =====================

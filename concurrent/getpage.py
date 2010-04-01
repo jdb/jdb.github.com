@@ -24,6 +24,8 @@ planets = ["http://planet.debian.net",
            "http://planet.gnome.org",
            "http://gstreamer.freedesktop.org/planet/"]
 
-DeferredList( map( first_title, planets )).addCallback(lambda _:reactor.stop()) 
+DeferredList( [ first_title(p) for p in planets] 
+              ).addCallback(lambda _:reactor.stop()) 
+
 reactor.run() 
 
