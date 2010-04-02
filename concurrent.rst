@@ -16,8 +16,8 @@
    Use functions of the standard lib to parse html
 
 
-Problem introduction
-====================
+Concurrent vs. sequential
+=========================
 
 Concurrency is a key concept particularly useful for performance: take
 a simple problem such as retrieving, for each element of a list of
@@ -121,18 +121,9 @@ is rewritten with this mental shift::
   d.addCallback( manipulation )
  
 
-Surprising huh? In the next paragraph, we will compare two versions,
-one concurrent, one sequential of a simple script which print the html
-title of the *http://twistedmatrix.com* web site.
-
-
-Download a web page: Twisted vs standard Python
-===============================================
-
-The following simple example shows side by side two codes which
-download, 30 times, the main page of *twistedmatrix.com* to extract
-and print the title. The first snippet is sequential, and the second
-is concurrent.
+Surprising huh? Let's compare two versions, one concurrent, one
+sequential of a simple script which print the html title of the
+*http://twistedmatrix.com* web site.
 
 .. include:: concurrent/sequential.py
    :literal:
@@ -141,24 +132,99 @@ is concurrent.
 .. include:: concurrent/concurrent_deferred.py
    :literal:
 
+Pros and cons, a logical bloack of code is split into two functions to
+allows the reactor execute other actions in the mean time. On one
+hand, the execution schema is explicit, on the other hand, this is
+heavy and is 
 
-!
 
 ``yield`` greatly simplifies a concurrent code
 ==============================================
 
-The good news is that Python offers a really powerful keyword
-:obj:`yield` to simplify the boilerplate of deferred and callback
-manipulation. :obj:`yield` allows for returning from a function
-half-way through and continuing later on at the point where the
-function returned. 
+Python offers a really powerful keyword :obj:`yield` which Twisted
+uses in a clever way to simplify the boilerplate of deferred and
+callback manipulation. :obj:`yield` allows for returning from a
+function half-way through and continuing later on at the point where
+the function returned.
+
+See this example first which only includes code from the standard
+library, no Twisted involved.
+
+def func_with_several_entry_points():
+   yield 'the first return value'
+   val = 1+1
+   yield 'the second time',val
+   yield 'the latest portion of the function was executed'
+
+for i in func_with_several_entry_points():
+    print i
+
+The function will be called repeateadly and all code until the yield
+is executed. The right hand side of the yield is the value returned to
+the caller. In detail, a function containing a yield returns a
+*generator*, which has a next() method and which can remember when the
+last call exited, and which execute the next portion of the function
+code, when the *next* method is called. The python statement for
+expects such protocol and calls 
+
+>>> gen=func_with_several_entry_points()
+>>> gen
+<generator object titi at 0xb76afbe4>
+>>> gen.next()
+('yoozaa', 2)
+>>> gen.next()
+3
+>>> gen.next()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+StopIteration
+
+As for a normal function which features argument, a function which
+yields has arguments which are set when the generator is constructed
+>>> def titi( n ):
+...     yield "I was given",n
+...     yield "Here is the double",2*n
+... 
+>>> t=titi(4)
+>>> t.next()
+('I was given', 4)
+>>> t.next()
+('Here is the double', 8)
+
+But the generator can also be sent data on successive calls:
+
+>>> def titi(user,password):
+...     data = yield 'I am halfway of the processing'
+...     print 'When called a second time, I was given:', data
+... 
+>>> t=titi('hello', 'pass')
+>>> t.next()
+'I am halfway of the processing'
+>>> t.send('new vewy iteresting data')
+When called a second time, I was given: new vewy iteresting data
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+StopIteration
+
+
+
+to receive data
+from the caller. Not only can the generator deliver multiple values
+but the values can depend on an argument sent by the caller.
+
+
+
+Twisted leverage the yield keyword to group the request returning a deferred and
+the callback processing the 
+
+.. include:: concurrent/concurrent.py
+   :literal:
+
 
 *For asynchronous functions decorated with* :func:`inlineCallbacks`,
 *Twisted leverages* :obj:`yield` so that the reactor passes the result
 when it is available and continues the function where it exited*.
 
-.. include:: concurrent/concurrent_deferred.py
-   :literal:
 
 Here is, step by step, how the concurrent code operates:
 
@@ -215,8 +281,6 @@ Run the two script the measure the performance difference::
   time python concurrent.py
 
 This is a 4x increase in performance, not bad.
-
-
 
 Here is the strict minimum needed to use Twisted:
 
