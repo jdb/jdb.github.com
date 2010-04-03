@@ -11,9 +11,9 @@
    Clarify the getpage_deferred concerning the storage of the
    intermediate results in the callback chain.
 
+   What about getpage in sequential C?
 
-Problem introduction
-====================
+   Use functions of the standard lib to parse html
 
 Concurrency is a key concept particularly useful for performance: take
 a simple problem such as retrieving, for each element of a list of
@@ -25,47 +25,53 @@ blog. This means::
         retrieve the web page of the first article	
         display the title
 
-This is solved quite elegantly in Python. Here are the two functions
-we will use:
+Here are the three functions we will use, to provide a quick solution
+to this problem:
 
-.. function:: getpage( url ) -> html tree 
+.. function:: urlopen( url ) -> html string 
+
+   Makes an http get request to the url passed as a parameter and
+   returns the body of the http response as a string,
+
+.. function:: parse( html string ) -> html tree 
 
    Makes an http get request to the url passed as a parameter and
    returns the html content of the response as tree structure,
 
-.. function:: xpath( pattern ) -> list of matching nodes
+.. function:: htmltree.xpath( pattern ) -> list of matching nodes
 
-   Can operate on an html tree structure, selecting the list of html nodes
-   matching the *xpath* pattern: can find urls or page title.
+   Operate on an html tree structure to selects the list of html nodes
+   matching the *xpath* pattern. In our context: can find urls or page
+   title.
 
-Here is the script:
+Here is the script the script in which they are used, and which shows
+a fundamental design problem:
 
-
-.. include:: concurrent/getpage_sequential.py
+.. include:: concurrent/sequential.py
    :literal:
 
-This solution has a fondamental problem: when there are *n* element in
-the blog list, there will be *2n* page downloaded, one after the
-other, and this will take *2n * time to download one page*. When the
-problem takes a time directly proportional to the number of input,
-this is called an *O(n)* complexity and this rightfully rise the
-eyebrow of any developer concerned with performance or
-scalability. The solution presented at the end of the article is not
-longer, has a network complexity of *O(1)* and is three times faster.
+When there are *n* element in the blog list, there will be *2n* page
+downloaded, one after the other, and this will take *2n * time to
+download one page*. When the problem takes a time directly
+proportional to the number of input, this is called an *O(n)*
+complexity and this rightfully rise the eyebrow of any developer
+concerned with performance or scalability. 
 
 As each download is completely independent with regard to each other,
 it is obvious that these downloads can be executed in parallel, or,
 *concurrently*, which is the raison d'être of the Twisted Python
 framework. Processes and threads are well known primitive for
 programming concurrently but Twisted do without (not even behind your
-back), to spares the developer from using locks, mutex, etc.
-
-.. note:: A fast language 
+back), to spares the developer from using locks, mutex, etc. The
+solution presented at the end of the article is not longer, has a
+network complexity of *O(1)* and is three times faster.
+	
+.. note:: 
 
    A frequently heard reaction at this point is "Python is a slow
-   language to start with, a fast language is the answer to
+   language to start with, **a fast language** is the answer to
    performance". Notwithstanding the many existing techniques to make
-   compiled Python code run on multiple processors, it is not the
+   Python code compile and run on multiple processors, it is not the
    point, in some case, a fast language like C does not help. For
    example, take the download of a install CD, there is an
    insignificant gain in performance in a download client written in C
@@ -77,12 +83,12 @@ back), to spares the developer from using locks, mutex, etc.
    downloads, there is a need to run the tasks concurrently.
 
 
-Twisted in brief
-================
+Twisted deferreds and callbacks
+===============================
 
 One of the core ideas is that Twisted functions which make a network
 call should not block the application while the response is not yet
-available. :func:`urlopen`, for example, blocks as long as the web
+available. *urlopen()*, for example, blocks as long as the web
 page is not downloaded. Asynchronous functions register one or more
 *callbacks* to handle the result and returns to the main loop as soon
 as possible. The main loop (the :obj:`reactor`) keeps track of the
@@ -95,116 +101,156 @@ they use callbacks to process the result, the result is processed
 Now, what does an asynchronous function returns if it does not return
 the result? From the :obj:`reactor` point of view, there is a need for
 an object which associates an asynchronous function to its
-callbacks. From the point of view of the user of Twisted, he (or she!)
-will want to process the result: the Twisted abstraction returned by
+callbacks. From the point of view of the user of Twisted, she will
+want to process the result: the Twisted abstraction returned by
 asynchronous functions is called a *Deferred* object, it is meant as a
 **promise of a result** and have a method :func:`addCallback`. Now for
 the user, a promise of a result is almost the same as a result except
-for extra lines of code. It was to be expected, as the result is not
+for extra lines of code. It was to be expected: as the result is not
 available yet, you need to be a bit more patient and type some more
-code, obviously.
+code in the mean time, obviously.
 
 Deferreds, callbacks and the reactor are three central objects of the
-Twisted framework, understanding how they relate is a good step toward
-Twisted. Here is how a traditional ``doSomethingWithResult( getPage(
-url ))`` is rewritten with this mental shift::
+Twisted framework, understanding how they relate is a big step toward
+Twisted. Since the Twisted equivalent of *urlopen* (called
+*getPage*), does not return the result of a request, but a deferred,
+here is how a traditional ``parse( urlopen( url )).xpath`` is rewritten ::
 
   deferred = getPage( url )
 
-  def doSomethingWithResult( html ):
-      ...
-      return result
+  def cbGetPage( html ):
+      
+      parse( html ).xpath( ... )
+      [ ... ]
 
-  deferred.addCallback( doSomethingWithResult )
+  d.addCallback( cbGetPage )
+ 
+Apart from the boilerplate deferred manipulation, the two steps
+of 1. asynchronous call and 2. result processing are clearly
+separated. Let's compare two versions, one concurrent, one sequential
+of a simple script which, 30 times, prints the html title of the
+*http://twistedmatrix.com* web site.
 
-Surprising huh? Every function which would block waiting before
-processing a result is rewritten in two steps: 
-
-#. the step which does the request and returns a deferred,
-
-#. the step which process the request results and gets attached as a
-   callback to the deferred.
-
-The good news is that Python offers a really powerful keyword
-:obj:`yield` to simplify the boilerplate of deferred and callback
-manipulation. :obj:`yield` allows for returning from a function
-half-way through and continuing later on at the point where the
-function returned. For asynchronous functions decorated with
-:func:`inlineCallbacks`, Twisted leverages :obj:`yield` : the reactor
-passes the result when it is available and continues the function
-where it exited.
-
-Here is the strict minimum needed to use Twisted:
-
-.. function:: getStuffAsynchronously( args ) -> Deferred
-
-   Asynchronous in Twisted implies returning a Deferred which fires a
-   result, and that a callback must have been attached to the Deferred
-   to process the result. A callback can be either synchronous or
-   asynchronous, it just needs to expect the result of the requesting
-   functions as its first argument. A request must be asynchronous, it
-   is the whole point of Twisted. 
-
-   #. decorate this function with :func:`inlineCallbacks`,
-
-   #. use a Twisted asynchronous primitive to do a request,
-
-   #. :obj:`yield` this function call, resulting in giving back control to
-      the reactor to run other callback, and eventually calling back
-      :func:`getStuffAsynchronously` with the result,
-
-   #. stores the return value of the yield (the result of the request)
-      in a variable. The code manipulating the variable is the
-      callback inline with the request in the same function, hence the
-      name :func:`inlineCallbacks`,
-
-   #. if you want to return something, use :func:`returnValue`. As an
-      asynchronous function return a deferred, the decorator will make
-      this function will return a deferred,
-
-   Here is an example of an asynchronous function which respect these rules::
-
-      from twisted.foobar import getSpam
-      from twisted.internet.defer import inlineCallbacks
-
-      @inlineCallbacks
-      def stuff():
-          result = yield getSpam( 'foobar://spam_server' )
-	  returnValue( mangle( result ))
-
-.. class:: reactor
-
-   The import, ``from twisted.internet import reactor``, must be the
-   first line of the script. The reactor is a module attribute of the
-   :mod:`twisted.internet` module to make sure there is only one
-   reactor per application. The reactor is typically mentionned three
-   times in a twisted application (an import, a start and a stop),
-   then you can forget about it.
-
-   .. method:: start( Deferred ) -> never returns
-
-      Starts the main loop. The :func:`reactor.start` must be the last
-      line of your program: it blocks and never returns.
-
-   .. method:: stop()
-
-      Stops the main loop, effectively terminating the
-      application. This function must be used in the callback of the
-      last event of the application.
-
-
-A short example
-===============
-
-The following simple example shows side by side two codes which
-download, 30 times, the main page of *twistedmatrix.com* to extract
-and print the title. The first snippet is sequential, and the second
-is concurrent.
-
-.. include:: concurrent/sequential.py
+.. include:: concurrent/trivial_sequential.py
    :literal:
    
-.. include:: concurrent/concurrent.py
+.. include:: concurrent/trivial_deferred.py
+   :literal:
+
+In the sequential version, the execution schema is implicit and so
+obvious that it is not even worth mentioning it: the network calls are
+executed along with the *urlopen* function calls and the program
+stop when the interpreter reaches the end of the script.
+
+Now, in a Twisted program, things goes differently, there is no more
+gravity, and there is a fourth dimension. Ok, I am being a bit
+dramatic, the difference are more subtle, there are two steps:
+
+1. the first step is the specification of an execution schema, the
+   *getPage* function call does not trigger a network HTTP request but
+   creates a deferred which stacks a step in a callback chain,
+ 
+2. the second step is inside the *reactor.run* call, which triggers the
+   execution of the callback chains and synchronizes the callbacks
+   depending on when the response are available.
+
+   If you want to check the assertion that the getPage does not
+   triggers a HTTP get when the function is called, just comment out
+   the call to run the reactor and use wireshark to check that nothing
+   is sent on the network.
+
+   Note that *reactor.run* never returns and a line of code below the
+   start of the reactor loop will never be executed.
+
+In the concurrent version, the function :func:`title` groups the
+:func:`getPage` request and its processing through the use of a nested
+function for the callback. This is a common practice in the Twisted
+programs that aims to be compatible with old versions of Python. The
+latest versions of Twisted take advantage of the enhancements to the
+:func:`yield` python keyword in version 2.5, which alleviates the need
+for so much boilerplate code.
+
+
+``yield`` simplifies Twisted code
+=================================
+
+Python offers a really powerful keyword :obj:`yield` which Twisted
+uses in a clever way to simplify the boilerplate of deferred and
+callback manipulation. :obj:`yield` allows for returning from a
+function half-way through and continuing later on at the point where
+the function returned. See this example first which only includes code
+from the standard library, no Twisted involved.
+
+>>> def func_with_several_entry_points():
+...     yield 'the first return value'
+...     val = 1+1
+...     yield 'the latest portion of the function was executed',val
+...
+
+>>> for i in func_with_several_entry_points( 2 ):
+...     print i
+the first return value
+the second time 2
+the latest portion of the function was executed
+
+The right hand side of the yield is the value returned to the
+caller. In detail, a function containing a yield returns a
+Python *generator*, which has a next() method and which can remember when the
+last call exited, and which execute the next portion of the function
+code, when the *next* method is called. The Python statement for
+expects such protocol and calls
+
+>>> gen=func_with_several_entry_points()
+>>> gen
+<generator object titi at 0xb76afbe4>
+>>> gen.next()
+'the first return value'
+>>> gen.next()
+('the latest portion of the function was executed',2)
+>>> gen.next()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+StopIteration
+
+As for a normal function which features argument, a function which
+yields has arguments which are set when the generator is constructed
+>>> def titi( n ):
+...     yield "I was given",n
+...     yield "Here is the double",2*n
+... 
+>>> t=titi(4)
+>>> t.next()
+('I was given', 4)
+>>> t.next()
+('Here is the double', 8)
+
+The interesting new feature starting with Python 2.5 is the
+possibility for the generator to be sent data on successive calls:
+
+>>> def titi(user,password):
+...     data = yield 'I am halfway of the processing'
+...     print 'When called a second time, I was given:', data
+... 
+>>> t=titi('hello', 'pass')
+>>> t.next()
+'I am halfway of the processing'
+>>> t.send('new vewy iteresting data')
+When called a second time, I was given: new vewy iteresting data
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+StopIteration
+
+
+Twisted leverage the yield keyword to group the request returning a
+deferred and the callback processing the
+
+
+*For asynchronous functions decorated with* :func:`inlineCallbacks`,
+*Twisted leverages* :obj:`yield` so that the reactor passes the result
+when it is available and continues the function where it exited*.
+
+
+.. include:: concurrent/trivial_concurrent.py
    :literal:
 
 Here is, step by step, how the concurrent code operates:
@@ -257,10 +303,70 @@ Here is, step by step, how the concurrent code operates:
 
 Run the two scripts the measure the performance difference::
 
-  time python sequential.py
-  time python concurrent.py
+  time python trivial_sequential.py
+  time python trivial_deferred.py
+  time python trivial_concurrent.py
 
-This is a 4x performance increase: not bad.
+This is a 10x performance increase: not bad.
+
+
+The strict minimum needed to use Twisted:
+=========================================
+
+.. function:: getStuffAsynchronously( args ) -> Deferred
+
+   Asynchronous in Twisted implies returning a Deferred which fires a
+   result, and that a callback must have been attached to the Deferred
+   to process the result. A callback can be either synchronous or
+   asynchronous, it just needs to expect the result of the requesting
+   functions as its first argument. A request must be asynchronous, it
+   is the whole point of Twisted. 
+
+   #. decorate this function with :func:`inlineCallbacks`,
+
+   #. use a Twisted asynchronous primitive to do a request,
+
+   #. :obj:`yield` this function call, resulting in giving back control to
+      the reactor to run other callback, and eventually calling back
+      :func:`getStuffAsynchronously` with the result,
+
+   #. stores the return value of the yield (the result of the request)
+      in a variable. The code manipulating the variable is the
+      callback inline with the request in the same function, hence the
+      name :func:`inlineCallbacks`,
+
+   #. if you want to return something, use :func:`returnValue`. As an
+      asynchronous function return a deferred, the decorator will make
+      this function will return a deferred,
+
+   Here is an example of an asynchronous function which respect these rules::
+
+      from twisted.foobar import getSpam
+      from twisted.internet.defer import inlineCallbacks
+
+      def stuff():
+          result = yield getSpam( 'foobar://spam_server' )
+	  returnValue( mangle( result ))
+
+.. class:: reactor
+
+   The import, ``from twisted.internet import reactor``, must be the
+   first line of the script. The reactor is a module attribute of the
+   :mod:`twisted.internet` module to make sure there is only one
+   reactor per application. The reactor is typically mentionned three
+   times in a twisted application (an import, a start and a stop),
+   then you can forget about it.
+
+   .. method:: start( Deferred ) -> never returns
+
+      Starts the main loop. The :func:`reactor.start` must be the last
+      line of your program: it blocks and never returns.
+
+   .. method:: stop()
+
+      Stops the main loop, effectively terminating the
+      application. This function must be used in the callback of the
+      last event of the application.
 
 A concurrent solution
 =====================
@@ -268,7 +374,7 @@ A concurrent solution
 Here is a concurrent solution to our original problem, using Twisted,
 three times faster than the sequential approach :
 
-.. include:: concurrent/getpage.py
+.. include:: concurrent/concurrent.py
    :literal:
 
 This short article finishes here but poses as many questions as it
