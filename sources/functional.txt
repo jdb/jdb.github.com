@@ -265,6 +265,12 @@ shell).
    >>> bbp(10) - math.pi < 10**(-14)
    True
 
+.. from decimal import Decimal as d
+   bbp = lambda n: sum([ d(1)/d(16**k*d(4)/d(8*k+1)-d(2)/d(8*k+4)-d(1)/d(8*k+5)-d(1)/d(8*k+6)) 
+                         for k in xrange(n)])
+   
+
+
 *Tue, 09 Feb 2010* 
 
 This article was verified with the :mod:`doctest` module.
