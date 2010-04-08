@@ -89,7 +89,7 @@ htmlhelp_basename = 'bits'
 
 latex_documents = [
   # ('bits', 'bits.tex', u'Every bit counts', u'jdb', 'manual'),
-  ('twisted/concurrent', 'concurrent.tex', u' Concurrent tasks with Twisted',u'Jean Daniel Browne', 'howto', False)
+  ('concurrent', 'concurrent.tex', u'Concurrent programming with Twisted',u'Jean Daniel Browne', 'howto', False)
 ]
 
 #latex_logo = None

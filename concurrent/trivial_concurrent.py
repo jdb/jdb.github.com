@@ -6,10 +6,10 @@ from lxml.html import fromstring
 
 url = 'http://twistedmatrix.com'
 
-@inlineCallbacks   # 1
+@inlineCallbacks  
 def title( url ):
-     html = yield getPage( url )            # 2 & 3 
-     print fromstring( html ).xpath( '/html/head/title' )[0].text  # 4
+     html = yield getPage( url )
+     print fromstring( html ).xpath( '/html/head/title' )[0].text  
 
 DeferredList( 
      [ title( url ) for _ in range(30) ] 
