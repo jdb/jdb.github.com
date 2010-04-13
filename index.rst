@@ -10,4 +10,5 @@ Every bit counts
    i18n
    lvm
    pty
+   concurrent
  

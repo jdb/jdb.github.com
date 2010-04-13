@@ -19,16 +19,12 @@
  Concurrent programming with Twisted
 =====================================
 
-Twisted is a network framework written in Python which make it
-possible to assemble applications supporting client or server services
-delivered via many protocols not only TCP, UDP and HTTP but also FTP,
-IMAP, XMPP, AMQP, etc. Twisted also features an approach to
-concurrency called cooperative multitasking, different from the
-traditional thread and process model.
-
-Twisted offers asynchronous function for managing UDP and TCP
-socket, but also offers high level functions for making request in
-the following protocol Web, DNS, SMTP, POP, XMPP, SIP, AMQP, etc.
+Twisted is a network framework which means it can maps TCP, UDP or SSL
+exchanges between nodes of a network to an organized set of classes,
+functions and data arguments. Specialized classes and function have
+already been built to represent the most common protocols such as FTP,
+IMAP, XMPP, AMQP, DNS, etc. Twisted is written in Python and is
+performant, in part because it is asynchronous.
 
 This article covers the basics of concurrency in Twisted through the
 comparison of two web client scripts, one sequential and one
@@ -85,9 +81,10 @@ it is obvious that these downloads can be executed in parallel, or,
 *concurrently*, which is the raison d'être of the Twisted Python
 framework. Processes and threads are well known primitive for
 programming concurrently but Twisted do without (not even behind your
-back), to spare the developer from using semaphore, mutex, recursive
-locks etc. The solution presented at the end of the article is not
-longer, has a network complexity of *O(1)* and is three times faster.
+back), and spares the developer from using semaphores, mutexes or
+recursive locks. The solution presented at the end of the article is
+not longer in term of number of line of codes, it has a network
+complexity of *O(1)* and is three times faster.
 	
 .. note:: 
 
@@ -95,7 +92,7 @@ longer, has a network complexity of *O(1)* and is three times faster.
    language to start with, **a fast language** is the answer to
    performance". Notwithstanding the many existing techniques to make
    Python code compile and run on multiple processors, it is not the
-   point, in some case, the C compiler can not fix a bad design. For
+   point. In many case, the C compiler can not fix a bad design. For
    example, take the download of a install CD, there is an
    insignificant gain in performance in a download client written in C
    over an implementation in Python, because 1. both implementation
@@ -105,53 +102,115 @@ longer, has a network complexity of *O(1)* and is three times faster.
    shines. Both in C and in Python, in the context of multiple
    downloads, there is a need to run the tasks concurrently.
 
+Twisted's concurrency model
+===========================
 
-Twisted deferred and callback objects
-=====================================
+The concurrency model of Twisted is called **cooperative
+multitasking** and is really different from a traditional process or
+thread scheduler. A scheduler decides the execution of a thread for a
+time slice, and at some unknown point, blindly cuts the thread in the
+middle of a computation to let another thread run. To avoid the effect
+of a big chainsaw messing with, for example, a delicate variable
+increment, threads must use defensive techniques to define critical
+sections and will refuse to enter one until every other thread have
+left the critical section.
+
+The Twisted code paths are never interrupted, other processing might
+be executed only at the specified return points of a function,
+which alleviate the need for critical sections. They cooperate in the
+sense that all strive to return as fast as they can to let others
+execute. This is more like relay sprinters who choose when to pass the
+baton, and passing the baton to the coach who decides, at the time
+when he gets the baton, which sprinters is the fittest to run. If a
+sprinters keep the baton indefinitely, there is no one to interrupt
+him, and the other sprinters do not get to run.
 
 One of the core ideas is that Twisted functions which make a network
 call should not block the application while the response is not yet
-available, so that other processing may be started in parallel. For
+available, so that other processing may occur in the mean time. For
 example, *urlopen*, from the *urllib2* in the Python standard library,
 blocks as long as the web page is not completely downloaded and
 prevents the rest of the application to proceed. Twisted functions, on
 the other hand, are asynchronous: they return before the result is
-available and a *callback* is registered to handle the result. The
-Twisted main loop (called the :obj:`reactor`) keeps track of the
-available results and runs the callbacks with the result as the first
-argument. Because Twisted functions are *non-blocking*, and because
-they use callbacks to process the result, the result is processed
-*asynchronously* (such framework are also called *event-driven*).
+available and a *callback* must be registered to handle the
+result. The next section present the main Twisted elements which are
+involved run the callback.I bet, you are curious about the mechanism
+which will run the callback: be patient.
 
-The concurrency model of the reactor and deferred is called
-**cooperative multitasking** and is really different from a
-traditional process or thread scheduler. A scheduler decides the
-execution of a thread for a time slice, and at some unknown point,
-blindly cuts the thread in the middle of a computation to let another
-thread run. To avoid the effect of a big chainsaw messing with, for
-example, a delicate variable increment, threads must use defensive
-techniques to define critical sections and refuse to enter one if they
-are not alone in it.
 
-The Twisted asynchronous functions are not interrupted, other chains
-of execution might be executed only at the specified points of when a
-function returns, which alleviate the need for locks. They cooperate
-in the sense that all strive to return as fast as they can to let
-others execute. This is more like relay sprinters who choose when to
-pass the baton, and passing the baton to the coach who decides, at the
-time when he gets the baton, which sprinters is the fittest to run. If
-a sprinters keep the baton indefinitely, there is no one to interrupt
-him, and the other sprinters do not get to run.
+
+Twisted objects
+===============
 
 Now, what does an asynchronous function returns if it does not return
-the result? For the :obj:`reactor`, there is a need for an object
-which associates an asynchronous function to its callbacks. The
-Twisted abstraction which provides this feature is called a *Deferred*
-object, it is meant as a **promise of a result** and have a method
-:func:`addCallback`. Now for the user, a promise of a result is almost
-the same as a result except for extra lines of code. It was to be
-expected: as the result is not available yet, you need to be a bit
-more patient and type some more code in the mean time, obviously.
+the result? There is a need for an object which associates an
+asynchronous function to its callbacks. The Twisted abstraction which
+provides this feature is called a *Deferred* object, it is meant as a
+**promise of a result** and have a method :func:`addCallback`. Now for
+the user, a promise of a result is almost the same as a result except
+for extra lines of code. It was to be expected: as the result is not
+available yet, you need to be a bit more patient and type some more
+code in the mean time, obviously. 
+
+
+Here is a simplified algorithm for urlopen::
+
+   parse the first url into a server and a path and format a proper http get request
+   create a socket to the destination server to the port 80
+   write the http request in the socket
+   block here, reading the response to be read in the socket 
+   parse the response into a response code, headers and an html body
+   proces the html to print the title
+
+   parse the second url
+   [ ... ]
+
+
+Here is a simplified algorithm for getPage::
+
+   create an object which 
+        parses the url into a server and a path and format a proper http get request
+        get ready for a specific event to write the request into a socket
+	has the method to parse the response into response codem headers and body
+        returns a slot that needs to be with a callable whose role is to handle the requested html page
+
+   attach a 
+
+   stack this object on a todo list to an object which can create and monitor sockets
+
+
+   
+The
+Twisted main loop (called the ) keeps track of the
+available results and runs 
+
+XX
+
+the callbacks with the result as the first
+argument. Because Twisted functions are *non-blocking*, and because
+they use callbacks to process the result later, it is said that the
+result is processed *asynchronously*. Such frameworks are also called
+*event-driven*.
+
+
+
+
+
+
+Let's see the classes involved in the download of a web page:
+
+- **getPage**( url ): returns a deferred which "fires" an html
+  page. Twisted functions typically always do this, what does this
+  jargon mean?  In other words, the function returns a slot which must
+  be filled with a callable. The only other constraint on this
+  callback is that it must accept one argument, which, in this case,
+  is the resulting web page. 
+
+  Internally, the *getPage** function will create an HTTP client
+  factory and 
+
+
+
 
 Deferreds, callbacks and the reactor are three central objects of the
 Twisted framework, understanding how they relate is a big step toward
@@ -188,7 +247,7 @@ the script.
 .. include:: concurrent/trivial_deferred_dontstop.py
    :literal:
 
-
+The getPage function returns	
 
 
 Synchronization of chains of callbacks
