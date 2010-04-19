@@ -7,7 +7,7 @@ from itertools import ifilter
 
 n = int( sys.argv[1] )
 
-points = lambda n : ( (uniform(-1,1), uniform(-1,1)) for i in xrange(n) )
+points    = lambda n : ( (uniform(-1,1), uniform(-1,1)) for i in xrange(n) )
 in_circle = lambda p : sqrt( p[0]**2 + p[1]**2 ) < 1
 
 print("A slightly faster implementation o Pi: %s " %

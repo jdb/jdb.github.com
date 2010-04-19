@@ -108,7 +108,7 @@ it holds the command line parameters of the script
 .. literalinclude:: functional/procedural.py
    :lines: 1-6
 
-The **procedural algorithm** consist of: as many times as there are
+The **procedural algorithm** consists of: as many times as there are
 points in the sample, to take a random point, then to test whether the
 point is within the circle or not and when it is inside: increment a
 counter by one. When the loop is finished, print the counter divided
@@ -228,10 +228,10 @@ over the previous functional implementation:
       duration: 13.10 seconds
 
 At this point, the two styles are technically rougly equivalent, the
-functional style is 10% slower than the procedural counterpart. This
-might reminds us the quote from Donald Knuth, "we should forget about
-small inefficiencies, say about 97% of the time: premature
-optimization is the root of all evil".
+functional style is 10% slower than the procedural counterpart. Maybe,
+those 10% are the small efficiencies that Knuth was telling us about:
+"we should forget about small inefficiencies, say about 97% of the
+time: premature optimization is the root of all evil".
 
 Let's try to do exactly that: let's optimize the implementation of the
 same algorithm.
@@ -253,7 +253,7 @@ access.
 
 *processpool(function, args)* takes a function and its parameters as
 an input and returns the list of results obtained by running the
-functions, each in their own subprocesses.
+function, in four separate subprocesses.
 
 .. literalinclude:: functional/procedural_with_processes.py 
    :lines: 7-
@@ -271,23 +271,25 @@ Let's time this version:
       duration: 5.43 seconds
 
 The durations are exactly halved when compared to *procedural.py*, the
-two cores were effectively used. 
+two cores of the Intel Core 2 Duo, on which this article is edited,
+were effectively used.
 
 Python code is transformed on execution into byte compiled code, which
 is composed of commands interpreted by the Python virtual machine.
 The Python virtual machine is a compiled software written in C which
 directly talks to the processor. For some demanding computing uses,
-such as this approximation of :math:`pi`, this interpretation is
+such as this approximation of :math:`\pi`, this interpretation is
 suboptimal .
 
 The identification of the command line argument, the result printing
 and the split into processes are only done once so their impact on
-performance are negligible. In our example, the hard work in this
-script is the *pi* function, which could not be simpler in terms of
-signature: it requires an int, returns a float, raise no errors, and
-make no side effects. We can write the pi function in C so that it is
-directly understood by the processor, sidestepping the Python virtual
-machine. Here are the steps involved:
+performance are negligible, it is very practical to do it in
+Python. In our example, the hard work in this script is the *pi*
+function, which could not be simpler in terms of signature: it
+requires an int, returns a float, raise no errors, and make no side
+effects. We can write the pi function in C so that, when compiled, it
+is directly understood by the processor, sidestepping the Python
+virtual machine. Here are the steps involved:
 
 1. a C function called pi is written in a file called pimodule.c:
      
@@ -304,12 +306,12 @@ machine. Here are the steps involved:
  
       int rdtsc(){ __asm__ __volatile__("rdtsc"); }
   
-2. A wrapper function callable which matches Python interfaces is
-   defined. This wrapper receives the arguments in the form of Python
-   objects that it transforms to input argument for the C function in
-   the correct format: here, a simple int. The wrapper also builds an
-   Python float object from the C float approximation of Pi returned
-   by the *pi* C function:
+2. A wrapper function for the pi function, which matches Python
+   interfaces, is defined. This wrapper receives the arguments in the
+   form of Python objects that it transforms to input argument for the
+   C function in the correct format: here, a simple int. The wrapper
+   also builds an Python float object from the C float approximation
+   of Pi returned by the *pi* C function:
 
    .. sourcecode:: c
 
@@ -347,14 +349,18 @@ machine. Here are the steps involved:
       PyMODINIT_FUNC initpi(void) {
    	 (void) Py_InitModule("pi", PiMethods); }
    
+   That's it for the pimodule.c. It is ready for compilation.
+
 5. A separate ``setup.py`` file specifies the compilation and
    deployment of this C file into a package available in the Python
    path::
 
       from distutils.core import setup, Extension
       mod = Extension('pi', sources = ['pimodule.c'])
-      setup (name = 'pi', version = '0.1', ext_modules = [mod],
-          description = 'This is simple method for approximating Pi')
+      setup (name = 'pi', 
+             version = '0.1', 
+             ext_modules = [mod],
+             description = 'This is simple method for approximating Pi')
 
 6. Building and installing the module is straightforward:
 
@@ -431,7 +437,7 @@ methods needed millions of iterations for the same results.
 
 Timer is a class which take a callable as the argument. The method
 *timeit* will return the duration in seconds for *one million*
-execution of the callable. 
+executions of the callable. 
 
 .. doctest::
 
