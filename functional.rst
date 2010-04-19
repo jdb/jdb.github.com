@@ -1,31 +1,24 @@
 
-.. 1. this text file can have its (few) doctest tested simply with
-.. 'python -m doctest -v functional.rst'
-
-.. 2. the performance measurement cannot be cleanly printed AND doctested
-.. at the same time
-
-.. 3. On the first hand, there is need to write everything in python
-.. to doctest everything, on the other hand it is a decision to show
-.. how it is easy to write executable python scripts, and there is no
-.. doctests for bash.
 
 
+A journey with Pi, Python, functional algorithm and multicore
+=============================================================
 
-An example of functional programming
-====================================
-
-*Procedural* and *functional* are two styles of computer programming,
-which can be used for finding an approximation of :math:`\pi`. The
-math on which the approximation relies is interesting because it only
-requires random numbers and simple knowledge about circles and
-squares.
+This article describes a journey with Python and :math:`\pi`. It
+begins by the comparison of the *procedural* and *functional* styles
+of computer programming, illustrated with an algorithm approximating
+:math:`\pi`. The math on which the approximation relies is interesting
+because it only requires random numbers and simple knowledge about
+circles and squares.
 
 The first part presents the math of the problem, then the second part
-compares the differences between the functional and procedural styles
-and finally we will present the details of their respective
-performance.
-
+compares the differences between the functional and procedural
+styles. A quick performance and complexity wall requires us to
+introduce the generator, which is a powerful Python object. The
+implementation is then adapted to use efficiently, in C, the many
+processors and cores available on a host. Finally, a better
+mathematical method is used which is faster by several orders of
+magnitude.
 
 The math of the problem
 -----------------------
@@ -56,7 +49,7 @@ The math of the problem
    This means that if you can build an experiment which gives you an
    approximation of the frequency then an approximation of
    :math:`\pi` is **four times the frequency for a random point of the
-   sqaure to be in the circle**.
+   square to be in the circle**.
 
 
 To build such an experiment, let's picture the square, the circle, and
@@ -113,7 +106,7 @@ sample size) as the first argument, so we will need :attr:`sys.argv`:
 it holds the command line parameters of the script
 
 .. literalinclude:: functional/procedural.py
-   :lines: 1-5
+   :lines: 1-6
 
 The **procedural algorithm** consist of: as many times as there are
 points in the sample, to take a random point, then to test whether the
@@ -123,7 +116,7 @@ by the sample size and multiplied by 4. Here it is, written in
 *Python*:
 
 .. literalinclude:: functional/procedural.py
-   :lines: 6-
+   :lines: 7-
 
 
 The equivalent **functional algorithm** is: make a function which returns
@@ -134,7 +127,7 @@ the test function, and, as before, divide by the sample size and
 multiply by four:
 
 .. literalinclude:: functional/functional.py
-
+   :lines: 7-
 
 Now if we test it in a command line, it does approximate :math:`\pi`,
 it gets more precise with more points but it is rather slow:
@@ -151,17 +144,17 @@ it gets more precise with more points but it is rather slow:
    Pi ~ 3.140128 
 
 In your opinion, which style fits the job best? I would say the
-procedural style is a sequence of tiny operation, without much
-structure. The functional style cleanly analyzes the problem into
+procedural style is a sequence of small operation, without much
+structure. The functional style better split the problem into
 simpler bits whose integration solve the problem .
 
 Better performance through *lazyness*
 -------------------------------------
 
-For the brave and curious, when comparing the performance of the two
-solutions, we hit a problem which is an opportunity to present
-the Python magic called *generator*. Let's execute the script with 200
-000, one million and five million points in the sample:
+When comparing the performance of the two solutions, we hit a problem
+which is an opportunity to present the Python magic called
+*generator*. Let's execute the script with 200 000, one million and
+five million points in the sample:
 
 .. sourcecode:: sh
 
@@ -190,19 +183,20 @@ the Python magic called *generator*. Let's execute the script with 200
   
 Mmh, the functional version takes longer and it does not scale. The
 problem stems from the fact that :func:`points` and :func:`filter`
-make up lists of several million elements stored in the laptop memory
-where the script was tested, which is too small to handle them all
-efficiently. It is no use to store them all, in this problem, we only
-need one at a time.
+make up lists of several million elements, all stored in the laptop
+memory where the script was tested, which is too small to handle them
+all efficiently. It is no use to store them all, in this problem, we
+only need one at a time, as the procedural algorithm does.
 
-A solution is to use is a `generator
+A solution to avoid the waste of memory is to use is a `generator
 <http://docs.python.org/reference/expressions.html#yieldexpr>`_ , it
 is a kind of Python magic which behaves like a list, but which
 *generates* the element of the list on the fly when they are requested
 by the function which manipulates the generator. They are not stored,
 it is *on demand*. This technique is also called *lazy evaluation*.
 
-The :func:`points` function is modified: this expression, which returns a list ::
+The :func:`points` function is modified: this expression, which
+returns a list ::
 
   [ (uniform(-1,1), uniform(-1,1)) for i in xrange( size ) ]
 
@@ -219,7 +213,7 @@ each point in the circle
 .. literalinclude:: functional/harder_better_stronger_faster.py 
    :lines: 6-
   
-The :func:`test_it` function shows the that *lazy* functional
+The :func:`test_it` function shows that *lazy* functional
 implementation operates with a performance boost of 14%, 25% and 55%
 over the previous functional implementation:
 
@@ -234,29 +228,199 @@ over the previous functional implementation:
       duration: 13.10 seconds
 
 At this point, the two styles are technically rougly equivalent, the
-functional style needs more care in Python, reads less
-straightforward, and is 10% slower than the procedural counterpart. To
-conclude, here is a real fast formula to approximate Pi known as the
-Bailey-Borwein-Plouffe formula :
+functional style is 10% slower than the procedural counterpart. This
+might reminds us the quote from Donald Knuth, "we should forget about
+small inefficiencies, say about 97% of the time: premature
+optimization is the root of all evil".
+
+Let's try to do exactly that: let's optimize the implementation of the
+same algorithm.
+
+Optimization with processes and a compiled C function
+-----------------------------------------------------
+
+It is interesting to note that all the previous scripts run on only
+one core even if the host features many processors and cores. Python
+makes it easy with the :mod:`multiprocessing` module to run functions
+into their own separate system process which are dispatched by the
+kernel on the available processors and cores.
+
+In the following version of the script, four processes will be run,
+each handling a fourth of the requested iterations. The
+:mod:`multiprocessing` make the :class:`Queue` available which is
+reachable by each processes and safe for concurrent read and write
+access. 
+
+*processpool(function, args)* takes a function and its parameters as
+an input and returns the list of results obtained by running the
+functions, each in their own subprocesses.
+
+.. literalinclude:: functional/procedural_with_processes.py 
+   :lines: 7-
+
+Let's time this version:
+
+.. sourcecode:: sh
+
+   ~/github/functional$ test_it ./procedural_with_processes.py 
+   An approximation of Pi with 4 processes: 3.14208
+      duration: 0.28 seconds
+   An approximation of Pi with 4 processes: 3.142696
+      duration: 1.14 seconds
+   An approximation of Pi with 4 processes: 3.1417456
+      duration: 5.43 seconds
+
+The durations are exactly halved when compared to *procedural.py*, the
+two cores were effectively used. 
+
+Python code is transformed on execution into byte compiled code, which
+is composed of commands interpreted by the Python virtual machine.
+The Python virtual machine is a compiled software written in C which
+directly talks to the processor. For some demanding computing uses,
+such as this approximation of :math:`pi`, this interpretation is
+suboptimal .
+
+The identification of the command line argument, the result printing
+and the split into processes are only done once so their impact on
+performance are negligible. In our example, the hard work in this
+script is the *pi* function, which could not be simpler in terms of
+signature: it requires an int, returns a float, raise no errors, and
+make no side effects. We can write the pi function in C so that it is
+directly understood by the processor, sidestepping the Python virtual
+machine. Here are the steps involved:
+
+1. a C function called pi is written in a file called pimodule.c:
+     
+   .. sourcecode:: c
+   
+      float pi(int n){
+        double i,x,y,sum=0;
+        srand(rdtsc());
+        for(i=0;i<n;i++){
+          x=rand(); y=rand();
+          if (x*x+y*y<(double)RAND_MAX*RAND_MAX)
+            sum++; }
+        return 4*(float)sum/(float)n; }
+ 
+      int rdtsc(){ __asm__ __volatile__("rdtsc"); }
+  
+2. A wrapper function callable which matches Python interfaces is
+   defined. This wrapper receives the arguments in the form of Python
+   objects that it transforms to input argument for the C function in
+   the correct format: here, a simple int. The wrapper also builds an
+   Python float object from the C float approximation of Pi returned
+   by the *pi* C function:
+
+   .. sourcecode:: c
+
+      static PyObject * pi_pi(PyObject *self, PyObject *args) {
+          const int n;
+          if (!PyArg_ParseTuple(args, "i", &n)) 
+            return NULL;
+   
+          return Py_BuildValue("f", pi(n)); }
+      
+   The non standard type such as *PyObject* are available through the
+   inclusion of the ``<python2.6/Python.h>`` headers.
+
+3. The methods exported to Python are declared in an array of *PyMethodDef*:
+
+   .. sourcecode:: c
+
+      static PyMethodDef PiMethods[] = {
+          {"pi",  pi_pi, METH_VARARGS, "Simple Pi Approximation"},
+          {NULL, NULL, 0, NULL}        /* Sentinel */  };
+
+   For each method described in the array, the first element is the
+   method name in Python, the second element is the pointer to the C
+   function, the third argument specifies if the Python method should
+   accept variable arguments and keyword arguments. Here no keywords
+   arguments are possible, only variable arguments. The last element
+   is the docstring for the method.
+   
+4. An initialization function is written for the package. This
+   function will be executed when the module is imported in the Python
+   interpreter:
+
+   .. sourcecode:: c
+      
+      PyMODINIT_FUNC initpi(void) {
+   	 (void) Py_InitModule("pi", PiMethods); }
+   
+5. A separate ``setup.py`` file specifies the compilation and
+   deployment of this C file into a package available in the Python
+   path::
+
+      from distutils.core import setup, Extension
+      mod = Extension('pi', sources = ['pimodule.c'])
+      setup (name = 'pi', version = '0.1', ext_modules = [mod],
+          description = 'This is simple method for approximating Pi')
+
+6. Building and installing the module is straightforward:
+
+   .. sourcecode:: sh
+
+      ~$ python setup.py build   
+      ~$ sudo python setup.py install
+      ~$ python
+      >>> import pi
+      >>> help(pi)
+      [ ... ]
+      pi(...)
+           Simple Pi Approximation
+
+      >>> pi.pi(1000)
+      3.2040000
+
+The previous script can be copied and pasted with only a few
+modifications: instead of declaring the *pi* function, it now needs to
+be be imported from the *pi* module::
+ 
+   ... 
+   from pi import pi
+   subprocess_results = processpool(pi,n/numproc)
+   ... 
+
+This multiprocess C version shows the following performance:
+
+.. sourcecode:: sh
+
+   ~$ test_it ./procedural_in_c.py 
+   An approximation of Pi with 4 processes: 3.14168
+      duration: 0.09 seconds
+   An approximation of Pi with 4 processes: 3.143028
+      duration: 0.07 seconds
+   An approximation of Pi with 4 processes: 3.1415872
+      duration: 0.18 seconds
+
+The computation is accelerated by a factor up to 30 over the previous
+version is pure Python. This is not fantastic but it is indeed much
+more efficient. When compared to Python, C does shine in the
+processing of numbers.
+
+A fast algorithm to compute Pi
+------------------------------
+
+If the problem really was computing :math:`\pi`, its `Wikipedia page`_
+has several better methods. Here is a seriously fast approximation
+known as the Bailey-Borwein-Plouffe formula :
+
+.. _`Wikipedia page`: http://en.wikipedia.org/wiki/Pi#Numerical_approximations
 
 .. math:: 
 
    \pi \approx \sum_{k=0}^{\infty} \frac{1}{16^k} \left(\frac{4}{8k+1}-\frac{2}{8k+4}-\frac{1}{8k+5}-\frac{1}{8k+6}\right) 
 
-This translate into the *bbp* function, below, in Python, for which
-*bbp(10)* is already correct for all 13 digits printed here (the
-pointy bracket indicates the lines come from a Python interactive
-shell).
+This translates into the *bbp* function, below, in Python, which is
+correct for the first 13 digits in only ten iterations while previous
+methods needed millions of iterations for the same results.
 
 .. doctest::
 
-   >>> bbp = lambda n: sum([ 1./(16**k)*(4./(8*k+1)-2./(8*k+4)-1./(8*k+5)-1./(8*k+6)) 
-   ...                       for k in xrange(n)])
+   >>> bbp = lambda n: sum( 1./(16**k)*(4./(8*k+1)-2./(8*k+4)-1./(8*k+5)-1./(8*k+6)) 
+   ...                      for k in xrange(n) )
    >>> print bbp(2)
    3.14142246642
-
-   >>> print bbp(5)
-   3.14159264546
   
    >>> print bbp(10)
    3.14159265359
@@ -265,12 +429,36 @@ shell).
    >>> bbp(10) - math.pi < 10**(-14)
    True
 
-.. from decimal import Decimal as d
-   bbp = lambda n: sum([ d(1)/d(16**k*d(4)/d(8*k+1)-d(2)/d(8*k+4)-d(1)/d(8*k+5)-d(1)/d(8*k+6)) 
-                         for k in xrange(n)])
+Timer is a class which take a callable as the argument. The method
+*timeit* will return the duration in seconds for *one million*
+execution of the callable. 
+
+.. doctest::
+
+   >>> from timeit import Timer
+   >>> Timer(lambda:bbp(10)).timeit()<20
+   True
+
+.. # here with more decimal precision ...
+   from decimal import Decimal as d
+   def bbp(n):
+       return sum(   d(1)/d(16**k)      \
+                   * (  d(4)/d(8*k+1)	\
+                       -d(2)/d(8*k+4)	\
+                       -d(1)/d(8*k+5)	\
+                       -d(1)/d(8*k+6)) 	\
+                  for k in xrange(n))
    
+Obtaining the 13 correct digits of :math:`\pi` can be done in less
+than 20 microseconds in pure Python with a good algorithm. And now, on
+to something fantastic : *On December 31st, 2009, about 2700 billion
+decimal digits of Pi were computed using a single desktop
+computer. This is presently the World Record for the computation of
+Pi.* Kudos to `Fabrice Bellard`_. He combined a fast math method, with
+hardware optimization at the processor level.
+
+.. _`Fabrice Bellard`: http://bellard.org/pi/pi2700e9/
 
 
-*Tue, 09 Feb 2010* 
+*Mon, 19 Apr 2010* 
 
-This article was verified with the :mod:`doctest` module.

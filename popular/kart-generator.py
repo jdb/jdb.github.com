@@ -14,7 +14,7 @@ from itertools import chain
 def kart_length():
     "Returns a random integer between 1 and 5 (slanted mostly toward 1s and 2s)"
     r=random()
-    for t in kart_length.dist:
+    for t in kart_length.distribution:
         if r<t:
             return kart_length.distribution[t]
 kart_length.distribution={0.40:1, 0.75:2, 0.85:3, 0.93:4, 1:5}
