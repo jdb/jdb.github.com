@@ -6,16 +6,13 @@ from lxml.html import fromstring
 
 url= 'http://twistedmatrix.com'
 
-def title( url ):
-    d = getPage( url )
+def getpage_callback( html_string ):
+    print fromstring( html_string ).xpath( '/html/head/title' )[0].text
 
-    def getpage_callback( html_string ):
-        print fromstring( html_string ).xpath( '/html/head/title' )[0].text
+# 30 asynchronous network calls, and attachment of the callback
+[ getPage( url ).addCallback( getpage_callback ) for i in range(30) ]
+                  # why a list comprehension? 
+                  # this will be clarified below ...
 
-    d.addCallback( getpage_callback )    
-    return d
-
-# let's setup 30 page download
-[ title( url ) for i in range(30) ]
-
-reactor.run()    # let's execute the callback chains
+reactor.run()     # open the network connections, and fires the callbacks
+                  # as soon as the replies are available
