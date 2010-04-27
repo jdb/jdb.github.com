@@ -50,8 +50,10 @@ the simultaneous network connections, the *protocols* and the
 scripts are compared: one sequential and one concurrent. Then, as we
 explain new Twisted key concepts, the concurrent script is improved.
 
-.. with, list comprehensions and lambda
 
+This article is available in pdf_.
+
+.. _pdf: http://jdb.github.com/static/concurrent.pdf
 
 Presentation of the problem
 ===========================
