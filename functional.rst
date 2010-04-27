@@ -4,12 +4,12 @@
 A journey with Pi, Python, functional algorithm and multicore
 =============================================================
 
-This article describes a journey with Python and :math:`\pi`. It
-begins by the comparison of the *procedural* and *functional* styles
-of computer programming, illustrated with an algorithm approximating
-:math:`\pi`. The math on which the approximation relies is interesting
-because it only requires random numbers and simple knowledge about
-circles and squares.
+This article describes a journey with the Python programming language,
+and :math:`\pi`. It begins by the comparison of the *procedural* and
+*functional* styles of computer programming, illustrated with an
+algorithm approximating :math:`\pi`. The math on which the
+approximation relies is interesting because it only requires random
+numbers and simple knowledge about circles and squares.
 
 The first part presents the math of the problem, then the second part
 compares the differences between the functional and procedural
@@ -176,7 +176,6 @@ five million points in the sample:
       duration: 3.39 seconds
       Pi ~ 3.1416272
       duration: 32.71 seconds
-      Pi ~ 3.1409
     
    ~$ # Do not hesitate to send the stop signal if it takes too long
    ~$ # on your computer:  Ctrl-C or Ctrl-Z
@@ -194,9 +193,11 @@ is a kind of Python magic which behaves like a list, but which
 *generates* the element of the list on the fly when they are requested
 by the function which manipulates the generator. They are not stored,
 it is *on demand*. This technique is also called *lazy evaluation*.
+This is the goal of the the :meth:`yield` Python statement, if there
+is a need to create its own custom generator.
 
-The :func:`points` function is modified: this expression, which
-returns a list ::
+The :func:`points` function is slightly modified: this expression,
+which returns a list ::
 
   [ (uniform(-1,1), uniform(-1,1)) for i in xrange( size ) ]
 
@@ -208,14 +209,15 @@ The :func:`filter` function is substituted by its
 *generator-returning* counterpart :func:`~itertools.ifilter` in the
 :mod:`itertools` module. One last change: a generator has no length,
 so :func:`len` is substituted by a trick: sum a list of *ones* for
-each point in the circle
+each point in the circle:
 
 .. literalinclude:: functional/harder_better_stronger_faster.py 
    :lines: 6-
-  
-The :func:`test_it` function shows that *lazy* functional
-implementation operates with a performance boost of 14%, 25% and 55%
-over the previous functional implementation:
+
+ The :func:`test_it` function
+shows that *lazy* functional implementation operates with a
+performance boost of 14%, 25% and 55% over the previous functional
+implementation:
 
 .. sourcecode:: sh
 

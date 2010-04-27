@@ -6,17 +6,16 @@ from lxml.html import fromstring
 
 url = 'http://twistedmatrix.com'
 
-def title( url ):
-    d = getPage( url )
+def title(url):
+    d = getPage(url)
 
-    def getpage_callback( html_string ):
-        print fromstring( html_string ).xpath( '/html/head/title' )[0].text
-        print url
+    def getpage_callback(html):
+        print fromstring(html).xpath('/html/head/title')[0].text
 
     d.addCallback( getpage_callback )    
     return d
 
-d=DeferredList( [ title( url ) for i in range(30) ] )
-d.addCallback( lambda _:reactor.stop() )
+d=DeferredList([title(url) for i in range(30)])
+d.addCallback(lambda _:reactor.stop())
 
 reactor.run()

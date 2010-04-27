@@ -1,0 +1,27 @@
+
+    # #1 make it compatible with github 
+    # ( cd html
+    # 	rm -rf static sources images *.pyc .buildinfo .doctrees/
+    # 	mv {_,}sources
+    # 	mv {_,}static  
+    # 	mv {_,}images || true
+    # 	find . -name '*.html' -o -name '*.js' | \
+    # 	    xargs sed -i 's/_static/static/g;s/_sources/sources/g' 
+    # )
+
+    # # - interlude -  Make an incursion in another branch 
+    # #  stash if needed, prepare come back
+    # set -x
+    # if ! git status | grep -q "nothing to commit (working directory clean)"; 
+    # then git stash save "just building doc" ; fi
+    # current_branch=`git branch | awk '/\*/ {print $2}'`
+    # git checkout gh-pages || return 1
+
+    # #2 Do the job in the other branch 
+    # cp -r html/* .
+    # git commit -a -m "Updated the doc to version $version"
+
+    # # - conclusion -  Back to the work branch
+    # git checkout $current_branch || return 1
+    # if git stash list | grep "just building doc"; then
+    #    git stash pop ; fi

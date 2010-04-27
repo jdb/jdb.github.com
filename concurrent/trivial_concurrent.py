@@ -11,8 +11,7 @@ def title( url ):
      html = yield getPage( url )
      print fromstring( html ).xpath( '/html/head/title' )[0].text  
 
-DeferredList( 
-     [ title( url ) for _ in range(30) ] 
-  ).addCallback( lambda _:reactor.stop() )
+d = DeferredList([ title( url ) for i in range(30)]) 
+d.addCallback( lambda _:reactor.stop() )
 
 reactor.run()

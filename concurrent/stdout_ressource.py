@@ -1,11 +1,18 @@
-from multiprocessing import Process
+#from multiprocessing import Process as Task, Lock
+from threading import Thread as Task, Lock
+import sys
+
+lock = Lock()
 
 def incr():
-    print "Hello world"
+    for i in xrange(1000):
+        with lock:
+            print "Hello world"
 
-processes = [ Process(target=incr) for i in range(100) ]
 
-[ p.start() for p in processes]
-[ p.join()  for p in processes]
+tasks = [ Task(target=incr) for i in range(100) ]
+
+for t in tasks: t.start() 
+for t in tasks: t.join()  
 
 
