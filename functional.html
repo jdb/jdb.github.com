@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>An example of functional programming &mdash; bits v0.6 documentation</title>
+    <title>A journey with Pi, Python, functional algorithm and multicore &mdash; bits v0.6 documentation</title>
     <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -20,7 +20,7 @@
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <link rel="top" title="bits v0.6 documentation" href="index.html" />
-    <link rel="next" title="Concurrent programming with Twisted" href="concurrent.html" />
+    <link rel="next" title="One application, multiple languages" href="i18n.html" />
     <link rel="prev" title="Every bit counts" href="index.html" /> 
   </head>
   <body>
@@ -31,7 +31,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="concurrent.html" title="Concurrent programming with Twisted"
+          <a href="i18n.html" title="One application, multiple languages"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Every bit counts"
@@ -43,10 +43,12 @@
         <div class="sphinxsidebarwrapper">
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="#">An example of functional programming</a><ul>
+<li><a class="reference external" href="#">A journey with Pi, Python, functional algorithm and multicore</a><ul>
 <li><a class="reference external" href="#the-math-of-the-problem">The math of the problem</a></li>
 <li><a class="reference external" href="#a-procedural-and-a-functional-algorithm">A procedural and a functional algorithm</a></li>
 <li><a class="reference external" href="#better-performance-through-lazyness">Better performance through <em>lazyness</em></a></li>
+<li><a class="reference external" href="#optimization-with-processes-and-a-compiled-c-function">Optimization with processes and a compiled C function</a></li>
+<li><a class="reference external" href="#a-fast-algorithm-to-compute-pi">A fast algorithm to compute Pi</a></li>
 </ul>
 </li>
 </ul>
@@ -55,8 +57,8 @@
             <p class="topless"><a href="index.html"
                                   title="previous chapter">Every bit counts</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="concurrent.html"
-                                  title="next chapter">Concurrent programming with Twisted</a></p>
+            <p class="topless"><a href="i18n.html"
+                                  title="next chapter">One application, multiple languages</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
               <li><a href="sources/functional.txt"
@@ -83,17 +85,22 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="an-example-of-functional-programming">
-<h1>An example of functional programming<a class="headerlink" href="#an-example-of-functional-programming" title="Permalink to this headline">¶</a></h1>
-<p><em>Procedural</em> and <em>functional</em> are two styles of computer programming,
-which can be used for finding an approximation of <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/>. The
-math on which the approximation relies is interesting because it only
-requires random numbers and simple knowledge about circles and
-squares.</p>
+  <div class="section" id="a-journey-with-pi-python-functional-algorithm-and-multicore">
+<h1>A journey with Pi, Python, functional algorithm and multicore<a class="headerlink" href="#a-journey-with-pi-python-functional-algorithm-and-multicore" title="Permalink to this headline">¶</a></h1>
+<p>This article describes a journey with the Python programming language,
+and <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/>. It begins by the comparison of the <em>procedural</em> and
+<em>functional</em> styles of computer programming, illustrated with an
+algorithm approximating <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/>. The math on which the
+approximation relies is interesting because it only requires random
+numbers and simple knowledge about circles and squares.</p>
 <p>The first part presents the math of the problem, then the second part
-compares the differences between the functional and procedural styles
-and finally we will present the details of their respective
-performance.</p>
+compares the differences between the functional and procedural
+styles. A quick performance and complexity wall requires us to
+introduce the generator, which is a powerful Python object. The
+implementation is then adapted to use efficiently, in C, the many
+processors and cores available on a host. Finally, a better
+mathematical method is used which is faster by several orders of
+magnitude.</p>
 <div class="section" id="the-math-of-the-problem">
 <h2>The math of the problem<a class="headerlink" href="#the-math-of-the-problem" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
@@ -119,7 +126,7 @@ simply</p>
 </div><p>This means that if you can build an experiment which gives you an
 approximation of the frequency then an approximation of
 <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/> is <strong>four times the frequency for a random point of the
-sqaure to be in the circle</strong>.</p>
+square to be in the circle</strong>.</p>
 </li>
 </ol>
 <p>To build such an experiment, let&#8217;s picture the square, the circle, and
@@ -164,16 +171,17 @@ it holds the command line parameters of the script</p>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">uniform</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
 <span class="kn">import</span> <span class="nn">sys</span> 
+
+<span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
 </pre></div>
 </div>
-<p>The <strong>procedural algorithm</strong> consist of: as many times as there are
+<p>The <strong>procedural algorithm</strong> consists of: as many times as there are
 points in the sample, to take a random point, then to test whether the
 point is within the circle or not and when it is inside: increment a
 counter by one. When the loop is finished, print the counter divided
 by the sample size and multiplied by 4. Here it is, written in
 <em>Python</em>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
-<span class="n">somme</span><span class="o">=</span><span class="mi">0</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somme</span><span class="o">=</span><span class="mi">0</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">sqrt</span><span class="p">(</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">somme</span><span class="o">+=</span><span class="mi">1</span>
@@ -187,14 +195,7 @@ another function which tests if the input point is in the
 circle. Finally, print the length of the list of points filtered by
 the test function, and, as before, divide by the sample size and
 multiply by four:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
-<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">uniform</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
-<span class="kn">import</span> <span class="nn">sys</span> 
-
-<span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
-
-<span class="n">points</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span> <span class="p">:</span> <span class="p">[</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">]</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">points</span>    <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span> <span class="p">:</span> <span class="p">[</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">]</span>
 <span class="n">in_circle</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span> <span class="p">:</span> <span class="n">sqrt</span><span class="p">(</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span>
 
 <span class="k">print</span><span class="p">(</span><span class="s">&quot;Another approximation of Pi is: </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span>
@@ -214,16 +215,16 @@ Pi ~ 3.140128
 </pre></div>
 </div>
 <p>In your opinion, which style fits the job best? I would say the
-procedural style is a sequence of tiny operation, without much
-structure. The functional style cleanly analyzes the problem into
+procedural style is a sequence of small operation, without much
+structure. The functional style better split the problem into
 simpler bits whose integration solve the problem .</p>
 </div>
 <div class="section" id="better-performance-through-lazyness">
 <h2>Better performance through <em>lazyness</em><a class="headerlink" href="#better-performance-through-lazyness" title="Permalink to this headline">¶</a></h2>
-<p>For the brave and curious, when comparing the performance of the two
-solutions, we hit a problem which is an opportunity to present
-the Python magic called <em>generator</em>. Let&#8217;s execute the script with 200
-000, one million and five million points in the sample:</p>
+<p>When comparing the performance of the two solutions, we hit a problem
+which is an opportunity to present the Python magic called
+<em>generator</em>. Let&#8217;s execute the script with 200 000, one million and
+five million points in the sample:</p>
 <div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span><span class="nb">alias time</span><span class="o">=</span><span class="s1">&#39;/usr/bin/time --format &quot;   duration: %e seconds&quot;&#39;</span>
 ~<span class="nv">$ </span>test_it <span class="o">()</span> <span class="o">{</span> <span class="k">for </span>i in 200000 1000000 5000000; <span class="k">do </span><span class="nb">time</span> <span class="nv">$1</span> <span class="nv">$i</span> ; <span class="k">done</span> ; <span class="o">}</span>
 
@@ -242,7 +243,6 @@ the Python magic called <em>generator</em>. Let&#8217;s execute the script with 
    duration: 3.39 seconds
    Pi ~ 3.1416272
    duration: 32.71 seconds
-   Pi ~ 3.1409
 
 ~<span class="nv">$ </span><span class="c"># Do not hesitate to send the stop signal if it takes too long</span>
 ~<span class="nv">$ </span><span class="c"># on your computer:  Ctrl-C or Ctrl-Z</span>
@@ -250,16 +250,19 @@ the Python magic called <em>generator</em>. Let&#8217;s execute the script with 
 </div>
 <p>Mmh, the functional version takes longer and it does not scale. The
 problem stems from the fact that <tt class="xref docutils literal"><span class="pre">points()</span></tt> and <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a>
-make up lists of several million elements stored in the laptop memory
-where the script was tested, which is too small to handle them all
-efficiently. It is no use to store them all, in this problem, we only
-need one at a time.</p>
-<p>A solution is to use is a <a class="reference external" href="http://docs.python.org/reference/expressions.html#yieldexpr">generator</a> , it
+make up lists of several million elements, all stored in the laptop
+memory where the script was tested, which is too small to handle them
+all efficiently. It is no use to store them all, in this problem, we
+only need one at a time, as the procedural algorithm does.</p>
+<p>A solution to avoid the waste of memory is to use is a <a class="reference external" href="http://docs.python.org/reference/expressions.html#yieldexpr">generator</a> , it
 is a kind of Python magic which behaves like a list, but which
 <em>generates</em> the element of the list on the fly when they are requested
 by the function which manipulates the generator. They are not stored,
-it is <em>on demand</em>. This technique is also called <em>lazy evaluation</em>.</p>
-<p>The <tt class="xref docutils literal"><span class="pre">points()</span></tt> function is modified: this expression, which returns a list</p>
+it is <em>on demand</em>. This technique is also called <em>lazy evaluation</em>.
+This is the goal of the the <tt class="xref docutils literal"><span class="pre">yield()</span></tt> Python statement, if there
+is a need to create its own custom generator.</p>
+<p>The <tt class="xref docutils literal"><span class="pre">points()</span></tt> function is slightly modified: this expression,
+which returns a list</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">[</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="n">size</span> <span class="p">)</span> <span class="p">]</span>
 </pre></div>
 </div>
@@ -271,21 +274,10 @@ it is <em>on demand</em>. This technique is also called <em>lazy evaluation</em>
 <em>generator-returning</em> counterpart <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/itertools.html#itertools.ifilter"><tt class="xref docutils literal"><span class="pre">ifilter()</span></tt></a> in the
 <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/itertools.html#module-itertools"><tt class="xref docutils literal"><span class="pre">itertools</span></tt></a> module. One last change: a generator has no length,
 so <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#len"><tt class="xref docutils literal"><span class="pre">len()</span></tt></a> is substituted by a trick: sum a list of <em>ones</em> for
-each point in the circle</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">ifilter</span>
-
-<span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
-
-<span class="n">points</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span> <span class="p">:</span> <span class="p">(</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">)</span>
-<span class="n">in_circle</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span> <span class="p">:</span> <span class="n">sqrt</span><span class="p">(</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span>
-
-<span class="k">print</span><span class="p">(</span><span class="s">&quot;A slightly faster implementation o Pi: </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span>
-      <span class="p">(</span> <span class="nb">sum</span><span class="p">(</span> <span class="p">(</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ifilter</span><span class="p">(</span> <span class="n">in_circle</span><span class="p">,</span> <span class="n">points</span><span class="p">(</span> <span class="n">n</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="n">n</span> <span class="p">))</span>
-</pre></div>
-</div>
-<p>The <tt class="xref docutils literal"><span class="pre">test_it()</span></tt> function shows the that <em>lazy</em> functional
-implementation operates with a performance boost of 14%, 25% and 55%
-over the previous functional implementation:</p>
+each point in the circle:</p>
+<p>shows that <em>lazy</em> functional implementation operates with a
+performance boost of 14%, 25% and 55% over the previous functional
+implementation:</p>
 <div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>test_it ./harder_better_stronger_faster.py
    Pi ~ 3.13988
    duration: 0.54 seconds
@@ -296,23 +288,204 @@ over the previous functional implementation:</p>
 </pre></div>
 </div>
 <p>At this point, the two styles are technically rougly equivalent, the
-functional style needs more care in Python, reads less
-straightforward, and is 10% slower than the procedural counterpart. To
-conclude, here is a real fast formula to approximate Pi known as the
-Bailey-Borwein-Plouffe formula :</p>
+functional style is 10% slower than the procedural counterpart. Maybe,
+those 10% are the small efficiencies that Knuth was telling us about:
+&#8220;we should forget about small inefficiencies, say about 97% of the
+time: premature optimization is the root of all evil&#8221;.</p>
+<p>Let&#8217;s try to do exactly that: let&#8217;s optimize the implementation of the
+same algorithm.</p>
+</div>
+<div class="section" id="optimization-with-processes-and-a-compiled-c-function">
+<h2>Optimization with processes and a compiled C function<a class="headerlink" href="#optimization-with-processes-and-a-compiled-c-function" title="Permalink to this headline">¶</a></h2>
+<p>It is interesting to note that all the previous scripts run on only
+one core even if the host features many processors and cores. Python
+makes it easy with the <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/multiprocessing.html#module-multiprocessing"><tt class="xref docutils literal"><span class="pre">multiprocessing</span></tt></a> module to run functions
+into their own separate system process which are dispatched by the
+kernel on the available processors and cores.</p>
+<p>In the following version of the script, four processes will be run,
+each handling a fourth of the requested iterations. The
+<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/multiprocessing.html#module-multiprocessing"><tt class="xref docutils literal"><span class="pre">multiprocessing</span></tt></a> make the <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/queue.html#Queue"><tt class="xref docutils literal"><span class="pre">Queue</span></tt></a> available which is
+reachable by each processes and safe for concurrent read and write
+access.</p>
+<p><em>processpool(function, args)</em> takes a function and its parameters as
+an input and returns the list of results obtained by running the
+function, in four separate subprocesses.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
+<span class="n">numproc</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="k">def</span> <span class="nf">pi</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">somme</span><span class="o">=</span><span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sqrt</span><span class="p">(</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">somme</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="mi">4</span><span class="o">*</span><span class="nb">float</span><span class="p">(</span><span class="n">somme</span><span class="p">)</span><span class="o">/</span><span class="n">n</span> 
+
+
+<span class="k">def</span> <span class="nf">processpool</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+    <span class="n">processes</span> <span class="o">=</span> <span class="p">[</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span><span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">_</span><span class="p">)),</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span> 
+                  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numproc</span><span class="p">)</span> <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>  
+    <span class="k">return</span> <span class="p">[</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">qsize</span><span class="p">())]</span>
+
+<span class="n">subprocess_results</span> <span class="o">=</span> <span class="n">processpool</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span><span class="n">n</span><span class="o">/</span><span class="n">numproc</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;An approximation of Pi with 4 processes: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span>
+    <span class="nb">sum</span><span class="p">(</span><span class="n">subprocess_results</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">subprocess_results</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Let&#8217;s time this version:</p>
+<div class="highlight-sh"><div class="highlight"><pre>~/github/functional<span class="nv">$ </span>test_it ./procedural_with_processes.py
+An approximation of Pi with 4 processes: 3.14208
+   duration: 0.28 seconds
+An approximation of Pi with 4 processes: 3.142696
+   duration: 1.14 seconds
+An approximation of Pi with 4 processes: 3.1417456
+   duration: 5.43 seconds
+</pre></div>
+</div>
+<p>The durations are exactly halved when compared to <em>procedural.py</em>, the
+two cores of the Intel Core 2 Duo, on which this article is edited,
+were effectively used.</p>
+<p>Python code is transformed on execution into byte compiled code, which
+is composed of commands interpreted by the Python virtual machine.
+The Python virtual machine is a compiled software written in C which
+directly talks to the processor. For some demanding computing uses,
+such as this approximation of <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/>, this interpretation is
+suboptimal .</p>
+<p>The identification of the command line argument, the result printing
+and the split into processes are only done once so their impact on
+performance are negligible, it is very practical to do it in
+Python. In our example, the hard work in this script is the <em>pi</em>
+function, which could not be simpler in terms of signature: it
+requires an int, returns a float, raise no errors, and make no side
+effects. We can write the pi function in C so that, when compiled, it
+is directly understood by the processor, sidestepping the Python
+virtual machine. Here are the steps involved:</p>
+<ol class="arabic">
+<li><p class="first">a C function called pi is written in a file called pimodule.c:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">float</span> <span class="n">pi</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">){</span>
+  <span class="kt">double</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">sum</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+  <span class="n">srand</span><span class="p">(</span><span class="n">rdtsc</span><span class="p">());</span>
+  <span class="k">for</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">){</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">rand</span><span class="p">();</span> <span class="n">y</span><span class="o">=</span><span class="n">rand</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">*</span><span class="n">y</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">RAND_MAX</span><span class="o">*</span><span class="n">RAND_MAX</span><span class="p">)</span>
+      <span class="n">sum</span><span class="o">++</span><span class="p">;</span> <span class="p">}</span>
+  <span class="k">return</span> <span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">sum</span><span class="o">/</span><span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">n</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">rdtsc</span><span class="p">(){</span> <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;rdtsc&quot;</span><span class="p">);</span> <span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">A wrapper function for the pi function, which matches Python
+interfaces, is defined. This wrapper receives the arguments in the
+form of Python objects that it transforms to input argument for the
+C function in the correct format: here, a simple int. The wrapper
+also builds an Python float object from the C float approximation
+of Pi returned by the <em>pi</em> C function:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span> <span class="nf">pi_pi</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">n</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;i&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">n</span><span class="p">))</span>
+      <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="n">Py_BuildValue</span><span class="p">(</span><span class="s">&quot;f&quot;</span><span class="p">,</span> <span class="n">pi</span><span class="p">(</span><span class="n">n</span><span class="p">));</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>The non standard type such as <em>PyObject</em> are available through the
+inclusion of the <tt class="docutils literal"><span class="pre">&lt;python2.6/Python.h&gt;</span></tt> headers.</p>
+</li>
+<li><p class="first">The methods exported to Python are declared in an array of <em>PyMethodDef</em>:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">PyMethodDef</span> <span class="n">PiMethods</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">{</span><span class="s">&quot;pi&quot;</span><span class="p">,</span>  <span class="n">pi_pi</span><span class="p">,</span> <span class="n">METH_VARARGS</span><span class="p">,</span> <span class="s">&quot;Simple Pi Approximation&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">}</span>        <span class="cm">/* Sentinel */</span>  <span class="p">};</span>
+</pre></div>
+</div>
+<p>For each method described in the array, the first element is the
+method name in Python, the second element is the pointer to the C
+function, the third argument specifies if the Python method should
+accept variable arguments and keyword arguments. Here no keywords
+arguments are possible, only variable arguments. The last element
+is the docstring for the method.</p>
+</li>
+<li><p class="first">An initialization function is written for the package. This
+function will be executed when the module is imported in the Python
+interpreter:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">PyMODINIT_FUNC</span> <span class="nf">initpi</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+   <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">Py_InitModule</span><span class="p">(</span><span class="s">&quot;pi&quot;</span><span class="p">,</span> <span class="n">PiMethods</span><span class="p">);</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>That&#8217;s it for the pimodule.c. It is ready for compilation.</p>
+</li>
+<li><p class="first">A separate <tt class="docutils literal"><span class="pre">setup.py</span></tt> file specifies the compilation and
+deployment of this C file into a package available in the Python
+path:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span><span class="p">,</span> <span class="n">Extension</span>
+<span class="n">mod</span> <span class="o">=</span> <span class="n">Extension</span><span class="p">(</span><span class="s">&#39;pi&#39;</span><span class="p">,</span> <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;pimodule.c&#39;</span><span class="p">])</span>
+<span class="n">setup</span> <span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;pi&#39;</span><span class="p">,</span>
+       <span class="n">version</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span><span class="p">,</span>
+       <span class="n">ext_modules</span> <span class="o">=</span> <span class="p">[</span><span class="n">mod</span><span class="p">],</span>
+       <span class="n">description</span> <span class="o">=</span> <span class="s">&#39;This is simple method for approximating Pi&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Building and installing the module is straightforward:</p>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>python setup.py build
+~<span class="nv">$ </span>sudo python setup.py install
+~<span class="nv">$ </span>python
+&gt;&gt;&gt; import pi
+&gt;&gt;&gt; <span class="nb">help</span><span class="o">(</span>pi<span class="o">)</span>
+<span class="o">[</span> ... <span class="o">]</span>
+pi<span class="o">(</span>...<span class="o">)</span>
+     Simple Pi Approximation
+
+&gt;&gt;&gt; pi.pi<span class="o">(</span>1000<span class="o">)</span>
+3.2040000
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The previous script can be copied and pasted with only a few
+modifications: instead of declaring the <em>pi</em> function, it now needs to
+be be imported from the <em>pi</em> module:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="o">...</span>
+<span class="kn">from</span> <span class="nn">pi</span> <span class="kn">import</span> <span class="n">pi</span>
+<span class="n">subprocess_results</span> <span class="o">=</span> <span class="n">processpool</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span><span class="n">n</span><span class="o">/</span><span class="n">numproc</span><span class="p">)</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>This multiprocess C version shows the following performance:</p>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>test_it ./procedural_in_c.py
+An approximation of Pi with 4 processes: 3.14168
+   duration: 0.09 seconds
+An approximation of Pi with 4 processes: 3.143028
+   duration: 0.07 seconds
+An approximation of Pi with 4 processes: 3.1415872
+   duration: 0.18 seconds
+</pre></div>
+</div>
+<p>The computation is accelerated by a factor up to 30 over the previous
+version is pure Python. This is not fantastic but it is indeed much
+more efficient. When compared to Python, C does shine in the
+processing of numbers.</p>
+</div>
+<div class="section" id="a-fast-algorithm-to-compute-pi">
+<h2>A fast algorithm to compute Pi<a class="headerlink" href="#a-fast-algorithm-to-compute-pi" title="Permalink to this headline">¶</a></h2>
+<p>If the problem really was computing <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/>, its <a class="reference external" href="http://en.wikipedia.org/wiki/Pi#Numerical_approximations">Wikipedia page</a>
+has several better methods. Here is a seriously fast approximation
+known as the Bailey-Borwein-Plouffe formula :</p>
 <div class="math">
 <p><img src="images/math/6af0cefff23af40cc4dc11765f0841461f50e59b.png" alt="\pi \approx \sum_{k=0}^{\infty} \frac{1}{16^k} \left(\frac{4}{8k+1}-\frac{2}{8k+4}-\frac{1}{8k+5}-\frac{1}{8k+6}\right)" /></p>
-</div><p>This translate into the <em>bbp</em> function, below, in Python, for which
-<em>bbp(10)</em> is already correct for all 13 digits printed here (the
-pointy bracket indicates the lines come from a Python interactive
-shell).</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">bbp</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">sum</span><span class="p">([</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mi">16</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">4.</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="mf">2.</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span><span class="o">-</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">5</span><span class="p">)</span><span class="o">-</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">6</span><span class="p">))</span>
-<span class="gp">... </span>                      <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span>
+</div><p>This translates into the <em>bbp</em> function, below, in Python, which is
+correct for the first 13 digits in only ten iterations while previous
+methods needed millions of iterations for the same results.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">bbp</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mi">16</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">4.</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="mf">2.</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span><span class="o">-</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">5</span><span class="p">)</span><span class="o">-</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">6</span><span class="p">))</span>
+<span class="gp">... </span>                     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">bbp</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="go">3.14142246642</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">bbp</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-<span class="go">3.14159264546</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">bbp</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 <span class="go">3.14159265359</span>
@@ -322,8 +495,22 @@ shell).</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p><em>Tue, 09 Feb 2010</em></p>
-<p>This article was verified with the <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/doctest.html#module-doctest"><tt class="xref docutils literal"><span class="pre">doctest</span></tt></a> module.</p>
+<p>Timer is a class which take a callable as the argument. The method
+<em>timeit</em> will return the duration in seconds for <em>one million</em>
+executions of the callable.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Timer</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span><span class="n">bbp</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span><span class="o">.</span><span class="n">timeit</span><span class="p">()</span><span class="o">&lt;</span><span class="mi">20</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Obtaining the 13 correct digits of <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/> can be done in less
+than 20 microseconds in pure Python with a good algorithm. And now, on
+to something fantastic : <em>On December 31st, 2009, about 2700 billion
+decimal digits of Pi were computed using a single desktop
+computer. This is presently the World Record for the computation of
+Pi.</em> Kudos to <a class="reference external" href="http://bellard.org/pi/pi2700e9/">Fabrice Bellard</a>. He combined a fast math method, with
+hardware optimization at the processor level.</p>
+<p><em>Mon, 19 Apr 2010</em></p>
 </div>
 </div>
 
@@ -340,7 +527,7 @@ shell).</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="concurrent.html" title="Concurrent programming with Twisted"
+          <a href="i18n.html" title="One application, multiple languages"
              >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Every bit counts"
