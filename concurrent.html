@@ -391,8 +391,8 @@ of the sockets to the kernel. As the kernel offers to do it, why
 should developers re-invent the wheel in userland?</p>
 </li>
 <li><p class="first">the reactor maintains a list of Twisted <tt class="xref docutils literal"><span class="pre">Protocol</span></tt>
-instances. In Twisted, a <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> serves many purposes, and
-in particular it holds a reference to a socket supervised by epoll
+instances. In Twisted, a <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> serves many purpose, and
+in particular it holds a reference to the socket supervised by epoll
 and a method <tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt>. When <em>epoll</em> returns and presents
 an array of events for each socket, the reactor dutifully runs the
 <tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt> method of the <tt class="xref docutils literal"><span class="pre">protocol</span></tt> associated to the
