@@ -1,6 +1,6 @@
 # concurrent.py 
 from twisted.internet import reactor
-from twisted.internet.defer import DeferredList, inlineCallbacks
+from twisted.internet.defer import inlineCallbacks
 from twisted.web.client import getPage
 from lxml.html import fromstring
 
@@ -20,8 +20,8 @@ def first_title(url):
 
     print "first article on %s : \n%s\n%s\n\n" % (url, article, title)
 
-
-d = DeferredList([first_title( p ) for p in planets])
-d.addCallback(lambda _:reactor.stop())
+for p in planets:
+    first_title(p)
 
 reactor.run() 
+# Use Ctrl-C to terminate the script
