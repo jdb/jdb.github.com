@@ -44,7 +44,7 @@
 <li><a class="reference external" href="#presentation-of-the-problem">Presentation of the problem</a></li>
 <li><a class="reference external" href="#twisted-s-network-concurrency-model-as-compared-with-sockets-and-threads">Twisted&#8217;s network concurrency model as compared with sockets and threads</a><ul>
 <li><a class="reference external" href="#safer-no-need-to-worry-about-locking-shared-ressources">Safer: no need to worry about locking shared ressources</a></li>
-<li><a class="reference external" href="#faster-no-overhead-scheduling-the-threads">Faster: no overhead scheduling the threads</a></li>
+<li><a class="reference external" href="#faster-no-overhead-due-to-scheduling-the-threads">Faster: no overhead due to scheduling the threads</a></li>
 <li><a class="reference external" href="#faster-data-received-does-not-sit-in-a-buffer-while-a-thread-is-paused">Faster: data received does not sit in a buffer while a thread is paused</a></li>
 </ul>
 </li>
@@ -100,40 +100,38 @@
 <h2>What is Twisted?<a class="headerlink" href="#what-is-twisted" title="Permalink to this headline">¶</a></h2>
 <p>Twisted is a an organised set of Python modules, classes and functions
 aiming at efficiently building client or server applications. Twisted
-base classes wrap the UDP, TCP and SSL transport protocols and child
-classes of the tranport classes offer well tested, application
-protocol implementations which can coherently weave file tranfer,
-email, chat and presence, enterprise messaging, name services,
-etc. This <em>concurrent network framework</em> enables developers to produce
-stable and performant mail client or domain name servers with less
-than fifteen lines of code.</p>
+base classes wrap the UDP, TCP and SSL transports and child classes
+offer well tested, application protocol implementations which can
+coherently weave file tranfer, email, chat and presence, enterprise
+messaging, name services, etc. This <em>concurrent network framework</em>
+enables developers to produce a stable and performant mail transfer
+agent or domain name server with less than fifteen lines of code.</p>
 <p>Also, Twisted has methods for implementing features which are often
 required by sophisticated software projects. For instance, Twisted can
 map a tree of ressources behind URLs, can authentify users against
 flexible backends, or can safely distribute objects on a network
 enabling remote procedure calls.</p>
-<p>Twisted is written in Python and C and is fast partly because, as we
-will see, the data is processed as soon as it is available no matter
-how many connections are open. Twisted is used in production in the
+<p>Twisted is written in Python and is fast partly because, as we will
+see, the data is processed as soon as it is available no matter how
+many connections are open. Twisted is used in production in the
 datacenters of the Canonical or Fluendo corporations, for example, but
-also as the IO engine of the Zope Toolkit or embedded by smaller
-applications to act as the HTTP layer of the desktop edition of the
-Moinmoin wiki.</p>
-<p>Twisted presents two difficulties: it requires to think the
-application aound the core concepts detailed below. Incremental
+also as the IO engine of the Zope Toolkit or as an embedded webserver
+by smaller applications such as the desktop edition of the Moinmoin
+wiki.</p>
+<p>There are hard sells though: Twisted requires to design the
+application around the core concepts of the framework. Incremental
 project migration to Twisted is not straightforward. Second point,
 Twisted does not make a seamless use of multicore, the application
 must be designed to use multiple processes (Twisted offer helpers
 functions though).</p>
-<p>This article introduces the problem of network concurrency over
-sequential programming, then compares Twisted&#8217;s model to the classical
-thread+socket model, to point out that the classical model is less
-efficient ofr a high number of connections. Follows an overview of the
-main objects of the framework, namely the <em>reactor</em> which supervises
-the simultaneous network connections, the <em>protocols</em> and the
+<p>This article introduces the problem of network concurrency, and
+compare Twisted model to the sequential programming, then to the
+classical thread+socket model. Follows an overview of the main objects
+of the framework, namely the <em>reactor</em> which supervises the
+simultaneous network connections, the <em>protocols</em> and the
 <em>deferreds</em>. Finally, to get a feel of Twisted code, two web client
-scripts are compared: one sequential and one concurrent. Then, as we
-explain new Twisted key concepts, the concurrent script is improved.</p>
+scripts are compared: one sequential and one concurrent. Then, as new
+Twisted key concepts are explained, the concurrent script is improved.</p>
 <p>This article is available in <a class="reference external" href="http://jdb.github.com/static/concurrent.pdf">pdf</a>.</p>
 </div>
 <div class="section" id="presentation-of-the-problem">
@@ -189,13 +187,13 @@ concerned with performance and scalability.</p>
 obvious that these downloads should be executed in parallel, or,
 <em>concurrently</em>, and this is the raison d&#8217;être of the Twisted Python
 framework. Processes and threads are well-known primitives for
-programming concurrently but Twisted does without (not even behind your
-back), because it is not adapted for scalable network
-programming. This frees the developer from using semaphores, mutexes
-or recursive locks. The solution presented at the end of the article
-does not have more line of codes, does not take much longer for <em>n</em>
-downloads than it takes for one download (a constant complexity) and
-is actually three times faster.</p>
+programming concurrently but Twisted does without (not even behind
+your back), because it is not adapted for scalable network
+programming. This frees the developer from using locks, recursive
+locks, or mutexes. The solution presented at the end of the
+article does not have more line of codes, does not take much longer
+for <em>n</em> downloads than it takes for one download (a constant
+complexity) and is actually three times faster.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">A frequently heard reaction at this point is &#8220;Python is a slow
@@ -239,24 +237,21 @@ let another thread run. This is problematic, see the following code
 (using threads) which is incorrect.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">incr</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="k">global</span> <span class="n">counter</span>
-<span class="gp">... </span>   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
-<span class="gp">... </span>       <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="gp">... </span>    <span class="k">global</span> <span class="n">counter</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
 </pre></div>
 </div>
-<p>The <em>incr</em> function increments the counter one thousand times. Below,
-the <em>execute</em> function creates 100 threads to run the <em>incr</em> function.</p>
+<p><tt class="xref docutils literal"><span class="pre">incr()</span></tt> increments the counter one thousand times. Below, the
+<tt class="xref docutils literal"><span class="pre">execute()</span></tt> function creates 100 threads to run the <tt class="xref docutils literal"><span class="pre">incr()</span></tt>
+function.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">threads</span><span class="o">=</span><span class="p">[]</span>
-<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
-<span class="gp">... </span>        <span class="n">threads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">))</span>
-<span class="gp">...</span>
+<span class="gp">... </span>    <span class="n">threads</span> <span class="o">=</span> <span class="p">[</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)]</span>
 <span class="gp">... </span>    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 <span class="gp">... </span>    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">execute</span><span class="p">(</span><span class="n">incr</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">execute</span><span class="p">(</span><span class="n">incr</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span> <span class="o">&gt;</span> <span class="mi">0</span>
 <span class="go">True</span>
 </pre></div>
@@ -278,12 +273,14 @@ the counter: 5001. Thread y incrementation was missed.</li>
 </ol>
 <p>From the Python virtual machine, via the libc, down to the processor
 instructions, an increment is composed of a variable read and an
-addition and is not atomic by default. To avoid the effect of a big
-blind chainsaw messing with a subtle variable increment, threads must
-use defensive techniques: they define <em>critical sections</em> using locks
-and refuse to enter one until every other thread has left the critical
-section. Here is a correct version of the <em>incr</em> version using a lock
-dedicated to the <em>counter</em> ressource.</p>
+addition and is not atomic by default, there is nothing to prevent the
+interruption of a thread in the middle of <tt class="docutils literal"><span class="pre">counter</span> <span class="pre">+=1</span></tt>. To avoid
+the effect of a big blind chainsaw messing with a subtle variable
+increment, threads must use defensive techniques: they define
+<em>critical sections</em> using locks and refuse to enter one until every
+other thread has left the critical section. Here is a correct version
+of the <em>incr</em> version using a lock dedicated to the <em>counter</em>
+ressource.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">safe_incr</span><span class="p">():</span>
@@ -300,25 +297,26 @@ dedicated to the <em>counter</em> ressource.</p>
 <span class="go">100000</span>
 </pre></div>
 </div>
-<p>Note that the class:<cite>Lock</cite> classs abide by the <em>with</em> interface
-<tt class="xref docutils literal"><span class="pre">with</span></tt>. with will dutifully call <tt class="xref docutils literal"><span class="pre">Lock.__enter__()</span></tt> when
-entering the indented block below, and similarly will call
-<tt class="xref docutils literal"><span class="pre">Lock.__exit__()</span></tt>, when exiting the block. These functions are
-implementes to respectively <em>acquire</em> and <em>release</em> the <tt class="xref docutils literal"><span class="pre">Lock</span></tt>
-instance (<em>even</em> if the block is exited via an exception!).</p>
+<p>Note that the <tt class="xref docutils literal"><span class="pre">Lock</span></tt> class abide by the <tt class="xref docutils literal"><span class="pre">with</span></tt>
+interface. <tt class="xref docutils literal"><span class="pre">with</span></tt> will dutifully call <tt class="xref docutils literal"><span class="pre">Lock.__enter__()</span></tt>
+when entering the indented block, and will call <tt class="xref docutils literal"><span class="pre">Lock.__exit__()</span></tt>,
+when exiting the block, <em>even</em> if the block is exited on an
+exception. These functions are implemented in <tt class="xref docutils literal"><span class="pre">Lock</span></tt> to
+respectively <em>acquire</em> and <em>release</em> the lock instance.</p>
 <p>Shared ressources and critical sections must be controlled by code
-which is difficult to get it right. Twisted do without: it handles
-many network connections concurrently and it can hold many pending
-actions concurrently, but functions and method are not executed
-concurrently: the callbacks triggered on the various events of a
-network connection lifecycle will execute one after the other, no
-matter how many connections exist. Since functions are not concurrent
-and always execute until they return, there is no race conditions and
-no need for the definition of critical section with mutexes, recursive
-locks, etc.</p>
+which is difficult to get right. In Twisted, there are no threads, and
+no thread scheduler, therefore there is only one function executing at
+any given time, and it will run without interruption until it
+returns. The function running has an exclusive access to all the
+ressources, avoiding the danger of concurrent accesses, and misuses of
+locks.</p>
 <p>Twisted network concurrency model is called <em>cooperative multitasking</em>
-in the sense that all functions are written striving to return as fast
-as they can, especially after having emitted a network request.</p>
+in the sense that developers write functions with a goal that they
+return, as they block each other. Especially, after having emitted a
+network request, they return. As threads are interrupted by the
+scheduler, function enclosed have the latitude to take as long the
+developer see fit, without impacting the other processing, which can
+tabke place.</p>
 <p>As the thread scheduler can be compared to a blind chainsaw, Twisted
 functions are more like relay sprinters who choose when to pass the
 baton. They decide to pass the baton to the coach who, at the time
@@ -327,88 +325,83 @@ run. If a sprinter keeps the baton indefinitely, there is no one to
 interrupt him, and the other sprinters do not get to run: Twisted
 concurrent model is safer as long as everyone behave as a gentlemen.</p>
 </div>
-<div class="section" id="faster-no-overhead-scheduling-the-threads">
-<h3>Faster: no overhead scheduling the threads<a class="headerlink" href="#faster-no-overhead-scheduling-the-threads" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="faster-no-overhead-due-to-scheduling-the-threads">
+<h3>Faster: no overhead due to scheduling the threads<a class="headerlink" href="#faster-no-overhead-due-to-scheduling-the-threads" title="Permalink to this headline">¶</a></h3>
 <p>The previous threaded code using a shared ressource is less and less
-efficient as the number of threads increases: the ressource becomes a
-bottleneck. The following function times the execution in multiple
-threads of the function given as a parameter:</p>
+efficient as the number of threads increases: the ressource is a
+bottleneck. <tt class="xref docutils literal"><span class="pre">chrono()</span></tt> times the multithreaded execution of the
+function passed as a parameter:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chrono</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">Timer</span><span class="p">(</span><span class="k">lambda</span> <span class="p">:</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="p">))</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now, let&#8217;s compare the execution time of the <em>incr</em> and <em>safe_incr</em>.</p>
+<p>Now, let&#8217;s compare the execution time of <tt class="xref docutils literal"><span class="pre">incr()</span></tt> and
+<tt class="xref docutils literal"><span class="pre">safe_incr()</span></tt>. The safe, locked code is at least 10 times less
+efficient than the unsafe.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">no_lock</span> <span class="o">=</span> <span class="n">chrono</span><span class="p">(</span><span class="n">incr</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">locked</span>  <span class="o">=</span> <span class="n">chrono</span><span class="p">(</span><span class="n">safe_incr</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="mi">10</span> <span class="o">*</span> <span class="n">no_lock</span> <span class="o">&lt;</span> <span class="n">locked</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">10</span> <span class="o">*</span> <span class="n">no_lock</span> <span class="o">&lt;</span> <span class="n">chrono</span><span class="p">(</span><span class="n">safe_incr</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>In our example, the safe and locked code is at least 10 times less
-efficient. The decision by the OS thread scheduler to run a particular
-thread is based on an algorithm which does not have much of a clue of
-the existing ressources. What happens here is when a thread is run,
-the thread context and stack is copied back which costs CPU cycles and
-data transfer, and it might actually be in vain, as the thread does
-not have the lock needed to execute. The threads get re-scheduled
-until it can own the ressource.</p>
-<p>The concept of <em>ressources</em> applies equally well to lock ownership,
-to data received via sockets, or even to user input in a graphical user
-interface.</p>
-<p>As each Twisted function runs until its return point without
-interruption, there is no concurrent access to the ressource, the
-ressource is always free for a function which runs. The scheduling
-overhead does not occur with Twisted. I assume the reader is curious
-to see the equivalent Twisted code and its performance, I promise to
-show it as soon as the required Twisted concept have been
-presented (spoiler: Twisted is twice faster than even the fast and
-unsafe code).</p>
+<p>The decision by the OS thread scheduler to run a particular thread is
+based on an algorithm which has no idea of the existing locks. When a
+thread is run, the thread context and stack are copied back which
+costs CPU cycles and data transfer, and it might actually be in vain,
+as the thread may not have the lock that it needs to execute. Any such
+threads will be get re-scheduled again and again until it can own the
+ressource.</p>
+<p>The scheduling overhead does not occur with Twisted. I assume the
+reader is curious to see the Twisted can have many increment pending
+on a global variable and the associated performance, it is be shown
+as soon as the required Twisted concepts have been presented (<a class="reference internal" href="#spoiler">Spoiler</a>:
+Twisted is twice as fast as even the fast unsafe code).</p>
 </div>
 <div class="section" id="faster-data-received-does-not-sit-in-a-buffer-while-a-thread-is-paused">
 <h3>Faster: data received does not sit in a buffer while a thread is paused<a class="headerlink" href="#faster-data-received-does-not-sit-in-a-buffer-while-a-thread-is-paused" title="Permalink to this headline">¶</a></h3>
-<p>Once the data is received by the kernel and made available to the
-application via a file descriptor, the data might actually sit there
-until the thread which takes care of this file descriptor gets a
-chance to run again. Event driven frameworks can alleviate this
-problem, the next section introduces the <tt class="xref docutils literal"><span class="pre">reactor</span></tt> and the
-<tt class="xref docutils literal"><span class="pre">Protocol</span></tt>, which are a pre-requisite to understand how Twisted
-solve this delay.</p>
+<p>In an OS, once the data is received by the network module of a kernel
+and made available to the application via a file descriptor, this data
+might actually sit there until the thread which takes care of this
+file descriptor gets a chance to run again. Event driven frameworks
+can alleviate this problem: the next section introduces the
+<tt class="xref docutils literal"><span class="pre">reactor</span></tt> and the <tt class="xref docutils literal"><span class="pre">Protocol</span></tt>, which are a pre-requisites
+for understanding how Twisted eliminates this delay.</p>
 </div>
 </div>
 <div class="section" id="the-reactor-and-the-protocols">
 <h2>The Reactor and the Protocols<a class="headerlink" href="#the-reactor-and-the-protocols" title="Permalink to this headline">¶</a></h2>
-<p>How does Twisted do away with the problems of threads in the context
-of network connections?  The Twisted runs a main loop called the
-reactor which schedules the callbacks. It is the <em>coach</em> of our prior
-comparison. <strong>The reactor scheduling decisions derives directly from
+<p>How does Twisted do away with the thread problems in the context of
+network connections? Twisted runs a main loop called the reactor which
+schedules the callbacks. It is the <em>coach</em> of our prior
+comparison. <strong>The reactor scheduling decisions derive directly from
 the availability of the data received in the supervised file
 descriptors</strong>. The reactor is twofold:</p>
 <ul>
-<li><p class="first">it is a wrapper around a specialised system calls which monitor
-events on an array of sockets. Instead of supervising the sockets
-from userland, Twisted <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/choosing-reactor.html">delegates</a> this hard work to the kernel, via
-the best system call available on the platform: <a class="reference external" href="http://www.kernel.org/doc/man-pages/online/pages/man4/epoll.4.html">epoll</a> on Linux,
-kqueue on BSD, etc</p>
-<p>In a nutshell, these system calls returns after either a timeout or
-after the reception of data in one of the transport. The system call
-returns an array of events received, for each supervised file
-descriptor<a class="footnote-reference" href="#id2" id="id1">[1]</a>.</p>
-<p>There is a big bonus for a developer to be able to leverage the
-efficient advanced system calls of multiple kernels with one
-code. Another bonus is the delegation of the concurrent supervision
-of the sockets to the kernel. If the kernel offers to do it, why
-should we re-invent the wheel in userland?</p>
+<li><p class="first">it is a wrapper around a specialised system calls which monitors
+events on an array of sockets. Instead of supervising sockets from
+userland, Twisted <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/choosing-reactor.html">delegates</a> this hard work to the kernel, via the
+best system call available on the platform: <a class="reference external" href="http://www.kernel.org/doc/man-pages/online/pages/man4/epoll.4.html">epoll</a> on Linux, kqueue
+on BSD, etc</p>
+<p>In a nutshell, these system calls return after either a timeout or
+after the reception of data in one of the socket. The system call
+returns an array of events received, for each supervised socket<a class="footnote-reference" href="#id2" id="id1">[1]</a>.</p>
+<p>There is a big bonus for a developer to be able to leverage
+efficient advanced system calls on diverse operating with the same
+code. Another bonus is the delegation of concurrent supervision
+of the sockets to the kernel. As the kernel offers to do it, why
+should developers re-invent the wheel in userland?</p>
 </li>
-<li><p class="first">the reactor maintains a list of Twisted <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> instances,
-each associated to the sockets registered to <em>epoll</em>. When <em>epoll</em>
-returns, one after the other, for each data received in the socket,
-the reactor dutifully runs the <tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt> of the
-<tt class="xref docutils literal"><span class="pre">protocol</span></tt> associated to the socket.</p>
+<li><p class="first">the reactor maintains a list of Twisted <tt class="xref docutils literal"><span class="pre">Protocol</span></tt>
+instances. In Twisted, a <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> serves many purpose, and
+in particular it holds a reference to the socket supervised by epoll
+and a method <tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt>. When <em>epoll</em> returns and presents
+an array of events for each socket, the reactor dutifully runs the
+<tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt> method of the <tt class="xref docutils literal"><span class="pre">protocol</span></tt> associated to the
+socket.</p>
 </li>
 </ul>
 <p>The reactor is the runtime hub of the Twisted framework, it handles
 the network connections and triggers the processing of the received
-data as soon as they arrive by calling specific methods of the
+data as soon as it arrives by calling specific methods of the
 <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> associated to the socket. Let&#8217;s focus on a single page
 download, first, with the sequential <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt> function:</p>
 <ol class="arabic simple">
@@ -417,8 +410,8 @@ IP address (this blocking network request may be avoided if the
 local resolver maintains the domain name in a cache).</li>
 <li>An HTTP get request for the URL is formatted, a socket toward the
 IP address of the web server is opened and the message is written
-in the socket&#8217;s file descriptor. <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt> waits for the
-reply from the server and returns.</li>
+in the socket&#8217;s file descriptor. <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt>, then waits for
+the reply from the server and returns.</li>
 </ol>
 <p>Here is the corresponding steps of how Twisted operates with
 the <tt class="xref docutils literal"><span class="pre">getPage()</span></tt> function:</p>
@@ -560,8 +553,34 @@ to process the results. The requester object which is usually an
 instance of child class of <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> also keeps a reference to
 this deferred and should call the callback, as soon as it is
 notified by the reactor that the data is received. The Twisted
-documentation calls it a &#8220;promise of a result&#8221;, <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/defer.html">here</a> and <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/gendefer.html">there</a>. Here
-are three great things about the Deferred:</p>
+documentation calls it a &#8220;promise of a result&#8221;, <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/defer.html">here</a> and <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/gendefer.html">there</a>.</p>
+<p id="spoiler">Here are a hundred Twisted concurrent pending increments on a global
+variable, using deferreds:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span> <span class="k">as</span> <span class="n">now</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">Deferred</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">request</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">Deferred</span><span class="p">()</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">now</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deferreds</span> <span class="o">=</span> <span class="p">[</span><span class="n">request</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">incr</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">100</span><span class="p">)]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># There is a hundred concurrent pending actions at this point ...</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># ... fire NOW !</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deferreds</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">d</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">elapsed</span> <span class="o">=</span> <span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span> <span class="o">*</span> <span class="n">elapsed</span> <span class="o">&lt;</span> <span class="n">no_lock</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span>
+<span class="go">100000</span>
+</pre></div>
+</div>
+<p>This code runs even twice faster as the code running 100 threads
+without locks, and is has the noticeable advantages of being
+correct. Here are three great things about the Deferred:</p>
 <ul>
 <li><p class="first">avoid the requirement to subclass anything to write a callback. No
 need for the object oriented programming to kick in, good old
@@ -630,11 +649,12 @@ reactor is attached as a callback to the <em>DeferredList</em>:</p>
 <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span><span class="n">reactor</span><span class="o">.</span><span class="n">stop</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>The <tt class="xref docutils literal"><span class="pre">lambda</span></tt> return a function whose only action is to call
-the <tt class="xref docutils literal"><span class="pre">reactor.stop()</span></tt>. This new function is required because
-<tt class="xref docutils literal"><span class="pre">reactor.stop()</span></tt> does not comply with the callback specification:
-<em>a callback must have at least one argument</em>. The anonymous function
-created with <tt class="xref docutils literal"><span class="pre">lambda</span></tt> presents the correct signature.</p>
+<p>Here, the expression <tt class="docutils literal"><span class="pre">lambda</span> <span class="pre">n:reactor.stop()</span></tt> returns a function
+whose only action is to call the <tt class="xref docutils literal"><span class="pre">reactor.stop()</span></tt>. This new
+function is required because <tt class="xref docutils literal"><span class="pre">reactor.stop()</span></tt> does not comply with
+the callback specification: <em>a callback must have at least one
+argument</em>. The anonymous function created with <tt class="xref docutils literal"><span class="pre">lambda</span></tt> is
+created to present the correct signature.</p>
 <p>Now that the script terminates gracefully, let&#8217;s clarify a common
 misunderstanding: what does the reactor know about the deferreds that
 the user manipulate? The answer is: nothing.  The interfaces that the
@@ -647,38 +667,17 @@ which hold a Deferred created by the request methods and that the
 <p>Now this concurrent version terminates, its performance can be
 compared to a sequential script. It is much more efficient (on my
 machine, it is 8 times more efficient). Note that for a threaded
-version of the script:</p>
-<div class="highlight-python"><pre>~$ time python trivial_sequential.py
+version of the script</p>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span><span class="nb">time </span>python trivial_sequential.py
 real 1m22.945s
-~$ time python trivial_concurrent.py
-real 0m10.315s</pre>
-</div>
-<p>Deferreds do not require a reactor, to show it here is the equivalent
-of the threaded <em>counter</em> code presented above:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">n</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">Deferred</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">deferreds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Deferred</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">incr</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">100</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># There is a hundred concurrent pending actions at this point ...</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># ... NOW !</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deferreds</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="n">d</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">elapsed</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span> <span class="o">*</span> <span class="n">elapsed</span><span class="o">.</span><span class="n">seconds</span> <span class="o">&lt;</span> <span class="n">no_lock</span>
-<span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span>
-<span class="go">100000</span>
+~<span class="nv">$ </span><span class="nb">time </span>python trivial_concurrent.py
+real 0m10.315s
 </pre></div>
 </div>
-<p>This code runs even twice faster as the code running 100 threads
-without locks, and is has the noticeable advantages of being correct.</p>
 <p>The central mechanisms of Twisted were presented in the previous
 sections, you are almost there ! The last section before the
 conclusion shows a nicer way to present Twisted code. The two first
-subsections are recap on the standard <a class="reference internal" href="#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> keyword and
+subsections are recaps on the standard <a class="reference internal" href="#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> keyword and
 Python decorators.</p>
 </div>
 </div>
@@ -755,7 +754,7 @@ keyword catches the <a title="(in Python v2.7)" class="reference external" href=
 </div>
 <p>But we digress: now back to Twisted, do you see the similarity of
 concept between the functions using <a class="reference internal" href="#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> and the Twisted
-chains of callback ?  <em>Both specify section of codes to be called
+chains of callback? <em>Both specify section of codes to be called
 successively</em>.</p>
 <p>A limitation of <a class="reference internal" href="#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> mechanism was <a class="reference external" href="http://docs.python.org/whatsnew/2.5.html#pep-342-new-generator-features">lifted</a> in Python2.5,
 which makes it usable from the reactor: the next section of code can
@@ -776,7 +775,7 @@ variable.</p>
 </div>
 <p><em>These changes turn generators from one-way producers of information
 into both producers and consumers</em>. The reactor can build generators
-which send a network request the first time they are called, and can
+which send network requests the first time they are called, and can
 <em>send</em> the generator the response data for processing, when it is
 available.</p>
 </div>
@@ -868,7 +867,7 @@ code appear more like its sequential counterpart.</p>
 <div class="section" id="a-concurrent-solution-to-our-original-problem">
 <h2>A concurrent solution to our original problem<a class="headerlink" href="#a-concurrent-solution-to-our-original-problem" title="Permalink to this headline">¶</a></h2>
 <p>Here is a concurrent solution to the problem detailed in the
-introduction. It is three times faster than the sequential approach :</p>
+introduction. It is three times faster than the sequential approach:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># concurrent.py </span>
 <span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
 <span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">DeferredList</span><span class="p">,</span> <span class="n">inlineCallbacks</span>
