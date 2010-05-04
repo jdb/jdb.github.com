@@ -327,8 +327,8 @@ descriptors**. The reactor is twofold:
   should developers re-invent the wheel in userland?
 
 - the reactor maintains a list of Twisted :class:`Protocol`
-  instances. In Twisted, a :class:`Protocol` serves many purpose, and
-  in particular it holds a reference to the socket supervised by epoll
+  instances. In Twisted, a :class:`Protocol` serves many purposes, and
+  in particular it holds a reference to a socket supervised by epoll
   and a method :meth:`dataReceived`. When *epoll* returns and presents
   an array of events for each socket, the reactor dutifully runs the
   :meth:`dataReceived` method of the :obj:`protocol` associated to the
