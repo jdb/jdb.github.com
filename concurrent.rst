@@ -1,6 +1,5 @@
 
-.. mettre des liens vers la docs officielles des deferreds, des
-.. reactor, sinon, c'est re-inventer la roue
+.. mettre des liens vers les tutoriaux
 
 =============================================
  Concurrent network programming with Twisted
@@ -11,13 +10,12 @@ What is Twisted?
 
 Twisted is a an organised set of Python modules, classes and functions
 aiming at efficiently building client or server applications. Twisted
-base classes wrap the UDP, TCP and SSL transport protocols and child
-classes of the tranport classes offer well tested, application
-protocol implementations which can coherently weave file tranfer,
-email, chat and presence, enterprise messaging, name services,
-etc. This *concurrent network framework* enables developers to produce
-stable and performant mail client or domain name servers with less
-than fifteen lines of code.
+base classes wrap the UDP, TCP and SSL transports and child classes
+offer well tested, application protocol implementations which can
+coherently weave file tranfer, email, chat and presence, enterprise
+messaging, name services, etc. This *concurrent network framework*
+enables developers to produce a stable and performant mail transfer
+agent or domain name server with less than fifteen lines of code.
 
 Also, Twisted has methods for implementing features which are often
 required by sophisticated software projects. For instance, Twisted can
@@ -25,31 +23,29 @@ map a tree of ressources behind URLs, can authentify users against
 flexible backends, or can safely distribute objects on a network
 enabling remote procedure calls.
 
-Twisted is written in Python and C and is fast partly because, as we
-will see, the data is processed as soon as it is available no matter
-how many connections are open. Twisted is used in production in the
+Twisted is written in Python and is fast partly because, as we will
+see, the data is processed as soon as it is available no matter how
+many connections are open. Twisted is used in production in the
 datacenters of the Canonical or Fluendo corporations, for example, but
-also as the IO engine of the Zope Toolkit or embedded by smaller
-applications to act as the HTTP layer of the desktop edition of the
-Moinmoin wiki.
+also as the IO engine of the Zope Toolkit or as an embedded webserver
+by smaller applications such as the desktop edition of the Moinmoin
+wiki.
 
-Twisted presents two difficulties: it requires to think the
-application aound the core concepts detailed below. Incremental
+There are hard sells though: Twisted requires to design the
+application around the core concepts of the framework. Incremental
 project migration to Twisted is not straightforward. Second point,
 Twisted does not make a seamless use of multicore, the application
 must be designed to use multiple processes (Twisted offer helpers
 functions though).
 
-This article introduces the problem of network concurrency over
-sequential programming, then compares Twisted's model to the classical
-thread+socket model, to point out that the classical model is less
-efficient ofr a high number of connections. Follows an overview of the
-main objects of the framework, namely the *reactor* which supervises
-the simultaneous network connections, the *protocols* and the
+This article introduces the problem of network concurrency, and
+compare Twisted model to the sequential programming, then to the
+classical thread+socket model. Follows an overview of the main objects
+of the framework, namely the *reactor* which supervises the
+simultaneous network connections, the *protocols* and the
 *deferreds*. Finally, to get a feel of Twisted code, two web client
-scripts are compared: one sequential and one concurrent. Then, as we
-explain new Twisted key concepts, the concurrent script is improved.
-
+scripts are compared: one sequential and one concurrent. Then, as new
+Twisted key concepts are explained, the concurrent script is improved.
 
 This article is available in pdf_.
 
@@ -89,7 +85,7 @@ design problem):
 
 .. include:: concurrent/sequential.py
    :literal:
-
+   
 When there are *n* element in the blog list, there will be *2n* page
 downloaded, one after the other, and this will take *2n * time to
 download a page*. When the time taken by an algorithm the algo
@@ -101,14 +97,16 @@ As each download is completely independent from each other, it is
 obvious that these downloads should be executed in parallel, or,
 *concurrently*, and this is the raison d'être of the Twisted Python
 framework. Processes and threads are well-known primitives for
-programming concurrently but Twisted does without (not even behind your
-back), because it is not adapted for scalable network
-programming. This frees the developer from using semaphores, mutexes
-or recursive locks. The solution presented at the end of the article
-does not have more line of codes, does not take much longer for *n*
-downloads than it takes for one download (a constant complexity) and
-is actually three times faster.
+programming concurrently but Twisted does without (not even behind
+your back), because it is not adapted for scalable network
+programming. This frees the developer from using locks, recursive
+locks, or mutexes. The solution presented at the end of the
+article does not have more line of codes, does not take much longer
+for *n* downloads than it takes for one download (a constant
+complexity) and is actually three times faster.
 	
+.. says that mutex stands for mutual exclusion
+
 .. note:: 
 
    A frequently heard reaction at this point is "Python is a slow
@@ -157,22 +155,20 @@ let another thread run. This is problematic, see the following code
 
 >>> counter = 0
 >>> def incr(n=0):
-...    global counter
-...    for i in range(1000):
-...        counter += 1 
+...     global counter
+...     for i in range(1000):
+...         counter += 1 
 
-The *incr* function increments the counter one thousand times. Below,
-the *execute* function creates 100 threads to run the *incr* function.
+:func:`incr` increments the counter one thousand times. Below, the
+:func:`execute` function creates 100 threads to run the :func:`incr`
+function.
 
 >>> from threading import Thread
 >>> def execute(f):
-...     threads=[]
-...     for i in range(100):
-...         threads.append(Thread(target=f))
-...
+...     threads = [ Thread(target=f) for i in range(100)]
 ...     for t in threads: t.start()
 ...     for t in threads: t.join()
-
+...
 >>> execute(incr)
 >>> counter > 0
 True
@@ -196,12 +192,14 @@ means that 3% of the counter increments went wrong. Here is what happened:
 
 From the Python virtual machine, via the libc, down to the processor
 instructions, an increment is composed of a variable read and an
-addition and is not atomic by default. To avoid the effect of a big
-blind chainsaw messing with a subtle variable increment, threads must
-use defensive techniques: they define *critical sections* using locks
-and refuse to enter one until every other thread has left the critical
-section. Here is a correct version of the *incr* version using a lock
-dedicated to the *counter* ressource.
+addition and is not atomic by default, there is nothing to prevent the
+interruption of a thread in the middle of ``counter +=1``. To avoid
+the effect of a big blind chainsaw messing with a subtle variable
+increment, threads must use defensive techniques: they define
+*critical sections* using locks and refuse to enter one until every
+other thread has left the critical section. Here is a correct version
+of the *incr* version using a lock dedicated to the *counter*
+ressource.
 
 >>> from threading import Lock
 >>> lock = Lock()
@@ -218,27 +216,28 @@ At this point, the counter is correct:
 >>> counter
 100000
 
-Note that the class:`Lock` classs abide by the *with* interface
-:keyword:`with`. with will dutifully call :func:`Lock.__enter__` when
-entering the indented block below, and similarly will call
-:func:`Lock.__exit__`, when exiting the block. These functions are
-implementes to respectively *acquire* and *release* the :class:`Lock`
-instance (*even* if the block is exited via an exception!).
+Note that the :class:`Lock` class abide by the :keyword:`with`
+interface. :keyword:`with` will dutifully call :func:`Lock.__enter__`
+when entering the indented block, and will call :func:`Lock.__exit__`,
+when exiting the block, *even* if the block is exited on an
+exception. These functions are implemented in :class:`Lock` to
+respectively *acquire* and *release* the lock instance.
 
 Shared ressources and critical sections must be controlled by code
-which is difficult to get it right. Twisted do without: it handles
-many network connections concurrently and it can hold many pending
-actions concurrently, but functions and method are not executed
-concurrently: the callbacks triggered on the various events of a
-network connection lifecycle will execute one after the other, no
-matter how many connections exist. Since functions are not concurrent
-and always execute until they return, there is no race conditions and
-no need for the definition of critical section with mutexes, recursive
-locks, etc.
+which is difficult to get right. In Twisted, there are no threads, and
+no thread scheduler, therefore there is only one function executing at
+any given time, and it will run without interruption until it
+returns. The function running has an exclusive access to all the
+ressources, avoiding the danger of concurrent accesses, and misuses of
+locks.
 
 Twisted network concurrency model is called *cooperative multitasking*
-in the sense that all functions are written striving to return as fast
-as they can, especially after having emitted a network request. 
+in the sense that developers write functions with a goal that they
+return, as they block each other. Especially, after having emitted a
+network request, they return. As threads are interrupted by the
+scheduler, function enclosed have the latitude to take as long the
+developer see fit, without impacting the other processing, which can
+tabke place.
 
 As the thread scheduler can be compared to a blind chainsaw, Twisted
 functions are more like relay sprinters who choose when to pass the
@@ -248,100 +247,96 @@ run. If a sprinter keeps the baton indefinitely, there is no one to
 interrupt him, and the other sprinters do not get to run: Twisted
 concurrent model is safer as long as everyone behave as a gentlemen.
 
-Faster: no overhead scheduling the threads
-------------------------------------------
+Faster: no overhead due to scheduling the threads
+-------------------------------------------------
 
 The previous threaded code using a shared ressource is less and less
-efficient as the number of threads increases: the ressource becomes a
-bottleneck. The following function times the execution in multiple
-threads of the function given as a parameter:
+efficient as the number of threads increases: the ressource is a
+bottleneck. :func:`chrono` times the multithreaded execution of the
+function passed as a parameter:
 
 >>> from timeit import Timer
 >>> chrono = lambda f: Timer(lambda :execute(f)).timeit(number=10)
 
-Now, let's compare the execution time of the *incr* and *safe_incr*.
+Now, let's compare the execution time of :func:`incr` and
+:func:`safe_incr`. The safe, locked code is at least 10 times less
+efficient than the unsafe.
 
 >>> no_lock = chrono(incr)
->>> locked  = chrono(safe_incr)
->>> 10 * no_lock < locked
+>>> 10 * no_lock < chrono(safe_incr)
 True
 
-In our example, the safe and locked code is at least 10 times less
-efficient. The decision by the OS thread scheduler to run a particular
-thread is based on an algorithm which does not have much of a clue of
-the existing ressources. What happens here is when a thread is run,
-the thread context and stack is copied back which costs CPU cycles and
-data transfer, and it might actually be in vain, as the thread does
-not have the lock needed to execute. The threads get re-scheduled
-until it can own the ressource.
-   
-The concept of *ressources* applies equally well to lock ownership,
-to data received via sockets, or even to user input in a graphical user
-interface. 
+The decision by the OS thread scheduler to run a particular thread is
+based on an algorithm which has no idea of the existing locks. When a
+thread is run, the thread context and stack are copied back which
+costs CPU cycles and data transfer, and it might actually be in vain,
+as the thread may not have the lock that it needs to execute. Any such
+threads will be get re-scheduled again and again until it can own the
+ressource.
 
-As each Twisted function runs until its return point without
-interruption, there is no concurrent access to the ressource, the
-ressource is always free for a function which runs. The scheduling
-overhead does not occur with Twisted. I assume the reader is curious
-to see the equivalent Twisted code and its performance, I promise to
-show it as soon as the required Twisted concept have been
-presented (spoiler: Twisted is twice faster than even the fast and
-unsafe code).
+The scheduling overhead does not occur with Twisted. I assume the
+reader is curious to see the Twisted can have many increment pending
+on a global variable and the associated performance, it is be shown
+as soon as the required Twisted concepts have been presented (Spoiler_:
+Twisted is twice as fast as even the fast unsafe code).
+
+
    
 
 Faster: data received does not sit in a buffer while a thread is paused
 -----------------------------------------------------------------------
 
-Once the data is received by the kernel and made available to the
-application via a file descriptor, the data might actually sit there
-until the thread which takes care of this file descriptor gets a
-chance to run again. Event driven frameworks can alleviate this
-problem, the next section introduces the :attr:`reactor` and the
-:class:`Protocol`, which are a pre-requisite to understand how Twisted
-solve this delay. 
+In an OS, once the data is received by the network module of a kernel
+and made available to the application via a file descriptor, this data
+might actually sit there until the thread which takes care of this
+file descriptor gets a chance to run again. Event driven frameworks
+can alleviate this problem: the next section introduces the
+:attr:`reactor` and the :class:`Protocol`, which are a pre-requisites
+for understanding how Twisted eliminates this delay.
 
 
 The Reactor and the Protocols
 =============================
 
-How does Twisted do away with the problems of threads in the context
-of network connections?  The Twisted runs a main loop called the
-reactor which schedules the callbacks. It is the *coach* of our prior
-comparison. **The reactor scheduling decisions derives directly from
+How does Twisted do away with the thread problems in the context of
+network connections? Twisted runs a main loop called the reactor which
+schedules the callbacks. It is the *coach* of our prior
+comparison. **The reactor scheduling decisions derive directly from
 the availability of the data received in the supervised file
 descriptors**. The reactor is twofold:
 
-- it is a wrapper around a specialised system calls which monitor
-  events on an array of sockets. Instead of supervising the sockets
-  from userland, Twisted delegates_ this hard work to the kernel, via
-  the best system call available on the platform: epoll_ on Linux,
-  kqueue on BSD, etc
+- it is a wrapper around a specialised system calls which monitors
+  events on an array of sockets. Instead of supervising sockets from
+  userland, Twisted delegates_ this hard work to the kernel, via the
+  best system call available on the platform: epoll_ on Linux, kqueue
+  on BSD, etc
 
   .. _epoll: http://www.kernel.org/doc/man-pages/online/pages/man4/epoll.4.html
 
   .. _delegates: http://twistedmatrix.com/documents/current/core/howto/choosing-reactor.html
 
-  In a nutshell, these system calls returns after either a timeout or
-  after the reception of data in one of the transport. The system call
-  returns an array of events received, for each supervised file
-  descriptor\ [#]_. 
+  In a nutshell, these system calls return after either a timeout or
+  after the reception of data in one of the socket. The system call
+  returns an array of events received, for each supervised socket\
+  [#]_.
 
-  There is a big bonus for a developer to be able to leverage the
-  efficient advanced system calls of multiple kernels with one
-  code. Another bonus is the delegation of the concurrent supervision
-  of the sockets to the kernel. If the kernel offers to do it, why
-  should we re-invent the wheel in userland?
+  There is a big bonus for a developer to be able to leverage
+  efficient advanced system calls on diverse operating with the same
+  code. Another bonus is the delegation of concurrent supervision
+  of the sockets to the kernel. As the kernel offers to do it, why
+  should developers re-invent the wheel in userland?
 
-
-- the reactor maintains a list of Twisted :class:`Protocol` instances,
-  each associated to the sockets registered to *epoll*. When *epoll*
-  returns, one after the other, for each data received in the socket,
-  the reactor dutifully runs the :meth:`dataReceived` of the
-  :obj:`protocol` associated to the socket.
+- the reactor maintains a list of Twisted :class:`Protocol`
+  instances. In Twisted, a :class:`Protocol` serves many purpose, and
+  in particular it holds a reference to the socket supervised by epoll
+  and a method :meth:`dataReceived`. When *epoll* returns and presents
+  an array of events for each socket, the reactor dutifully runs the
+  :meth:`dataReceived` method of the :obj:`protocol` associated to the
+  socket.
 
 The reactor is the runtime hub of the Twisted framework, it handles
 the network connections and triggers the processing of the received
-data as soon as they arrive by calling specific methods of the
+data as soon as it arrives by calling specific methods of the
 :obj:`Protocol` associated to the socket. Let's focus on a single page
 download, first, with the sequential :meth:`urlopen` function:
 
@@ -351,8 +346,8 @@ download, first, with the sequential :meth:`urlopen` function:
 
 2. An HTTP get request for the URL is formatted, a socket toward the
    IP address of the web server is opened and the message is written
-   in the socket's file descriptor. :func:`urlopen` waits for the
-   reply from the server and returns.
+   in the socket's file descriptor. :func:`urlopen`, then waits for
+   the reply from the server and returns.
   
 Here is the corresponding steps of how Twisted operates with
 the :func:`getPage` function:
@@ -480,12 +475,41 @@ to process the results. The requester object which is usually an
 instance of child class of :class:`Protocol` also keeps a reference to
 this deferred and should call the callback, as soon as it is
 notified by the reactor that the data is received. The Twisted
-documentation calls it a "promise of a result", here_ and there_. Here
-are three great things about the Deferred:
+documentation calls it a "promise of a result", here_ and there_. 
 
 .. _here: http://twistedmatrix.com/documents/current/core/howto/defer.html
 
 .. _there: http://twistedmatrix.com/documents/current/core/howto/gendefer.html
+
+.. _Spoiler: 
+
+Here are a hundred Twisted concurrent pending increments on a global
+variable, using deferreds:
+
+>>> from time import time as now
+>>> from twisted.internet.defer import Deferred
+>>>
+>>> def request():
+...     return Deferred()
+>>>
+>>> counter, start = 0, now()
+>>> deferreds = [request().addCallback(incr) for i in xrange(100)] 
+>>>
+>>> # There is a hundred concurrent pending actions at this point ...
+>>>
+>>> # ... fire NOW !
+>>> for d in deferreds:
+...     d.callback(None)
+...
+>>> elapsed = now() - start 
+>>> 2 * elapsed < no_lock
+True
+>>> counter
+100000
+
+This code runs even twice faster as the code running 100 threads
+without locks, and is has the noticeable advantages of being
+correct. Here are three great things about the Deferred:
 
 - avoid the requirement to subclass anything to write a callback. No
   need for the object oriented programming to kick in, good old
@@ -558,11 +582,12 @@ reactor is attached as a callback to the *DeferredList*::
   d.DeferredList(l)
   d.addCallback(lambda n:reactor.stop())
 
-The :keyword:`lambda` return a function whose only action is to call
-the :meth:`reactor.stop`. This new function is required because
-:meth:`reactor.stop` does not comply with the callback specification:
-*a callback must have at least one argument*. The anonymous function
-created with :keyword:`lambda` presents the correct signature.
+Here, the expression ``lambda n:reactor.stop()`` returns a function
+whose only action is to call the :meth:`reactor.stop`. This new
+function is required because :meth:`reactor.stop` does not comply with
+the callback specification: *a callback must have at least one
+argument*. The anonymous function created with :keyword:`lambda` is
+created to present the correct signature.
 
 Now that the script terminates gracefully, let's clarify a common
 misunderstanding: what does the reactor know about the deferreds that
@@ -577,40 +602,19 @@ which hold a Deferred created by the request methods and that the
 Now this concurrent version terminates, its performance can be
 compared to a sequential script. It is much more efficient (on my
 machine, it is 8 times more efficient). Note that for a threaded
-version of the script::
+version of the script
+
+.. sourcecode:: sh
 
    ~$ time python trivial_sequential.py
    real	1m22.945s
    ~$ time python trivial_concurrent.py
    real	0m10.315s
 
-Deferreds do not require a reactor, to show it here is the equivalent
-of the threaded *counter* code presented above:
-
->>> from datetime import datetime as n
->>> from twisted.internet.defer import Deferred
->>>
->>> counter, start = 0, n.now()
->>> deferreds = [Deferred().addCallback(incr) for i in xrange(100)] 
->>> # There is a hundred concurrent pending actions at this point ...
->>>
->>> # ... NOW !
->>> for d in deferreds:
-...     d.callback(None)
-...
->>> elapsed = n.now() - start
->>> 2 * elapsed.seconds < no_lock
-True
->>> counter
-100000
-
-This code runs even twice faster as the code running 100 threads
-without locks, and is has the noticeable advantages of being correct.
-
 The central mechanisms of Twisted were presented in the previous
 sections, you are almost there ! The last section before the
 conclusion shows a nicer way to present Twisted code. The two first
-subsections are recap on the standard :keyword:`yield` keyword and
+subsections are recaps on the standard :keyword:`yield` keyword and
 Python decorators.
 
 .. _yield:
@@ -693,7 +697,7 @@ keyword catches the :exc:`StopIteration` exception:
 
 But we digress: now back to Twisted, do you see the similarity of
 concept between the functions using :keyword:`yield` and the Twisted
-chains of callback ?  *Both specify section of codes to be called
+chains of callback? *Both specify section of codes to be called
 successively*.
 
 A limitation of :keyword:`yield` mechanism was lifted_ in Python2.5,
@@ -708,7 +712,6 @@ variable.
 
 .. _lifted: http://docs.python.org/whatsnew/2.5.html#pep-342-new-generator-features
 
-
 >>> def func():
 ...     data = yield "Ok, I am ready to receive data"
 ...     yield "The double of the data I just received", 2*data
@@ -721,7 +724,7 @@ variable.
 
 *These changes turn generators from one-way producers of information
 into both producers and consumers*. The reactor can build generators
-which send a network request the first time they are called, and can
+which send network requests the first time they are called, and can
 *send* the generator the response data for processing, when it is
 available.
 
@@ -819,7 +822,7 @@ A concurrent solution to our original problem
 =============================================
 
 Here is a concurrent solution to the problem detailed in the
-introduction. It is three times faster than the sequential approach :
+introduction. It is three times faster than the sequential approach:
 
 .. include:: concurrent/concurrent.py
    :literal:
@@ -840,9 +843,6 @@ not found error, HTML title not found. How easy it is to handle them
 gracefully?
 
 
-
-
-
 .. Twisted use asynchronous functions to solve concurrency, how does it
 .. compare to thread or process (the :func:`threading` and
 .. :func:`multiprocessing` python module)? What does it mean for shared
@@ -851,9 +851,9 @@ gracefully?
 .. of doing concurrency?
 
 .. Win95 way of doing things is not adapted for an OS were it is
-.. difficult to control taht every code exectuing "behaves" and return
-.. fast, it is much more credible at the granularite multicore and process there is still a demand for a process
-.. pool.
+.. difficult to control that every code executing "behaves" and return
+.. fast, it is much more credible at the granularite multicore and
+.. process there is still a demand for a process pool.
 
 .. - How to script Twisted versions of telnet, ping, dig, wget, mailx, etc?
 
