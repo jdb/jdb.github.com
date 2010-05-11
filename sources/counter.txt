@@ -1,11 +1,18 @@
 
-Counter and more on yield
-=========================
+Counters in python
+==================
+
+Counters serve many purposes in software development. It is sometimes
+handy to use a incrementor function which returns the new value every
+time it is called, like calling ``count()`` instead of manipulating
+directly a variable by using ``count += 1``. It has its uses
+especially in Python where binding a variable does not return the
+bound value, as in the C langage.
 
 There is a peculiar example_ in the official Python documentation on
-*lambda*. The make_incrementor function is misleadingly named since
-nothing is incremented: the created callable merely returns the addition of
-two integers. 
+*lambda*. The *make_incrementor* function is misleadingly named since
+nothing is incremented: the created callable merely returns the
+addition of two integers.
 
 .. _example: http://docs.python.org/tutorial/controlflow.html#lambda-forms
 
@@ -19,25 +26,18 @@ two integers.
 43
 
 An incrementor would commonly be called without argument and return
-*43* the first time it was called and *44* the second time, etc.
-      
-With an incrementor, same cause lead to *different* effects: it
-returns almost the same integer as the last time the incrementor was
-called, except that the integer has been incremented by one. It
-usually serves as a counter but it is a function instead of being a
-variable: instead of using ``count+=1``, ``count()`` is used
-instead. It has its uses in Python where binding a variable does not
-return the bound value, as in the C langage.
+*43* the first time it was called and *44* the second time, etc. With
+an incrementor, same cause lead to *different* effects.
 
-In the example, *start* is enclosed in the created callable but it can
-not be modified. The following function tries to increment
+In the example, *start* is enclosed in the created callable *f* but it
+can not be modified. The following function tries to increment
 *start*. But an *unbound exception* concerning *start* is raised when
 calling the incrementor:
 
 >>> def make_incrementor(start):
 ...     def f(jump=1):
 ...         start+=jump
-...         return jump
+...         return start
 ...     return f
 ...
 >>> f = make_incrementor(42)
@@ -45,15 +45,16 @@ calling the incrementor:
 Traceback (most recent call last):
 UnboundLocalError: local variable 'start' referenced before assignment
 
-This is not the way to do it in Python, here are four correct
-implementations of *make_incrementor*.
+Ths variable can't be written in this scope, here are four correct
+implementations below.
 
-Class based
------------
+the object oriented way
+-----------------------
 
-The counter enclosed in the instance is an attribute initialised by
-the constructor at the instanciation step. When the instance is
-called, the attribute is incremented by one, and the value returned:
+The counter enclosed in the incrementor instance is an attribute
+initialised by the constructor at the instanciation step. When the
+instance is called, the attribute is incremented by one, and the value
+returned:
 
 >>> class make_incrementor(object):
 ...     def __init__(self, start):
@@ -67,37 +68,48 @@ called, the attribute is incremented by one, and the value returned:
 >>> f(), f(), f(10)
 (43, 44, 54)
 
-The object oriented version is a bit heavy and the most explicit: the
-three steps of class definition, object instanciation and object
+The object oriented version is a bit heavy but is the most explicit:
+the three steps of class definition, object instanciation and object
 manipulation are clearly separated.
 
-With function and function attribute
-------------------------------------
+with a function and a function attribute
+----------------------------------------
 
-In Python, functions are object and as such, can have attributes too:
+A function can be used, it is a function which returns another
+function, but in the end, it is the same as a class instantiating an
+object. In Python, functions are also object and as such, can have
+attributes too:
 
-
->>> def f(jump=1):
-...     f.count+=jump
-...     return f.count
+>>> def make_incrementor(start):
+...     def f(jump=1):
+...         f.count+=jump
+...         return f.count
+...     f.count=start
+...     return f
 ...
->>> f.count=42
+>>> f = make_incrementor(42)
 >>> f(), f(), f(10)
 (43, 44, 54)
 
+It is a bit less clear here, what is executed and when. The rule is
+simple, the body of function is parsed but not evaluated until the
+function is called, only the function is defined, and its default
+value evaluated...
 
-With function and the argument default value
---------------------------------------------
+the trick of the argument default value
+---------------------------------------
 
-A simple function can be used. There are also two steps (function
-definition and function call) instead of three (class definition,
-instance creation and function call), the counter is initialised when
-the function is defined. 
+Here we make the closest attempt to build a closure, the counter is
+initialised with the default value when the function is defined, and
+there is no reference to the counter outside the function.
 
->>> def f(jump=1, count=[42]):
-...     count[0]+=jump
-...     return count[0]
-... 
+>>> def make_incrementor(start):
+...     def f(jump=1, count=[start]):
+...         count[0] += jump
+...         return count[0]
+...     return f
+...
+>>> f = make_incrementor(42)
 >>> f(), f(), f(10)
 (43, 44, 54)
 
@@ -109,26 +121,23 @@ and the value would be written ``count`` and ``*count``, in Python,
 you get a similar result by defining *count* as list of one integer
 element, and writing ``count`` and ``count[0]``.
 
-The version is the shortest of the four.
 
+using *yield*
+-------------
 
+The following function uses yield. Yielding, for a function, is the
+act of voluntarily suspending itsef. Functions using yield returns a
+generator which have the *next()* and *send()* methods.
 
-Using generator
----------------
-
-The following function uses yield. Such functions returns a generator
-which have the *next()* and *send()* methods.
-
->>> def make_incrementor(start):
-...     count,jump = start, 1
+>>> def make_incrementor(start, jump=1):
+...     count = start
 ...     while True:
-...         count+=jump
-...         jump=(yield count) or 1
+...         count += jump
+...         jump = (yield count) or 1
 ...
 >>> f = make_incrementor(42)
 >>> f.next(), f.next(), f.send(10)
 (43, 44, 54)
 
-Yielding, for a function, is the act of voluntarily suspending
-itsef. As generators are functions which can be resumed, they keep a
-state: they can keep track of a counter.
+As generators are functions which can be resumed, they keep their
+state: they can keep track of a counter. Which one do you prefer?
