@@ -1,0 +1,265 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Twisted’s network concurrency model as compared with sockets and threads &mdash; bits v0.6 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.6 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Twisted&#8217;s network concurrency model as compared with sockets and threads</a><ul>
+<li><a class="reference external" href="#safer-no-need-to-worry-about-locking-shared-ressources">Safer: no need to worry about locking shared ressources</a></li>
+<li><a class="reference external" href="#faster-no-overhead-due-to-scheduling-the-threads">Faster: no overhead due to scheduling the threads</a></li>
+<li><a class="reference external" href="#faster-data-received-does-not-sit-in-a-buffer-while-a-thread-is-paused">Faster: data received does not sit in a buffer while a thread is paused</a></li>
+</ul>
+</li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../sources/concurrent/preemptive.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="twisted-s-network-concurrency-model-as-compared-with-sockets-and-threads">
+<h1>Twisted&#8217;s network concurrency model as compared with sockets and threads<a class="headerlink" href="#twisted-s-network-concurrency-model-as-compared-with-sockets-and-threads" title="Permalink to this headline">¶</a></h1>
+<p>Twisted&#8217;s concurrency model of is called <em>cooperative multitasking</em>
+and is really different from a traditional &#8220;one socket in one thread&#8221;
+scheduler. Twisted has three advantages over the thread model: it is
+safer, faster and faster. The advantages are illustrated around a
+second simple problem: it is the traditional example of a global
+counter updated by many threads.</p>
+<div class="section" id="safer-no-need-to-worry-about-locking-shared-ressources">
+<h2>Safer: no need to worry about locking shared ressources<a class="headerlink" href="#safer-no-need-to-worry-about-locking-shared-ressources" title="Permalink to this headline">¶</a></h2>
+<p>A thread scheduler decides the execution of a thread for a time slice,
+then pauses the thread at an unpredictable point of a computation to
+let another thread run. This is problematic, see the following code
+(using threads) which is incorrect.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">incr</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">global</span> <span class="n">counter</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p><tt class="xref docutils literal"><span class="pre">incr()</span></tt> increments the counter one thousand times. Below, the
+<tt class="xref docutils literal"><span class="pre">execute()</span></tt> function creates 100 threads to run the <tt class="xref docutils literal"><span class="pre">incr()</span></tt>
+function.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">threads</span> <span class="o">=</span> <span class="p">[</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)]</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">execute</span><span class="p">(</span><span class="n">incr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>When the threads are run, the counter has been incremented but
+curiously, it is different from <em>100 threads * 1000 increments =
+100000</em>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span> <span class="o">==</span> <span class="mi">100000</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>The value of counter was 96733 last time this article was checked, which
+means that 3% of the counter increments went wrong. Here is what happened:</p>
+<ol class="arabic simple">
+<li>thread <em>x</em> reads the counter: say 5000, then gets paused</li>
+<li>thread <em>y</em> reads the counter: 5000, increments, then writes the data : 5001</li>
+<li>thread <em>x</em> continues on from where it paused : increments and writes
+the counter: 5001. Thread y incrementation was missed.</li>
+</ol>
+<p>From the Python virtual machine, via the libc, down to the processor
+instructions, an increment is composed of a variable read and an
+addition and is not atomic by default, there is nothing to prevent the
+interruption of a thread in the middle of <tt class="docutils literal"><span class="pre">counter</span> <span class="pre">+=1</span></tt>. To avoid
+the effect of a big blind chainsaw messing with a subtle variable
+increment, threads must use defensive techniques: they define
+<em>critical sections</em> using locks and refuse to enter one until every
+other thread has left the critical section. Here is a correct version
+of the <em>incr</em> version using a lock dedicated to the <em>counter</em>
+ressource.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">safe_incr</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">global</span> <span class="n">counter</span><span class="p">,</span><span class="n">lock</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">counter</span><span class="o">+=</span><span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">execute</span><span class="p">(</span><span class="n">safe_incr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At this point, the counter is correct:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span>
+<span class="go">100000</span>
+</pre></div>
+</div>
+<p>Note that the <tt class="xref docutils literal"><span class="pre">Lock</span></tt> class abide by the <tt class="xref docutils literal"><span class="pre">with</span></tt>
+interface. <tt class="xref docutils literal"><span class="pre">with</span></tt> will dutifully call <tt class="xref docutils literal"><span class="pre">Lock.__enter__()</span></tt>
+when entering the indented block, and will call <tt class="xref docutils literal"><span class="pre">Lock.__exit__()</span></tt>,
+when exiting the block, <em>even</em> if the block is exited on an
+exception. These functions are implemented in <tt class="xref docutils literal"><span class="pre">Lock</span></tt> to
+respectively <em>acquire</em> and <em>release</em> the lock instance.</p>
+<p>Shared ressources and critical sections must be controlled by code
+which is difficult to get right. In Twisted, there are no threads, and
+no thread scheduler, therefore there is only one function executing at
+any given time, and it will run without interruption until it
+returns. The function running has an exclusive access to all the
+ressources, avoiding the danger of concurrent accesses, and misuses of
+locks.</p>
+<p>Twisted network concurrency model is called <em>cooperative multitasking</em>
+in the sense that developers write functions with a goal that they
+return, as they block each other. Especially, after having emitted a
+network request, they return. As threads are interrupted by the
+scheduler, function enclosed have the latitude to take as long the
+developer see fit, without impacting the other processing, which can
+tabke place.</p>
+<p>As the thread scheduler can be compared to a blind chainsaw, Twisted
+functions are more like relay sprinters who choose when to pass the
+baton. They decide to pass the baton to the coach who, at the time
+when he gets the baton, decides which sprinters is the fittest to
+run. If a sprinter keeps the baton indefinitely, there is no one to
+interrupt him, and the other sprinters do not get to run: Twisted
+concurrent model is safer as long as everyone behave as a gentlemen.</p>
+</div>
+<div class="section" id="faster-no-overhead-due-to-scheduling-the-threads">
+<h2>Faster: no overhead due to scheduling the threads<a class="headerlink" href="#faster-no-overhead-due-to-scheduling-the-threads" title="Permalink to this headline">¶</a></h2>
+<p>The previous threaded code using a shared ressource is less and less
+efficient as the number of threads increases: the ressource is a
+bottleneck. <tt class="xref docutils literal"><span class="pre">chrono()</span></tt> times the multithreaded execution of the
+function passed as a parameter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chrono</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">Timer</span><span class="p">(</span><span class="k">lambda</span> <span class="p">:</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="p">))</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, let&#8217;s compare the execution time of <tt class="xref docutils literal"><span class="pre">incr()</span></tt> and
+<tt class="xref docutils literal"><span class="pre">safe_incr()</span></tt>. The safe, locked code is at least 10 times less
+efficient than the unsafe.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">no_lock</span> <span class="o">=</span> <span class="n">chrono</span><span class="p">(</span><span class="n">incr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">10</span> <span class="o">*</span> <span class="n">no_lock</span> <span class="o">&lt;</span> <span class="n">chrono</span><span class="p">(</span><span class="n">safe_incr</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>The decision by the OS thread scheduler to run a particular thread is
+based on an algorithm which has no idea of the existing locks. When a
+thread is run, the thread context and stack are copied back which
+costs CPU cycles and data transfer, and it might actually be in vain,
+as the thread may not have the lock that it needs to execute. Any such
+threads will be get re-scheduled again and again until it can own the
+ressource.</p>
+<p>The scheduling overhead does not occur with Twisted. I assume the
+reader is curious to see the Twisted can have many increment pending
+on a global variable and the associated performance, it is be shown
+as soon as the required Twisted concepts have been presented (<a href="#id1"><span class="problematic" id="id2">Spoiler_</span></a>:
+Twisted is twice as fast as even the fast unsafe code).</p>
+</div>
+<div class="section" id="faster-data-received-does-not-sit-in-a-buffer-while-a-thread-is-paused">
+<h2>Faster: data received does not sit in a buffer while a thread is paused<a class="headerlink" href="#faster-data-received-does-not-sit-in-a-buffer-while-a-thread-is-paused" title="Permalink to this headline">¶</a></h2>
+<p>In an OS, once the data is received by the network module of a kernel
+and made available to the application via a file descriptor, this data
+might actually sit there until the thread which takes care of this
+file descriptor gets a chance to run again. Event driven frameworks
+can alleviate this problem: the next section introduces the
+<tt class="xref docutils literal"><span class="pre">reactor</span></tt> and the <tt class="xref docutils literal"><span class="pre">Protocol</span></tt>, which are a pre-requisites
+for understanding how Twisted eliminates this delay.
+e <strong>xpath</strong>  to find urls or page titles</p>
+<blockquote>
+in a HTML document.</blockquote>
+<p>And here is the script which brings all this together (and includes a
+design problem):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># sequential.py</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
+
+<span class="k">for</span> <span class="n">planet</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;http://planet.debian.net&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://planetzope.org&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://planet.gnome.org&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://gstreamer.freedesktop.org/planet/&quot;</span><span class="p">]:</span>
+
+    <span class="c"># first Xpath pattern matches articles links, second pattern: html titles</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">planet</span> <span class="p">))</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;//h3/a/@href&#39;</span>    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">title</span>   <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">article</span><span class="p">))</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;/html/head/title&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+
+    <span class="k">print</span> <span class="s">&quot;first article on </span><span class="si">%s</span><span class="s"> : </span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">planet</span><span class="p">,</span> <span class="n">article</span><span class="p">,</span> <span class="n">title</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>When there are <em>n</em> element in the blog list, there will be <em>2n</em> page
+downloaded, one after the other, and this will take <em>2n * time to
+download a page</em>. When the time taken by an algorithm the algo
+directly proportional to the number of inputs, this is called a linear
+complexity and this will rightful</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, jdb.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>

@@ -1,21 +1,3 @@
 # Sphinx inventory version 1
 # Project: bits
 # Version: 0.5
-SortedDict._merge method popular.html
-SortedDict.repr method popular.html
-SortedDict.incr_frequency method popular.html
-IDynamicPopular.incr method popular.html
-IDynamicPopular class popular.html
-SortedDict class popular.html
-SortedDict.__init__ method popular.html
-SortedDict.__get_hash method popular.html
-SortedDict.__incr_hash method popular.html
-SortedDict.merge method popular.html
-SortedDict.__getitem__ method popular.html
-IPopular class popular.html
-SortedDict._push_articles method popular.html
-SortedDict.__get_name method popular.html
-SortedDict.__nlargest_hashes method popular.html
-IPopular.popular_articles method popular.html
-SortedDict.__setitem__ method popular.html
-SortedDict.nlargest_articles method popular.html

@@ -1,0 +1,332 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Problem introduction &mdash; bits v0.6 documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.6',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v0.6 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Problem introduction</a></li>
+<li><a class="reference external" href="#the-initialization-of-the-list">The initialization of the list</a><ul>
+<li><a class="reference external" href="#naive-way">Naive way</a></li>
+<li><a class="reference external" href="#by-hand-complete-control-and-memory-greedy">By hand: complete control and memory greedy</a></li>
+<li><a class="reference external" href="#with-a-relational-database-powerful-and-simple-to-express">With a relational database: powerful and simple to express</a></li>
+<li><a class="reference external" href="#with-unix-hacking-pipes-with-the-gnu-core-utils">With Unix: hacking pipes with the GNU core-utils</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#always-up-to-date-fast-invariant-insertions">Always up to date: fast invariant insertions</a></li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/popular.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="problem-introduction">
+<h1>Problem introduction<a class="headerlink" href="#problem-introduction" title="Permalink to this headline">¶</a></h1>
+<p>Say Amazon wants an updated list of the most frequent shopping
+karts. From the data set of last year, they need a data structure
+which holds a list of the combination of articles name sorted by the
+frequency of the number of sell of this product.</p>
+<p>Articles names are long, 50 characters, and we want to be able to keep
+track of four billion shopping karts. Can we keep the data structure
+running on an average PC?</p>
+<p>What are the available structures:</p>
+<ul>
+<li><p class="first">A <em>heap</em> would allows fast sorted insertion, and fast retrieval of
+the n largest, but would not offer fast access. No fast access means
+no fast update to an existing node, nor fast pop of an element prior
+to an eventual fast push you could push it fastly.</p>
+<p>For the initialization from files, of the data structure with
+terabytes of article occurrence, the heap allows fast merges, maybe.</p>
+</li>
+<li><p class="first">A <em>dictionary</em> {article:frequency} would not sorted. But fast to
+update, and insert.</p>
+<p>The latest <em>ordered dictionary</em> which was introduced in Python3.2 is
+ordered by the insertion not by a key. It is useless in our context.</p>
+</li>
+<li><p class="first">A <em>bisect</em> allows fast ordered insertion but no fast access
+update. To allow fast updates, the position for a hash must be set
+in dictionary hash to position</p>
+<p>The <em>array</em> is an efficient way to store data of the same type and
+size which can be combined with bisect.</p>
+</li>
+<li><p class="first">An SQL database is adapted for a big indexed tables from hash to
+names, on disk.</p>
+</li>
+</ul>
+<p>What about collisions?</p>
+</div>
+<div class="section" id="the-initialization-of-the-list">
+<h1>The initialization of the list<a class="headerlink" href="#the-initialization-of-the-list" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="naive-way">
+<h2>Naive way<a class="headerlink" href="#naive-way" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><pre>from collections import defaultdict
+from operator import itemgetter
+
+d=defaultdict(int)
+
+[ d[kart]+=1 for kart in file('karts.txt') ]
+karts = sorted( d.iteritems(), key=itemgetter(1) )[-10**6:]</pre>
+</div>
+<p>This version is not going to work out because the PC memory will soon
+be exhausted. A sort requires all the strings to be available in
+memory. The data set weighs <em>50 bytes * 10 billion karts recorded =
+512 Gb</em>.</p>
+</div>
+<div class="section" id="by-hand-complete-control-and-memory-greedy">
+<h2>By hand: complete control and memory greedy<a class="headerlink" href="#by-hand-complete-control-and-memory-greedy" title="Permalink to this headline">¶</a></h2>
+<p>The average complexity is noted with regard to memory.</p>
+<ol class="arabic simple">
+<li>the long list of articles names is transformed into a list of
+hashes. <em>O(1)</em>. A good size for the hash is one order of magnitude
+more than hte size of the dataset. 10**13 is represented on 45
+bytes, let&#8217;s say 64 to keep memory words aligned..</li>
+<li>the list of hashes is aggregated: in a pass, the duplicates are
+suppressed by creating a dictionary of hash:frequency. The worst
+case: no duplicate, still counts <em>8 bytes * 10 billion = 80 Gb</em>.
+It is safe to assume that lots of articles are bought in mass
+(Iphone, Harry Potter), 90% may be duplicates.</li>
+<li>the list of hash/frequencies is sorted on the frequency. O(m), m&lt;&lt;n</li>
+<li>the million most popular hash is kept.</li>
+<li>a dictionary of a million entry: hash/articles names is recomputed
+from the file. <em>1 million hash * 8 bytes + 1 million names * 50
+bytes + one million frequency * 4 byte = approximately 60 Mb</em></li>
+</ol>
+<p>While it was impossible to study a dataset of half a terabyte easily,
+it is much more feasible to study the data set of the most popular
+karts.</p>
+<p>Note:collision possible. Need to list the articles names with the same
+hash to find the correct one.</p>
+<p>Also the data set could be simplified with lemmatization, and with
+ordering of the article in a kart.</p>
+<p>Step 5 implies a second pass on the raw data set, could be avoided if
+a disk index (the file positions of each karts) where kept in the
+memory data structure.</p>
+</div>
+<div class="section" id="with-a-relational-database-powerful-and-simple-to-express">
+<h2>With a relational database: powerful and simple to express<a class="headerlink" href="#with-a-relational-database-powerful-and-simple-to-express" title="Permalink to this headline">¶</a></h2>
+<p>create table
+insert into names,id
+update hash
+select id,hash,sum(hashes) as sum  group by hashes sort by sum into temp
+&#8211; aggregate list of ids and find collision
+select names join temp on id order by sum</p>
+</div>
+<div class="section" id="with-unix-hacking-pipes-with-the-gnu-core-utils">
+<h2>With Unix: hacking pipes with the GNU core-utils<a class="headerlink" href="#with-unix-hacking-pipes-with-the-gnu-core-utils" title="Permalink to this headline">¶</a></h2>
+<p>sort -R | uniq -c | sort -k 1,1 -r | sed &#8216;1000000q;s///&#8217;</p>
+<p># sort &#8211;merge</p>
+</div>
+</div>
+<div class="section" id="always-up-to-date-fast-invariant-insertions">
+<h1>Always up to date: fast invariant insertions<a class="headerlink" href="#always-up-to-date-fast-invariant-insertions" title="Permalink to this headline">¶</a></h1>
+<p>New client shop every day: in this second phase, we will want the list
+to be always updated. The frequent insertions of new articles and the
+updates of the number of sell should be fast, and &#8216;invariant&#8217;: keep
+the list sorted.</p>
+<p>freq = {hash:array(&#8216;i&#8217;, [frequency, sorted position, file position])}
+freqsorted = array(&#8216;i&#8217;, [frequency])
+fileposorted = array(&#8216;i&#8217;, [file positions])
+How does the recod of a new kart updates the database:</p>
+<div class="highlight-python"><pre># compute the new hash
+h = hash(kart)
+
+# compute the new frequency
+freq[hash(kart)][0]+=1
+
+# checks if the list must be modified
+def is_inplace (sorted_position, frequency):
+    return sort[sorted_position-1][1] =&lt; frequency =&lt; sort[sorted_position+1][1]
+
+si n'est pas a a place, on le pop, et on l'y replace tres vite avec
+bisect.</pre>
+</div>
+<dl class="class">
+<dt id="IPopular">
+<em class="property">class </em><tt class="descname">IPopular</tt><big>(</big><em>dict</em><big>)</big><a class="headerlink" href="#IPopular" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="IPopular.popular_articles">
+<tt class="descname">popular_articles</tt><big>(</big><em>n</em>, <em>with_frequency=False</em><big>)</big><a class="headerlink" href="#IPopular.popular_articles" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a list a popular articles, first article is the most
+popular.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="IDynamicPopular">
+<em class="property">class </em><tt class="descname">IDynamicPopular</tt><big>(</big><em>dict</em><big>)</big><a class="headerlink" href="#IDynamicPopular" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="IDynamicPopular.incr">
+<tt class="descname">incr</tt><big>(</big><em>article_name</em>, <em>incr=1</em><big>)</big><a class="headerlink" href="#IDynamicPopular.incr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="SortedDict">
+<em class="property">class </em><tt class="descname">SortedDict</tt><big>(</big><em>dict</em><big>)</big><a class="headerlink" href="#SortedDict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="SortedDict.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>dicts</em>, <em>files</em><big>)</big><a class="headerlink" href="#SortedDict.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>[SortedDict]</p>
+<p>[files]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SortedDict._merge">
+<tt class="descname">_merge</tt><big>(</big><big>)</big><a class="headerlink" href="#SortedDict._merge" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict._push_articles">
+<tt class="descname">_push_articles</tt><big>(</big><big>)</big><a class="headerlink" href="#SortedDict._push_articles" title="Permalink to this definition">¶</a></dt>
+<dd>Takes a filename with one article per line and update the
+frequencies accordingly.</dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.merge">
+<tt class="descname">merge</tt><big>(</big><em>sorteddict</em><big>)</big><a class="headerlink" href="#SortedDict.merge" title="Permalink to this definition">¶</a></dt>
+<dd>In the initi</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">__init__( dict{article:frequency},</tt></dt>
+<dt>
+<tt class="descname">hashes2names_filename,</tt></dt>
+<dt>
+<tt class="descname">hashes_frequency_filename)</tt></dt>
+<dd><p>it creates :</p>
+<ul class="simple">
+<li>a persisted sqlite table of hashes to names, names indexed by
+hashes</li>
+<li>a dict of hashes to position in the ordered list</li>
+<li>a list of hashes, frequency sorted by the</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.repr">
+<tt class="descname">repr</tt><big>(</big><big>)</big><a class="headerlink" href="#SortedDict.repr" title="Permalink to this definition">¶</a></dt>
+<dd>returns a dict of article names and frequency</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">merge</tt><big>(</big><em>sorteddict</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><big>)</big><a class="headerlink" href="#SortedDict.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><big>)</big><a class="headerlink" href="#SortedDict.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.__incr_hash">
+<tt class="descname">__incr_hash</tt><big>(</big><em>hash</em>, <em>incr=1</em><big>)</big><a class="headerlink" href="#SortedDict.__incr_hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.__get_hash">
+<tt class="descname">__get_hash</tt><big>(</big><em>article</em><big>)</big><a class="headerlink" href="#SortedDict.__get_hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.__get_name">
+<tt class="descname">__get_name</tt><big>(</big><em>hash</em><big>)</big><a class="headerlink" href="#SortedDict.__get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.__nlargest_hashes">
+<tt class="descname">__nlargest_hashes</tt><big>(</big><em>hash</em><big>)</big><a class="headerlink" href="#SortedDict.__nlargest_hashes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.nlargest_articles">
+<tt class="descname">nlargest_articles</tt><big>(</big><em>with_frequency=False</em><big>)</big><a class="headerlink" href="#SortedDict.nlargest_articles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="SortedDict.incr_frequency">
+<tt class="descname">incr_frequency</tt><big>(</big><em>article_name</em>, <em>incr=1</em><big>)</big><a class="headerlink" href="#SortedDict.incr_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, jdb.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>

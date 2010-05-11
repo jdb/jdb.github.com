@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The Reactor and the Protocols &mdash; bits v0.6 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.6 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../sources/concurrent/reactor.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-reactor-and-the-protocols">
+<h1>The Reactor and the Protocols<a class="headerlink" href="#the-reactor-and-the-protocols" title="Permalink to this headline">¶</a></h1>
+<p>How does Twisted do away with the thread problems in the context of
+network connections? Twisted runs a main loop called the reactor which
+schedules the callbacks. It is the <em>coach</em> of our prior
+comparison. <strong>The reactor scheduling decisions derive directly from
+the availability of the data received in the supervised file
+descriptors</strong>. The reactor is twofold:</p>
+<ul>
+<li><p class="first">it is a wrapper around a specialised system calls which monitors
+events on an array of sockets. Instead of supervising sockets from
+userland, Twisted <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/choosing-reactor.html">delegates</a> this hard work to the kernel, via the
+best system call available on the platform: <a class="reference external" href="http://www.kernel.org/doc/man-pages/online/pages/man4/epoll.4.html">epoll</a> on Linux, kqueue
+on BSD, etc</p>
+<p>In a nutshell, these system calls return after either a timeout or
+after the reception of data in one of the socket. The system call
+returns an array of events received, for each supervised socket<a class="footnote-reference" href="#id2" id="id1">[1]</a>.</p>
+<p>There is a big bonus for a developer to be able to leverage
+efficient advanced system calls on diverse operating with the same
+code. Another bonus is the delegation of concurrent supervision
+of the sockets to the kernel. As the kernel offers to do it, why
+should developers re-invent the wheel in userland?</p>
+</li>
+<li><p class="first">the reactor maintains a list of Twisted <tt class="xref docutils literal"><span class="pre">Protocol</span></tt>
+instances. In Twisted, a <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> serves many purposes, and
+in particular it holds a reference to a socket supervised by epoll
+and a method <tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt>. When <em>epoll</em> returns and presents
+an array of events for each socket, the reactor dutifully runs the
+<tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt> method of the <tt class="xref docutils literal"><span class="pre">protocol</span></tt> associated to the
+socket.</p>
+</li>
+</ul>
+<p>The reactor is the runtime hub of the Twisted framework, it handles
+the network connections and triggers the processing of the received
+data as soon as it arrives by calling specific methods of the
+<tt class="xref docutils literal"><span class="pre">Protocol</span></tt> associated to the socket. Let&#8217;s focus on a single page
+download, first, with the sequential <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt> function:</p>
+<ol class="arabic simple">
+<li>urlopen parses the domain name from the URL and resolves it to an
+IP address (this blocking network request may be avoided if the
+local resolver maintains the domain name in a cache).</li>
+<li>An HTTP get request for the URL is formatted, a socket toward the
+IP address of the web server is opened and the message is written
+in the socket&#8217;s file descriptor. <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt>, then waits for
+the reply from the server and returns.</li>
+</ol>
+<p>Here is the corresponding steps of how Twisted operates with
+the <tt class="xref docutils literal"><span class="pre">getPage()</span></tt> function:</p>
+<ol class="arabic">
+<li><p class="first"><tt class="xref docutils literal"><span class="pre">getPage()</span></tt> parses the input URL, format the HTTP request
+string, and uses the <tt class="xref docutils literal"><span class="pre">reactor.connectTCP()</span></tt> method to stack a
+socket creation and monitoring request to the reactor. The argument
+of <tt class="xref docutils literal"><span class="pre">connectTCP()</span></tt> are a host, a port and an instance of the
+<tt class="xref docutils literal"><span class="pre">HTTPGetClient</span></tt> class, deriving from the <tt class="xref docutils literal"><span class="pre">Protocol</span></tt>
+class.</p>
+<p><tt class="xref docutils literal"><span class="pre">connectTCP()</span></tt> tranparently inserts a DNS request if the
+host is a domain name and not an IP address. This conditions the
+HTTP request to the availability of the IP address, in a non
+blocking manner,</p>
+</li>
+<li><p class="first"><tt class="xref docutils literal"><span class="pre">getPage()</span></tt> returns a deferred, a slot that the developer must
+fill with a function which will be executed when the HTTP reply
+arrives (more on the deferred in the next <a class="reference external" href="deferred.html#deferred"><em>section</em></a>). This function should expect the HTML body of the
+response as the argument,</p>
+</li>
+<li><p class="first">the reactor is run: for each <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> object queued: the
+reactor opens a socket, copies the corresponding file descriptor in
+the <tt class="xref docutils literal"><span class="pre">transport</span></tt> attribute of the <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> instance,
+and puts the socket under supervision.</p>
+<p>The reactor calls the <tt class="xref docutils literal"><span class="pre">connectionMade()</span></tt> method of the
+<tt class="xref docutils literal"><span class="pre">Protocol</span></tt> instance which, in the case of <tt class="xref docutils literal"><span class="pre">getPage()</span></tt>
+writes the formatted HTTP request to the <tt class="xref docutils literal"><span class="pre">transport</span></tt> and
+returns immediately to the reactor loop,</p>
+</li>
+<li><p class="first">when the reactor detects the reply bytes in the socket associated
+to <tt class="xref docutils literal"><span class="pre">transport</span></tt>, it calls the <tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt> method of
+the associated <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> which, in the case of
+<tt class="xref docutils literal"><span class="pre">getPage()</span></tt>, is written to parse the HTTP header
+from the HTML body.</p>
+<p>Finally, the <tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt> method for this protocol <em>fires</em>
+the developer callback attached to the instance deferred, with the
+HTML as the parameter.</p>
+</li>
+</ol>
+<p>Additional abstractions such as the <tt class="xref docutils literal"><span class="pre">Factory</span></tt> interface are
+left out in this article to ease the learning curve , they are are
+described in the <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/servers.html">official</a> <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/clients.html">documentation</a>. For our third problem,
+let&#8217;s compare two complete versions, one concurrent, one sequential of
+a simple script which, 30 times, prints the HTML title of the
+<em>http://twistedmatrix.com</em> web site.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># trivial_sequential.py</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://twistedmatrix.com&#39;</span> 
+
+<span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">))</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;/html/head/title&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+
+<span class="c"># let&#39;s download the page 30 times</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">):</span> 
+    <span class="n">title</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>Note that in the following version, the Twisted main loop started by
+<tt class="xref docutils literal"><span class="pre">reactor.run()</span></tt> never returns: a line of code below the start of the
+reactor loop will never be executed.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># trivial_deferred.py</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">DeferredList</span>
+<span class="kn">from</span> <span class="nn">twisted.web.client</span> <span class="kn">import</span> <span class="n">getPage</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">fromstring</span>
+
+<span class="n">url</span><span class="o">=</span> <span class="s">&#39;http://twistedmatrix.com&#39;</span>
+
+<span class="k">def</span> <span class="nf">getpage_callback</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">html</span><span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="s">&#39;/html/head/title&#39;</span> <span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+
+<span class="c"># 30 pending asynchronous network calls, and attachment of the callback</span>
+<span class="p">[</span> <span class="n">getPage</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">getpage_callback</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span> <span class="p">]</span>
+
+
+<span class="n">reactor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>     <span class="c"># open the network connections, and fires the callbacks</span>
+                  <span class="c"># as soon as the replies are available</span>
+
+<span class="c"># Use Ctrl-C to terminate the script</span>
+</pre></div>
+</div>
+<p>The attention should be drawn on the following
+blocking snippet:</p>
+<div class="highlight-python"><pre>html = urlopen(url))
+print  parse(html).xpath( ... )</pre>
+</div>
+<p>which becomes, with Twisted primitives:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">getpage_callback</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
+    <span class="n">parse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="o">...</span> <span class="p">)</span>
+
+<span class="n">getPage</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">getpage_callback</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It is indeed bewildering to realize that in Twisted, <strong>the calling
+function can not manipulate the result of the request</strong>. Here is a
+longer form, which might seem simpler to read because the callback
+code is presented after the request code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">d</span> <span class="o">=</span> <span class="n">getPage</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">getpage_callback</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
+    <span class="n">parse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="o">...</span> <span class="p">)</span>
+
+<span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">getpage_callback</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you don&#8217;t like neither these style, stay tuned, you will appreciate
+the section <a class="reference external" href="../concurrent.html#yield"><em>A concurrent solution</em></a>. There is something unexplained in the last
+code snippet: what is the object to which <em>d</em> is bound? What does
+<tt class="xref docutils literal"><span class="pre">getPage()</span></tt> returns if it&#8217;s not the server reply? you will find
+out in the next section.</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>the <a class="reference external" href="http://www.kegel.com/c10k.html">C10K problem</a> is a reference on server handling
+concurrently ten thousands of clients.</td></tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, jdb.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>

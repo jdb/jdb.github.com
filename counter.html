@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Counter and more on yield &mdash; bits v0.6 documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.6',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v0.6 documentation" href="index.html" />
+    <link rel="prev" title="Concurrent network programming with Twisted" href="concurrent.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="concurrent.html" title="Concurrent network programming with Twisted"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Counter and more on yield</a><ul>
+<li><a class="reference external" href="#class-based">Class based</a></li>
+<li><a class="reference external" href="#with-function-and-function-attribute">With function and function attribute</a></li>
+<li><a class="reference external" href="#with-function-and-the-argument-default-value">With function and the argument default value</a></li>
+<li><a class="reference external" href="#using-generator">Using generator</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="concurrent.html"
+                                  title="previous chapter">Concurrent network programming with Twisted</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/counter.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="counter-and-more-on-yield">
+<h1>Counter and more on yield<a class="headerlink" href="#counter-and-more-on-yield" title="Permalink to this headline">¶</a></h1>
+<p>There is a peculiar <a class="reference external" href="http://docs.python.org/tutorial/controlflow.html#lambda-forms">example</a> in the official Python documentation on
+<em>lambda</em>. The make_incrementor function is misleadingly named since
+nothing is incremented: the created callable merely returns the addition of
+two integers.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">make_incrementor</span><span class="p">(</span><span class="n">start</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="k">lambda</span> <span class="n">jump</span><span class="p">:</span> <span class="n">jump</span> <span class="o">+</span> <span class="n">start</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">make_incrementor</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">42</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">43</span>
+</pre></div>
+</div>
+<p>An incrementor would commonly be called without argument and return
+<em>43</em> the first time it was called and <em>44</em> the second time, etc.</p>
+<p>With an incrementor, same cause lead to <em>different</em> effects: it
+returns almost the same integer as the last time the incrementor was
+called, except that the integer has been incremented by one. It
+usually serves as a counter but it is a function instead of being a
+variable: instead of using <tt class="docutils literal"><span class="pre">count+=1</span></tt>, <tt class="docutils literal"><span class="pre">count()</span></tt> is used
+instead. It has its uses in Python where binding a variable does not
+return the bound value, as in the C langage.</p>
+<p>In the example, <em>start</em> is enclosed in the created callable but it can
+not be modified. The following function tries to increment
+<em>start</em>. But an <em>unbound exception</em> concerning <em>start</em> is raised when
+calling the incrementor:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">make_incrementor</span><span class="p">(</span><span class="n">start</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">jump</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">start</span><span class="o">+=</span><span class="n">jump</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">jump</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">f</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">make_incrementor</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="nc">UnboundLocalError</span>: <span class="n-Identifier">local variable &#39;start&#39; referenced before assignment</span>
+</pre></div>
+</div>
+<p>This is not the way to do it in Python, here are four correct
+implementations of <em>make_incrementor</em>.</p>
+<div class="section" id="class-based">
+<h2>Class based<a class="headerlink" href="#class-based" title="Permalink to this headline">¶</a></h2>
+<p>The counter enclosed in the instance is an attribute initialised by
+the constructor at the instanciation step. When the instance is
+called, the attribute is incremented by one, and the value returned:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">make_incrementor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="o">=</span><span class="n">start</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+=</span> <span class="n">jump</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">make_incrementor</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(),</span> <span class="n">f</span><span class="p">(),</span> <span class="n">f</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">(43, 44, 54)</span>
+</pre></div>
+</div>
+<p>The object oriented version is a bit heavy and the most explicit: the
+three steps of class definition, object instanciation and object
+manipulation are clearly separated.</p>
+</div>
+<div class="section" id="with-function-and-function-attribute">
+<h2>With function and function attribute<a class="headerlink" href="#with-function-and-function-attribute" title="Permalink to this headline">¶</a></h2>
+<p>In Python, functions are object and as such, can have attributes too:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">jump</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">f</span><span class="o">.</span><span class="n">count</span><span class="o">+=</span><span class="n">jump</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">count</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">count</span><span class="o">=</span><span class="mi">42</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(),</span> <span class="n">f</span><span class="p">(),</span> <span class="n">f</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">(43, 44, 54)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="with-function-and-the-argument-default-value">
+<h2>With function and the argument default value<a class="headerlink" href="#with-function-and-the-argument-default-value" title="Permalink to this headline">¶</a></h2>
+<p>A simple function can be used. There are also two steps (function
+definition and function call) instead of three (class definition,
+instance creation and function call), the counter is initialised when
+the function is defined.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">jump</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="p">[</span><span class="mi">42</span><span class="p">]):</span>
+<span class="gp">... </span>    <span class="n">count</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+=</span><span class="n">jump</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">count</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(),</span> <span class="n">f</span><span class="p">(),</span> <span class="n">f</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">(43, 44, 54)</span>
+</pre></div>
+</div>
+<p><em>count</em> is a reference to a list whose first element is the real
+counter integer. In Python, you can&#8217;t manipulate reference to integer,
+so the trick is to pass them enclosed in a list which are passed by
+reference. If <em>count</em> is a pointer on an integer, in C, the pointer
+and the value would be written <tt class="docutils literal"><span class="pre">count</span></tt> and <tt class="docutils literal"><span class="pre">*count</span></tt>, in Python,
+you get a similar result by defining <em>count</em> as list of one integer
+element, and writing <tt class="docutils literal"><span class="pre">count</span></tt> and <tt class="docutils literal"><span class="pre">count[0]</span></tt>.</p>
+<p>The version is the shortest of the four.</p>
+</div>
+<div class="section" id="using-generator">
+<h2>Using generator<a class="headerlink" href="#using-generator" title="Permalink to this headline">¶</a></h2>
+<p>The following function uses yield. Such functions returns a generator
+which have the <em>next()</em> and <em>send()</em> methods.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">make_incrementor</span><span class="p">(</span><span class="n">start</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">count</span><span class="p">,</span><span class="n">jump</span> <span class="o">=</span> <span class="n">start</span><span class="p">,</span> <span class="mi">1</span>
+<span class="gp">... </span>    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">count</span><span class="o">+=</span><span class="n">jump</span>
+<span class="gp">... </span>        <span class="n">jump</span><span class="o">=</span><span class="p">(</span><span class="k">yield</span> <span class="n">count</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">make_incrementor</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">next</span><span class="p">(),</span> <span class="n">f</span><span class="o">.</span><span class="n">next</span><span class="p">(),</span> <span class="n">f</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">(43, 44, 54)</span>
+</pre></div>
+</div>
+<p>Yielding, for a function, is the act of voluntarily suspending
+itsef. As generators are functions which can be resumed, they keep a
+state: they can keep track of a counter.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="concurrent.html" title="Concurrent network programming with Twisted"
+             >previous</a> |</li>
+        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, jdb.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The problem of concurrency &mdash; bits v0.6 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.6 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">The problem of concurrency</a></li>
+<li><a class="reference external" href="#a-concurrent-solution">A concurrent solution</a></li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../sources/concurrent/getpage.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <p>This article introduces the problem of network concurrency, and
+compare Twisted model to the sequential programming. This article
+refers to other article along the lines, they present the concept of the
+concepts mentioned here more in depth. They are listed here for memo:</p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="preemptive.html">Comparison with threads and sockets</a></li>
+<li class="toctree-l1"><a class="reference external" href="reactor.html">Twisted core objects : the reactor and the Protocols</a></li>
+<li class="toctree-l1"><a class="reference external" href="deferred.html">An abstraction for pending results: the Deferred</a></li>
+</ul>
+<div class="section" id="the-problem-of-concurrency">
+<h1>The problem of concurrency<a class="headerlink" href="#the-problem-of-concurrency" title="Permalink to this headline">¶</a></h1>
+<p>Network concurrency is a key concept particularly for performance:
+take a simple problem such as retrieving, for each blog of a list of
+blogs, the title of the web page of the first article of the
+blog. This first problem is actually the core job of a Web scraper or
+crawler. This means:</p>
+<div class="highlight-python"><pre>for each blog url
+    retrieve the list of articles
+    parses the first article url in the list
+    retrieve the web page of the first article
+    display the title</pre>
+</div>
+<p>Let&#8217;s provide a quick and naive solution to this problem. Here are
+three handy functions :</p>
+<ul class="simple">
+<li><strong>urlopen</strong>(url) sends an HTTP GET request to the url and returns
+the body of the HTTP response as an open file,</li>
+<li><strong>parse</strong>(HTML string) takes an HTML string as an input and
+returns a tree structure of HTML nodes,</li>
+<li>htmltree.<strong>xpath</strong>(pattern) returns a list of nodes matching the
+pattern. The text content of a HTML node is accessed via the member
+attribute <tt class="docutils literal"><span class="pre">.text</span></tt>. We will use <strong>xpath</strong>  to find urls or page titles
+in a HTML document.</li>
+</ul>
+<p>And here is the script which brings all this together (and includes a
+design problem):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># sequential.py</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
+
+<span class="k">for</span> <span class="n">planet</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;http://planet.debian.net&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://planetzope.org&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://planet.gnome.org&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://gstreamer.freedesktop.org/planet/&quot;</span><span class="p">]:</span>
+
+    <span class="c"># first Xpath pattern matches articles links, second pattern: html titles</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">planet</span> <span class="p">))</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;//h3/a/@href&#39;</span>    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">title</span>   <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">article</span><span class="p">))</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;/html/head/title&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+
+    <span class="k">print</span> <span class="s">&quot;first article on </span><span class="si">%s</span><span class="s"> : </span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">planet</span><span class="p">,</span> <span class="n">article</span><span class="p">,</span> <span class="n">title</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>When there are <em>n</em> element in the blog list, there will be <em>2n</em> page
+downloaded, one after the other, and this will take <em>2n * time to
+download a page</em>. When the time taken by an algorithm the algo
+directly proportional to the number of inputs, this is called a linear
+complexity and this will rightfully raise the eyebrow of any developer
+concerned with performance and scalability.</p>
+<p>As each download is completely independent from each other, it is
+obvious that these downloads should be executed in parallel, or,
+<em>concurrently</em>, and this is the raison d&#8217;être of the Twisted Python
+framework. <a class="reference external" href="preemptive.html"><em>Processes and threads</em></a> are well-known
+primitives for programming concurrently but Twisted does without (not
+even behind your back), because it is not adapted for scalable network
+programming. This frees the developer from using locks, recursive
+locks, or mutexes. The solution presented at the end of the article
+does not have more line of codes, does not take much longer for <em>n</em>
+downloads than it takes for one download (a constant complexity) and
+is actually three times faster.</p>
+<p>A frequently heard reaction at this point is &#8220;Python is a slow
+language to start with, <strong>a fast language</strong> is the answer to
+performance&#8221;. Notwithstanding the many existing techniques to make
+Python code compile and run on multiple processors, the speed of the
+language is not the point. In many case, even a C compiler can not fix
+a bad design. For example, take the download of an install CD, there
+is an insignificant gain in performance in a download client written
+in C over an implementation in Python, because 1. both implementations
+are very likely to end up leaving the network and disk stuff to the
+kernel and most importantly because 2. this job is inherently bound by
+the network bandwidth, not by CPU computations, where C shines. Both
+in C and in Python, in the context of multiple downloads, prformance
+depends on concurrent connections.</p>
+<p>One of the core ideas is that Twisted functions which make a network
+call should not block the application while the response is not yet
+available. Functions are split in two functions, one which emits the
+network system call and another function, the <em>callback</em>, which will
+process the received bytes, and then return a processed result. In the
+period of time between the return of the requesting functions and the
+execution of the callback, the <a class="reference external" href="reactor.html"><em>The Reactor and the Protocols</em></a>, which is the
+Twisted&#8217;s event loop, can run other instructions. This is the basic
+idea which makes asynchronous code faster than blocking code.</p>
+</div>
+<div class="section" id="a-concurrent-solution">
+<span id="yield"></span><h1>A concurrent solution<a class="headerlink" href="#a-concurrent-solution" title="Permalink to this headline">¶</a></h1>
+<p>Here is a concurrent solution to the problem detailed in the
+introduction. It is three times faster than the sequential approach:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># concurrent.py </span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">inlineCallbacks</span>
+<span class="kn">from</span> <span class="nn">twisted.web.client</span> <span class="kn">import</span> <span class="n">getPage</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">fromstring</span>
+
+<span class="n">planets</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;http://planet.debian.net&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://planetzope.org&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://planet.gnome.org&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://gstreamer.freedesktop.org/planet/&quot;</span><span class="p">]</span>
+
+<span class="nd">@inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">first_title</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+
+    <span class="n">html</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">getPage</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">html</span><span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;//h3/a/@href&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">html</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">getPage</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">html</span><span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;/html/head/title&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+
+    <span class="k">print</span> <span class="s">&quot;first article on </span><span class="si">%s</span><span class="s"> : </span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">article</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">planets</span><span class="p">:</span>
+    <span class="n">first_title</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+<span class="n">reactor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span> 
+<span class="c"># Use Ctrl-C to terminate the script</span>
+</pre></div>
+</div>
+<p>The Twisted equivalent of <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt> is called
+<tt class="xref docutils literal"><span class="pre">getPage()</span></tt>. It is asynchronous and returns a deferred. The low
+level steps composing <tt class="xref docutils literal"><span class="pre">getPage()</span></tt> are asynchronous as well: even
+the DNS request turning the url argument into an IP address will not
+block the application which is why such code is efficient. Learn about
+how twisted uses <a class="reference internal" href="#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> and the Python <a class="reference external" href="http://wiki.python.org/moin/PythonDecorators">decorator</a> on
+<a class="reference external" href="smartpython.html"><em>this page</em></a></p>
+<p>This article leaves many questions aside. For instance, error handling
+is non existent in the scripts: manipulating deferreds explicitly,
+though more verbose, help creating clearer failure code path and help
+create more robust application and libraries. In our script, as well
+as when building network applications or libraries, the following
+problems may arise: no network, no dns, no route, no tcp server, page
+not found error, HTML title not found. How easy it is to handle them
+gracefully?</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, jdb.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>
