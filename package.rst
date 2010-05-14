@@ -1,5 +1,5 @@
 
-surprising imports
+Surprising imports
 ==================
 
 If ``from a import b ; print b.c`` works, shouldn't 
@@ -10,13 +10,14 @@ namespace. To create a new entry in a module namespace, it is possible
 to either define the functions and classes *or import* them from a
 package or a module. Packages are also namespaces, **the objects which
 are included in the current namespace when the package is imported are
-the objects which are defined and imported by the :mod:`__init__.py`**
-module of the package. If the :mod:`__init__.py` is empty for a
+the objects which are defined and imported by the** :mod:`__init__.py`
+module of the package. If :mod:`__init__.py` is empty for a
 package, importing the package does not make the modules in the
 package available.
 
-Rule of thumb, if you don't want surprises always import modules,
-because with packages, it depends on the :mod:`__init__` package.
+Rule of thumb, if you don't want surprises always import modules
+instead of packages, because with packages, what is imported depends
+on the :mod:`__init__` package and changes.
 
 Here is an example
 
@@ -33,7 +34,7 @@ Here is an example
 
 :mod:`package` and :mod:`shbonz` are packages (:mod:`shbonz` is a
 *subpackage*), which means they are filesystem directories with a file
-named __init__.py in it. Those can be empty files.
+named *__init__.py* in it. Those can be empty files.
 
 .. sourcecode:: sh
       

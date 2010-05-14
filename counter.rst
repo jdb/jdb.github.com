@@ -25,9 +25,10 @@ addition of two integers.
 >>> f(1)
 43
 
-An incrementor would commonly be called without argument and return
-*43* the first time it was called and *44* the second time, etc. With
-an incrementor, same cause lead to *different* effects.
+An incrementor would commonly be called without argument and, in this
+example, return *43* the first time it was called and *44* the second
+time, etc. With an incrementor, same cause lead to *different*
+effects.
 
 In the example, *start* is enclosed in the created callable *f* but it
 can not be modified. The following function tries to increment
@@ -45,7 +46,7 @@ calling the incrementor:
 Traceback (most recent call last):
 UnboundLocalError: local variable 'start' referenced before assignment
 
-Ths variable can't be written in this scope, here are four correct
+This variable can't be written in this scope, have a look at four correct
 implementations below.
 
 the object oriented way
@@ -125,7 +126,7 @@ element, and writing ``count`` and ``count[0]``.
 using *yield*
 -------------
 
-The following function uses yield. Yielding, for a function, is the
+The following function uses *yield*. Yielding, for a function, is the
 act of voluntarily suspending itsef. Functions using yield returns a
 generator which have the *next()* and *send()* methods.
 
@@ -140,4 +141,6 @@ generator which have the *next()* and *send()* methods.
 (43, 44, 54)
 
 As generators are functions which can be resumed, they keep their
-state: they can keep track of a counter. Which one do you prefer?
+state: they can keep track of a counter. 
+
+Which counter implementation do you prefer?

@@ -2,7 +2,9 @@
 
 Every bit counts
 ================
-	
+
+Articles	
+
 .. toctree::
    :maxdepth: 1
 
@@ -11,4 +13,11 @@ Every bit counts
    lvm
    pty
    concurrent
+
+Shorter Python tips
+
+.. toctree::
+   :maxdepth: 1
+
    counter
+   package

@@ -12,11 +12,11 @@ planets = ["http://planet.debian.net",
 @inlineCallbacks
 def first_title(url):
 
-    html = yield getPage(url)
-    article = fromstring(html).xpath('//h3/a/@href')[0]
+    dig = lambda html,pattern: fromstring(html).xpath(pattern)[0]
+    # takes a html page and a xpath pattern, returns the first matching node
 
-    html = yield getPage(article)
-    title = fromstring(html).xpath('/html/head/title')[0].text
+    article = dig( (yield getPage(url)),     '//h3/a/@href')
+    title   = dig( (yield getPage(article)), '/html/head/title').text
 
     print "first article on %s : \n%s\n%s\n\n" % (url, article, title)
 

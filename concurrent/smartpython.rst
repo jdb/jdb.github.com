@@ -1,34 +1,67 @@
 
-.. queens and knight in the tests
+.. link to :doc:counters
+.. link to queens and knight in the tests
 .. (yield 3) is an expression
 .. generators allows the superpowerful itertools
 
 
-Python *yield* simplifies Twisted code
-======================================
+The *yield* keyword simplifies Twisted code
+===========================================
 
 ... once you understand what this crazy keyword does
+
+
+:keyword:`yield` is a powerful Python keyword that Twisted uses to
+simplify the boilerplate of deferred and callback manipulation.  Also,
+the technical constraint, in Twisted, to manipulate the result of a
+request in a function different than the function making the request
+can be inconvenient: the integration of *yield* with the
+:class:`reactor` alleviates this problem. Here are three versions of
+the :func:`title` scraping function::
+
+  def title(url):
+      d = getPage(url)
+
+      def getpage_callback(html):       
+          print parse(html).xpath( ... )      
+
+      d.addCallback(getpage_callback)   
+
+Another *traditional* version, where the callback is defined before
+the request. It is easier to read from the bottom::
+
+  def getpage_callback( html )
+      print parse(html).xpath( ... )      
+
+  getPage(url).addCallback(getpage_callback)
+
+The third one is a rewrite with the *yield* keyword, and requires
+Python 2.5::
+
+   @inlineCallbacks
+   def title(url):
+       print parse((yield getPage(url))).xpath( ... )
+
+This version is shorter, there is no need to create and name a nested
+function, and to add a level of indentation to the callback code. The
+callback codes are in the same function that initiated the request,
+hence the name of *inline callbacks*. Because :func:`title` is marked
+with the :func:`inlineCallbacks` decorator, it will return a deferred,
+the :obj:`reactor` will trigger the call to the :func:`send` method on
+the generator, with the requested HTML page as the argument.
+
+But let's proceed step by step: first the *yield* keyword, then the
+decorator syntax.
+
 
 the *yield* Python keyword
 --------------------------
 
-:keyword:`yield` is a really powerful Python  keyword that Twisted uses
-in a clever way to simplify the boilerplate of deferred and callback
-manipulation and most importantly to manipulate the a deferred result
-in the same function which initiated the request. Example::
-
-   dig = lambda html,pattern: fromstring(html).xpath(pattern)[0]
-
-   @defer.inlineCallbacks
-   def title(url):
-       print dig( (yield getPage(url)), '/html/head/title' )
-
-But let's proceed step by step. For a function, *yielding* means
-*volontarily suspending itself*. When the function is called again, it
-is resumed where it was suspended. The arguments of *yield*
-are returned to the caller of the function as if the :keyword:`return`
-keyword  had been used. If you already know *yield*, just
-skip to the next section.
+For a function, *yielding* means *volontarily suspending itself*. When
+the function is called again, it is resumed where it was
+suspended. The arguments of *yield* are returned to the caller of the
+function as if the *return* keyword had been used. If you
+already know *yield*, just skip to the next section.
 
 The following examples only include code from the core Python
 language, there is no Twistery involved:
@@ -43,7 +76,7 @@ language, there is no Twistery involved:
 <generator object func_with_several_entry_points at ...>
 
 On call, a function using *yield* returns a Python *generator*
-object. *Generators* always have a :meth:`next` method which, on
+object. *Generators* always have a *next()* method which, on
 successive calls, runs the sections of code delimited by *yield*,
 one after the other.
 
@@ -56,7 +89,7 @@ Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 StopIteration
 
-Generators object raises a :exc:`StopIteration` exception to
+Generators object raises a :*StopIteration* exception to
 signal when it has reached the end of the last code section, and that
 it is no use calling it again.
 
@@ -72,7 +105,7 @@ implementation of the fibonacci suite.
 Lazy in the sense that it behaves like a huge list but the whole list
 is never completely computed in one shot and never fully stored in
 memory: the next element is computed **on demand**, when the
-:meth:`next` method is called:
+*next()* method is called:
 
 >>> gen=fib(2)
 >>> gen.next(), gen.next()
@@ -82,9 +115,9 @@ Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 StopIteration
 
-Generators are integrated with the :keyword:`for` keyword which
-dutifully call the :meth:`next` method on and on, until the
-:keyword:`for` keyword catches the :exc:`StopIteration` exception:
+Generators are integrated with the *for* keyword which
+dutifully call the *next()* method on and on, until the
+*for* keyword catches the *StopIteration* exception:
 
 >>> [n for n in fib(16)]
 [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610]
@@ -100,8 +133,8 @@ successively*.
 
 A limitation of *yield* mechanism was lifted_ in Python2.5, enabling
 their use with the Twisted reactor: the next section of code of a
-generator can be called with input data thanks the new :meth:`send`
-method instead of :meth:`next`. *Yield*, enclosed in parenthesis, is
+generator can be called with input data thanks the new *send()*
+method instead of *next()*. *Yield*, enclosed in parenthesis, is
 an expression:
 
 .. _lifted: http://docs.python.org/whatsnew/2.5.html#pep-342-new-generator-features
@@ -176,67 +209,4 @@ Here is the argument: 5
 
 Now that the *yield* keyword and the decorator syntax are clearer,
 understanding the integration of yield with the Twisted reactor should
-be straightforward.
-
-
-The integration of *yield* with the Twisted main loop
------------------------------------------------------
-
-The Twisted technical constraint to manipulate the result of a request
-in a function different than the function making the request can be
-inconvenient: the integration of *yield* with the
-:class:`reactor` alleviates this problem. Here are two versions of the
-:func:`title` scraping function::
-
-  def title(url):
-      d = getPage(url)                  
-      def getpage_callback(html):       
-          print parse(html).xpath( ... )      
-      d.addCallback(getpage_callback)   
-
-The second one is a rewrite with the *yield* keyword::
-
-   @inlineCallbacks
-   def title(url):
-       html = yield getPage(url)
-       print fromstring(html).xpath( '/...' )
-
-Because :func:`title` is marked with the :func:`inlineCallbacks`
-decorator, it will store a generator and return a deferred, the
-:obj:`reactor` will trigger the call to the :func:`send` method on the
-generator, with the requested HTML page as the argument.
-
-This version is shorter, there is no need to create and name a nested
-function, and to add a level of indentation to the callback code. The
-code appears more like its sequential counterpart.
-
-
-..     But if you do want to digress, there is a lot more to see! 
-
-       functions using *yield* keep their state between calls like
-       closures do: they can be used to build incrementors::
-
-           def counter(start=0):
-               while 1:
-                   start+=1
-                   yield start
-
-       The :mod:`itertools` provides super powerful, and efficient
-       primitives written in C for manipulating generators. See this
-       resolution of the `Queen problem`_ (in Python3):
-
-       .. _`Queen problem`: http://en.wikipedia.org/wiki/Eight_queens_puzzle
-
-       >>> from itertools import permutations as chessboards
-       >>> size=8; queens = range(size)
-       >>> safe = lambda rows: size == len({rows[col]+col for col in queens})\
-       ...                          == len({rows[col]-col for col in queens})
-       >>> list(filter(safe, chessboards(queens)))[:2]
-       [(0, 4, 7, 5, 2, 6, 1, 3), (0, 5, 7, 2, 6, 3, 1, 4)]
-
-       Also the regression tests for Python include an efficient
-       resolution of the `Knight problem`_ in pure Python. See the
-       ``Python-x.y.z/Lib/test/test_generators.py`` in the python
-       sources.
-
-       .. _`Knight problem`: http://www.imsc.res.in/Computer/lg/110/kapil.html
+be easier to apprehend.
