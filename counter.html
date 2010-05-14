@@ -20,7 +20,8 @@
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <link rel="top" title="bits v0.6 documentation" href="index.html" />
-    <link rel="prev" title="Concurrent network programming with Twisted" href="concurrent.html" /> 
+    <link rel="next" title="Surprising imports" href="package.html" />
+    <link rel="prev" title="The yield keyword simplifies Twisted code" href="concurrent/smartpython.html" /> 
   </head>
   <body>
     <div class="related">
@@ -30,7 +31,10 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="concurrent.html" title="Concurrent network programming with Twisted"
+          <a href="package.html" title="Surprising imports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="concurrent/smartpython.html" title="The yield keyword simplifies Twisted code"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
       </ul>
@@ -49,8 +53,11 @@
 </ul>
 
             <h4>Previous topic</h4>
-            <p class="topless"><a href="concurrent.html"
-                                  title="previous chapter">Concurrent network programming with Twisted</a></p>
+            <p class="topless"><a href="concurrent/smartpython.html"
+                                  title="previous chapter">The <em>yield</em> keyword simplifies Twisted code</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="package.html"
+                                  title="next chapter">Surprising imports</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
               <li><a href="sources/counter.txt"
@@ -99,9 +106,10 @@ addition of two integers.</p>
 <span class="go">43</span>
 </pre></div>
 </div>
-<p>An incrementor would commonly be called without argument and return
-<em>43</em> the first time it was called and <em>44</em> the second time, etc. With
-an incrementor, same cause lead to <em>different</em> effects.</p>
+<p>An incrementor would commonly be called without argument and, in this
+example, return <em>43</em> the first time it was called and <em>44</em> the second
+time, etc. With an incrementor, same cause lead to <em>different</em>
+effects.</p>
 <p>In the example, <em>start</em> is enclosed in the created callable <em>f</em> but it
 can not be modified. The following function tries to increment
 <em>start</em>. But an <em>unbound exception</em> concerning <em>start</em> is raised when
@@ -118,7 +126,7 @@ calling the incrementor:</p>
 <span class="nc">UnboundLocalError</span>: <span class="n-Identifier">local variable &#39;start&#39; referenced before assignment</span>
 </pre></div>
 </div>
-<p>Ths variable can&#8217;t be written in this scope, here are four correct
+<p>This variable can&#8217;t be written in this scope, have a look at four correct
 implementations below.</p>
 <div class="section" id="the-object-oriented-way">
 <h2>the object oriented way<a class="headerlink" href="#the-object-oriented-way" title="Permalink to this headline">¶</a></h2>
@@ -192,7 +200,7 @@ element, and writing <tt class="docutils literal"><span class="pre">count</span>
 </div>
 <div class="section" id="using-yield">
 <h2>using <em>yield</em><a class="headerlink" href="#using-yield" title="Permalink to this headline">¶</a></h2>
-<p>The following function uses yield. Yielding, for a function, is the
+<p>The following function uses <em>yield</em>. Yielding, for a function, is the
 act of voluntarily suspending itsef. Functions using yield returns a
 generator which have the <em>next()</em> and <em>send()</em> methods.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">make_incrementor</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -207,7 +215,8 @@ generator which have the <em>next()</em> and <em>send()</em> methods.</p>
 </pre></div>
 </div>
 <p>As generators are functions which can be resumed, they keep their
-state: they can keep track of a counter. Which one do you prefer?</p>
+state: they can keep track of a counter.</p>
+<p>Which counter implementation do you prefer?</p>
 </div>
 </div>
 
@@ -224,7 +233,10 @@ state: they can keep track of a counter. Which one do you prefer?</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="concurrent.html" title="Concurrent network programming with Twisted"
+          <a href="package.html" title="Surprising imports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="concurrent/smartpython.html" title="The yield keyword simplifies Twisted code"
              >previous</a> |</li>
         <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
       </ul>
