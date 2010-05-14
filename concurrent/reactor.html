@@ -19,7 +19,10 @@
     </script>
     <script type="text/javascript" src="../static/jquery.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
-    <link rel="top" title="bits v0.6 documentation" href="../index.html" /> 
+    <link rel="top" title="bits v0.6 documentation" href="../index.html" />
+    <link rel="up" title="Concurrent network programming with Twisted" href="../concurrent.html" />
+    <link rel="next" title="The Deferred" href="deferred.html" />
+    <link rel="prev" title="Twisted’s network concurrency model as compared with sockets and threads" href="preemptive.html" /> 
   </head>
   <body>
     <div class="related">
@@ -28,11 +31,24 @@
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="deferred.html" title="The Deferred"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="preemptive.html" title="Twisted’s network concurrency model as compared with sockets and threads"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li>
+          <li><a href="../concurrent.html" accesskey="U">Concurrent network programming with Twisted</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="preemptive.html"
+                                  title="previous chapter">Twisted&#8217;s network concurrency model as compared with sockets and threads</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="deferred.html"
+                                  title="next chapter">The <em>Deferred</em></a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
               <li><a href="../sources/concurrent/reactor.txt"
@@ -211,7 +227,7 @@ code is presented after the request code:</p>
 </pre></div>
 </div>
 <p>If you don&#8217;t like neither these style, stay tuned, you will appreciate
-the section <a class="reference external" href="getpage.html#yield"><em>A concurrent solution</em></a>. There is something unexplained in the last
+the section <em class="xref">yield</em>. There is something unexplained in the last
 code snippet: what is the object to which <em>d</em> is bound? What does
 <tt class="xref docutils literal"><span class="pre">getPage()</span></tt> returns if it&#8217;s not the server reply? you will find
 out in the next section.</p>
@@ -236,7 +252,14 @@ concurrently ten thousands of clients.</td></tr>
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="deferred.html" title="The Deferred"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="preemptive.html" title="Twisted’s network concurrency model as compared with sockets and threads"
+             >previous</a> |</li>
+        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li>
+          <li><a href="../concurrent.html" >Concurrent network programming with Twisted</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
