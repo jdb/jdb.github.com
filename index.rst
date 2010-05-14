@@ -21,4 +21,3 @@ Shorter Python tips
 
    counter
    package
-
