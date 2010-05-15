@@ -144,3 +144,5 @@ As generators are functions which can be resumed, they keep their
 state: they can keep track of a counter. 
 
 Which counter implementation do you prefer?
+
+*Jean Daniel Browne, 10 May 2009*
