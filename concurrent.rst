@@ -48,8 +48,8 @@ here. They are listed here for memo:
    :maxdepth: 1
 
    Comparison with threads and sockets <concurrent/preemptive>
-   Twisted core objects : the reactor and the Protocols <concurrent/reactor>
-   An abstraction for pending results: the Deferred <concurrent/deferred>
+   Twisted's core objects : the reactor and the Protocols <concurrent/reactor>
+   Twisted's abstraction for pending results: the Deferred <concurrent/deferred>
    concurrent/smartpython
 
 Retrieving the title of a list of blog articles
@@ -157,13 +157,15 @@ works at the operating system system.*
 
 Want to learn more? The project documentation_ presents many code
 examples and reference articles. Would you trust the Twisted framework
-for your core business development? difficult question check at
-the development methods_ to get the beginning of an answer.
+for your core business development? Hmm, difficult question: maybe you
+can check at the development methods_ to get the beginning of an
+answer.
 
 .. _documentation: http://twistedmatrix.com/documents/current/core/howto/index.html
 
 .. _methods: http://twistedmatrix.com/trac/wiki/ContributingToTwistedLabs
 
+*Jean Daniel Browne, 15 May 2010*
 
 .. This article leaves many questions aside. For instance, error handling
 .. is non existent in the scripts: manipulating deferreds explicitly,
