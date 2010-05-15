@@ -7,7 +7,7 @@ I have heard that in Ruby there is a conventional method which is
 automatically called when a method is missing. You can put code there
 which will be executed whenever you call a missing method. In Python,
 there is a similar mechanism exist, but there is one more
-indirection. If a missing method is called, *self.__getattr__** will
+indirection. If a missing method is called, *self.__getattr__* will
 be called and it needs to return a callable which itself will be
 called in place of the missing method.
 
