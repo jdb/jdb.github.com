@@ -165,7 +165,7 @@ answer.
 
 .. _methods: http://twistedmatrix.com/trac/wiki/ContributingToTwistedLabs
 
-*Jean Daniel Browne, 15 May 2010*
+*15 May 2010*
 
 .. This article leaves many questions aside. For instance, error handling
 .. is non existent in the scripts: manipulating deferreds explicitly,

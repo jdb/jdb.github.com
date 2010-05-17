@@ -468,5 +468,5 @@ hardware optimization at the processor level.
 .. _`Fabrice Bellard`: http://bellard.org/pi/pi2700e9/
 
 
-*Jean Daniel Browne, 19 Apr 2010* 
+*19 Apr 2010* 
 

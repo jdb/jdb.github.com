@@ -82,4 +82,4 @@ will be available:
    
 http://effbot.org/zone/import-confusion.htm
 
-*Jean Daniel Browne, 5 May 2010*
+*5 May 2010*

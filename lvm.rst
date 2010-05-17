@@ -362,6 +362,6 @@ We are done with this howto, to clean up after this exercice
    ~# rm -r ./mnt/backup ./mnt/website loop1.raw
 
 
-*Jean Daniel Browne, 9 Feb 2010* This article was verified with the wordish_ module.
+*9 Feb 2010, this article was verified with the wordish_ module*
 
 .. _wordish: http://pypi.python.org/pypi/wordish

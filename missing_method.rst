@@ -29,4 +29,4 @@ Hello World
 Warning: method does not exists (you gave knock knock knock)
 
 
-*Jean Daniel Browne, 10 May 2010*
+*10 May 2010*
