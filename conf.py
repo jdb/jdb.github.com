@@ -19,7 +19,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 project = u'bits'
-copyright = u'2009, jdb'
+copyright = u'2009, Jean Daniel Browne'
 #
 # The short X.Y version.
 version = '0.5'

@@ -142,4 +142,4 @@ to see how to hack i18n to address different audience.
 .. those for the grandma), in i18n it is strictly one langage xor the
 .. other
 
-*Jean Daniel Browne, 15 November 2009*
+*15 November 2009*
