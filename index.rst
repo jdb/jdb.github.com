@@ -22,3 +22,4 @@ Shorter Python tips
    counter
    package
    missing_method
+   classmethod
