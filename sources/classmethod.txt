@@ -3,9 +3,8 @@
 Class method and static method
 ==============================
 
-A class method is a method bound to a class and not an instance:
+A class method is a method bound to a class and not to an instance.
 
->>> import time
 >>> class MyFantasticClass(object):
 ...     def interrupt(self):
 ...         print 'Or a woman !'
@@ -13,9 +12,9 @@ A class method is a method bound to a class and not an instance:
 >>> m.interrupt()
 Or a woman !
 
-The *time* function is an instance function, it receives self as an
+The *interrupt* function is an instance function, it receives self as an
 argument. This is not adapted here, because for the function to be
-used, an instance must be created: even though the *time* method does
+used, an instance must be created: even though the *interrupt* method does
 not make use of the instance, it is passed as an input parameter to
 the function.
 
