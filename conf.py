@@ -1,10 +1,15 @@
 
 import sys, os
 
+sys.path.insert(0, 'dependencies')
 
-extensions = ['sphinx.ext.todo', 'sphinx.ext.ifconfig', 'sphinx.ext.intersphinx', 'sphinx.ext.pngmath', 'sphinx.ext.doctest']
-# extensions = ['sphinx.ext.todo', 'sphinx.ext.ifconfig', 'sphinx.ext.intersphinx', 'sphinx.ext.jsmath', 'sphinx.ext.doctest']
-
+extensions = ['sphinx.ext.autosummary',
+              'sphinx.ext.todo', 
+              'sphinx.ext.ifconfig', 
+              'sphinx.ext.intersphinx', 
+              'sphinx.ext.pngmath', 
+              'sphinx.ext.doctest', 
+              'sphinx.ext.autodoc']
 
 intersphinx_mapping = {'http://docs.python.org/dev': '_static/python-inv.txt'}
 

@@ -142,8 +142,7 @@ ressource.
 The scheduling overhead does not occur with Twisted. I assume the
 reader is curious to see the Twisted can have many increment pending
 on a global variable and the associated performance, it is be shown
-as soon as the required Twisted concepts have been presented (Spoiler_:
-Twisted is twice as fast as even the fast unsafe code).
+as soon as the required Twisted concepts have been presented.
 
 
    
@@ -157,9 +156,10 @@ might actually sit there until the thread which takes care of this
 file descriptor gets a chance to run again. Event driven frameworks
 can alleviate this problem: the next section introduces the
 :attr:`reactor` and the :class:`Protocol`, which are a pre-requisites
-for understanding how Twisted eliminates this delay.
-e **xpath**  to find urls or page titles
-  in a HTML document.
+for understanding how Twisted eliminates this delay. 
+
+
+XXX e **xpath** to find urls or page titles in a HTML document.
 
 And here is the script which brings all this together (and includes a
 design problem):

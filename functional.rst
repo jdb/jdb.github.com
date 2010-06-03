@@ -214,10 +214,9 @@ each point in the circle:
 .. literalinclude:: functional/harder_better_stronger_faster.py 
    :lines: 6-
 
- The :func:`test_it` function
-shows that *lazy* functional implementation operates with a
-performance boost of 14%, 25% and 55% over the previous functional
-implementation:
+The :func:`test_it` function shows that *lazy* functional
+implementation operates with a performance boost of 14%, 25% and 55%
+over the previous functional implementation:
 
 .. sourcecode:: sh
 

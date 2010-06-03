@@ -4,6 +4,7 @@
 .. (yield 3) is an expression
 .. generators allows the superpowerful itertools
 
+.. _yield:
 
 The *yield* keyword simplifies Twisted code
 ===========================================
