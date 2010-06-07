@@ -5,10 +5,27 @@
  Scheduling dependencies
 =========================
 
-How to solve a set of dependencies? Given a set of dependencies
-between nodes: a needs b, a needs c, c needs b, we want an **ordered
-list of nodes where each nodes occurs *after* its dependencies**. This
-problem can be represented as a graph:
+How to solve a set of dependencies? That is, given a set of
+dependencies between nodes: a needs b, a needs c, c needs b, we want
+an **sorted list of nodes where each nodes occurs *after* its
+dependencies**. In this simple example, the sorted list is *b, c
+a*. *b* is first, because *b* has no dependencies, *c* is next because
+it only requires *a*, and *b* is last since it needs all the rest.
+
+Several algorithms will be presented to compute the list:
+
+* a naive method which presents but is computationaly to hard to be
+  useful,
+
+* graph methods: in this context, the list is called a topological
+  sort. In Python, there is one implementation derived from the Python
+  mailing list archive, written by Tim Peters, and another version in
+  the *python-graph* package 
+
+* finally
+
+
+This problem can be represented as a graph:
 
 >>> class Graph(object):
 ...     def __init__(self,nodes=[],edges=[]):
