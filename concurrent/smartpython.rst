@@ -101,7 +101,7 @@ implementation of the fibonacci suite.
 ...     a,b=1,0	
 ...     for i in range(max):
 ...          yield b
-...          b,a = a+b,b
+...          a,b = b,a+b
 
 Lazy in the sense that it behaves like a huge list but the whole list
 is never completely computed in one shot and never fully stored in
