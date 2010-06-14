@@ -1,28 +1,25 @@
+from pprint import pprint
+from itertools import chain
 
-from data import deps
-from itertools import chain,groupby
-from operator import itemgetter
-
-def prepare(dependencies):
+def tims(provides):
 
     edges = list(chain(*[
-                [(parent,child) for parent in dependencies[child]] 
-                for child in dependencies ]))
-    edges.sort()
-
-    provides = dict(
-        (parent,[child for parent,child in group]) 
-        for parent, group in groupby(edges, itemgetter(0)))
+                [(child,parent) for parent in deps[child]] 
+                for child in deps ]))
 
     nodes = set(chain(*edges))
+
+    # inverses a adjacency matrix: turns a require dict into a provide
+    # dict. Not needed here as the end result is reversed...
+    
+    # edges.sort(itemgetter(0))
+    # provides = dict(
+    #     (parent,[child for parent,child in group]) 
+    #     for parent, group in groupby(edges, itemgetter(0)))
+
     num_parents = dict([ (k,0) for k in nodes ])
     for _,child in edges: 
         num_parents[child]+=1 
-
-    return provides, num_parents
-
-
-def topsort(provides, num_parents):
 
     answer = filter(lambda x: num_parents[x] == 0, num_parents)
 
@@ -34,11 +31,11 @@ def topsort(provides, num_parents):
                 if num_parents[child]==0:
                     answer.append(child)
 
-    return answer
+    return list(reversed(answer))
 
+if __name__=="__main__":
+    from data import deps
+    from timeit import Timer
+    print tims(deps)
 
-print topsort(*prepare(deps))
-
-
-
-
+    # print Timer(lambda : tims(projects,deps)).timeit(number=1000)
