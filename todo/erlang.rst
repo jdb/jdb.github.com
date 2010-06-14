@@ -26,6 +26,9 @@ Diffs
 - "Do not worry, it is safe, it will crash...": fast, and loudly from
   the end of your network
 
+- In python, not only lists are first class citizen of the language,
+  but also dict and sets (dict and sets comprehensions). binaries are not.
+
 Pros
 ====
 
