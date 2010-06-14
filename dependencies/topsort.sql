@@ -15,8 +15,11 @@ with recursive topsort(p,d,path,depth) as (
      from deps
      where d = array[]::integer[]
 UNION ALL
-     select deps.p, deps.d, path||deps.p, depth+1
+     select deps.p, deps.d, path || deps.p, depth+1
      from topsort, deps
-     where (deps.d <@ path and not deps.p = any(path))
+     where (deps.d <@ path and not deps.p = any(path)) -- and length(path)
 )
 select path from topsort where depth = 12;
+
+-- # if not redirected, 'more' is spawn and interactively blocks
+-- psql -f topsort.sql > toto && cat toto   
