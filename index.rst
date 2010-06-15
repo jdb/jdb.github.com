@@ -13,6 +13,7 @@ Articles
    lvm
    pty
    concurrent
+   dependencies
 
 Shorter Python tips
 
