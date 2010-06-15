@@ -1,147 +1,63 @@
 
+======================
+ Sorting dependencies
+======================
 
-
-=========================
- Scheduling dependencies
-=========================
-
-How to solve a set of dependencies? That is, given a set of
-dependencies between nodes: a needs b, a needs c, c needs b, we want
-an **sorted list of nodes where each nodes occurs *after* its
+This article is on different ways to solve a set of dependencies. That
+is, given a set of dependencies between nodes (think of projects or
+software packages): a needs b, a needs c, c needs b, we want an
+**sorted list of nodes where each nodes occurs *after* its
 dependencies**. In this simple example, the sorted list is *b, c
 a*. *b* is first, because *b* has no dependencies, *c* is next because
-it only requires *a*, and *b* is last since it needs all the rest.
+it only requires *b* which is already in the list, and *a* is last
+since it needs all the rest.
 
-Several algorithms will be presented to compute the list:
+Several algorithms will be presented to build this list:
 
-* a naive method which presents but is computationaly to hard to be
-  useful,
+* A naive method which is simple to read and understand: a function
+  test if list satisfies the dependencies, and this function is
+  applied to all possible permutation of the node list. But is
+  computationaly too hard to be useful: it takes much too long to
+  solve even simple sets of dependencies:
 
-* graph methods: in this context, the list is called a topological
-  sort. In Python, there is one implementation derived from the Python
-  mailing list archive, written by Tim Peters, and another version in
-  the *python-graph* package 
+  :ref:`dependencies/brute`
 
-* finally
+* Finding the sorted list is a known problem called a topological
+  sort. In Python, there is one implementation derived from a mail in
+  the Python mailing list written by Tim Peters in the package
+  *topsort*, and another version in the *python-graph* package. In
+  Erlang, this algorithm is part of the standard library. The
+  topological sort returns only one of the possible solution:
 
+  :ref:`dependencies/off_the_shelf`
 
-This problem can be represented as a graph:
+* yet another way to solve this problem is to consider *the graph of
+  the candidates*, that is given an incomplete sorted list of nodes,
+  consider as the children of the last node of the list, all the nodes
+  which are not yet in the list and whose dependencies are in the
+  list. Then, it is just a matter of traversing the graph in depth
+  first or breadth first to find the list of all possible solutions.
 
->>> class Graph(object):
-...     def __init__(self,nodes=[],edges=[]):
-...         self.nodes = nodes
-...         self.edges = edges
-...
-...     def __repr__(self):
-...         return "[%s, %s]" % self.name, self.edges
+  :ref:`dependencies/bfs_dfs`
 
->>> a, b, c = nodes = 'abc'
->>> # in this representation, (a,b) is read *a requires b*
->>> G = Graph( nodes, edges=[(a,b), (a,c), (c,b)])
+  In depth search first (DFS), it is possible to build a generator of
+  the solutions: the solution are not computed in a long batch,
+  accumulated and returned as a long list, the solutions are available
+  as soon as they are found. The processing of the solution alternates
+  with the search for the next solution. For instance, a solution can
+  be emitted to a client, while the server continues the exhaustion of
+  the solutions.
 
+  :ref:`dependencies/idfs`
 
-We want a function which validates the cited constraint on a given
-sorted list of nodes::
-
-   prompt> G.sort()
-   [b, c, a]
-
-Now there are many ways to solve this problem: 
-
-1. We can test each *permutation* of the list of node against the
-   a function that verify that the constraint is respected
-
-2. it is also possible to build a algorithm which explores the graph
-   and builds what is actually called a *topological sort*
-
-3. a *backtrack algorithm* can be build for this problem. As I can't
-   briefly summarize the method, I'll invite you to the third section
-   of this articles to the details of the method.
-
-Testing each permutations
-=========================
-
-.. currentmodule:: brute
-
-.. autosummary::
-   :toctree:
-
-   brute.deps
-   brute.are_before
-   brute.schedule
-
-.. autofunction:: deps
-
-*deps* is implemented in one line: ``return (dep for (n,dep) in 
-G.edges if node==n)``
+  It is actually possible to a breadth first search traversal of the
+  graph in pure SQL (since Postgresql 8.4) using the recent standard
+  ``with recurse`` queries available in PostgreSQL 8.4.
+  Performance-wise, the SQL query is one hundred time faster that the
+  traversal in pure CPython. The SQL query (which find all solutions)
+  is on par with the topological sort (which finds only one).
+  
+  :ref:`dependencies/with_recurse`
 
 
-.. autofunction:: are_before
-
->>> def is_schedule(G, l):
-...     return all( are_before(l,required(G,pivot),pivot) for pivot in l )
-...
->>> incorrect_solution = [a, b, c]
->>> is_schedule(G, incorrect_solution)
-False
-
-This solution is not satisfying because a needs b, and on the other
-hand, b is located after a (index(a)<index(b)).
-
->>> is_schedule( G, [b, c, a] )
-True
-
-Given a graph and a ordered list of nodes of the graph, *is_schedule*
-returns whether for each element of the list, the dependency liste in
-the given graph, are listed before the current element.
-
->>> from itertools import chain
->>> nodes = lambda G:( n for n in set(chain(*G)))
->>> sorted(list(nodes(G)))
-[b, a, c]
-
-*nodes* is function which returns a generator of the nodes of a graph.
-
->>> from itertools import permutations
->>> def schedule(G):
-...     return list(filter(lambda l:is_schedule(G,l),permutations(nodes(G))))
-
-Lets test the two examples at the top of this section:
-
-Given a graph, schedule returns the list of list node where the
-requirements are always listed before the node which require them.
-
->>> sorted(schedule(G))
-[(b, c, a)]
-
-This was long, documented and tested but this can be written in a much
-shorter way:
-
->>> from itertools import chain,permutations as perm
->>> required = lambda G,node:(requirement for (n,requirement) in G if node==n)
->>> are_before = lambda L,l,p: all(L.index(n) < L.index(p) for n in l)
->>> is_schedule = lambda G,l: all(are_before(l,required(G,n),n) for n in l)
->>> nodes = lambda G:(n for n in set(chain(*G)))
->>> schedule = lambda G:list(filter(lambda l:is_schedule(G,l),perm(nodes(G))))
->>> sorted(schedule(G))
-[(b, c, a)]
-
-Now would this code works well on a simple and real life example?
-
->>> symbol = lambda l: Symbol(l) if len(l)==1 else [Symbol(n) for n in l] 
->>> jansson, libasnmp, libcommon, liblog = symbol("jansson libasnmp libcommon liblog".split())
->>> libapsi, libanevia, mediadescr, libts = symbol("libapsi libanevia mediadescr libts".split())
->>> rtplib, mp4lib, vodrtp = symbol("rtplib mp4lib vodrtp".split())
->>> deps = (
-...   (liblog,(libasnmp,jansson),
-...   (libapsi,(libcommon)),
-...   (libanevia,(liblog)),
-...   (mediadescr,(libanevia, libapsi, libcommon)),
-...   (libavc,(libanevia, libcommon)),
-...   (libts,(libanevia, libapsi, libavc, mediadescr)),
-...   (rtplib,(libanevia, libapsi, libcommon, mediadescr)),
-...   (mp4lib, libcommon, libanevia, mediadescr),
-...   (vodrtp,libanevia, mediadescr, rtplib, mp4lib, libavc,liblog, libts))
->>> G =  chain(*(((n,r) for r in req)  for n,req in deps))
->>> print schedule(G)
 

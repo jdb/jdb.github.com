@@ -70,8 +70,12 @@ if __name__=="__main__":
 
     projects, deps = prepare(deps)
 
-    pprint(dfs(projects, deps))
-    pprint(bfs(projects, deps))
-    pprint(list(idfs(projects, deps)))
+    # pprint(dfs(projects, deps))
+    # pprint(bfs(projects, deps))
+    # pprint(list(idfs(projects, deps)))
 
-    # print Timer(lambda : list(idfs(projects,deps))).timeit(number=1000)
+    # print Timer(lambda : dfs(projects,deps)).timeit(number=1000)
+    # print Timer(lambda : bfs(projects,deps)).timeit(number=1000)
+    print Timer(lambda : list(idfs(projects,deps))).timeit(number=1000)
+
+

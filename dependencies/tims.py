@@ -36,6 +36,6 @@ def tims(provides):
 if __name__=="__main__":
     from data import deps
     from timeit import Timer
-    print tims(deps)
+    # print tims(deps)
 
-    # print Timer(lambda : tims(projects,deps)).timeit(number=1000)
+    print Timer(lambda : tims(deps)).timeit(number=1000)
