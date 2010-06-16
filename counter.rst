@@ -3,11 +3,13 @@ Counters in python
 ==================
 
 Counters serve many purposes in software development. It is sometimes
-handy to use a incrementor function which returns the new value every
-time it is called, like calling ``count()`` instead of manipulating
-directly a variable by using ``count += 1``. It has its uses
-especially in Python where binding a variable does not return the
-bound value, as in the C langage.
+handy to use a incrementor function which *returns* the new value
+every time it is called, like calling ``count()`` instead of
+manipulating directly a variable by using a binding statement such
+as``count += 1``. It has its uses especially in Python where binding a
+variable does not return the bound value, as in the C langage.
+
+*Update: itertools.count() is in the standard library*
 
 There is a peculiar example_ in the official Python documentation on
 *lambda*. The *make_incrementor* function is misleadingly named since
