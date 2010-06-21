@@ -5,9 +5,9 @@ coups_max, secret_max = 15, 1000
 print("\nJe vais choisir un nombre entre 1 et " + str(secret_max) + ".\n...")
 import random
 secret = random.randint(1, secret_max)
+print("Voila, c'est fait; à vous de le deviner maintenant !")
 
 # Partie interactive
-print("Voila, c'est fait; à vous de le deviner maintenant !")
 coups_joues, tentative = 0, 0
 while coups_joues < coups_max and tentative!=secret:
     tentative = int( raw_input("\nProposition ?\n") )
