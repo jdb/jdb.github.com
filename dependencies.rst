@@ -20,44 +20,54 @@ Several algorithms will be presented to build this list:
   computationaly too hard to be useful: it takes much too long to
   solve even simple sets of dependencies:
 
-  :ref:`dependencies/brute`
+  :doc:`dependencies/brute.py`
 
 * Finding the sorted list is a known problem called a topological
   sort. In Python, there is one implementation derived from a mail in
   the Python mailing list written by Tim Peters in the package
   *topsort*, and another version in the *python-graph* package. In
-  Erlang, this algorithm is part of the standard library. The
-  topological sort returns only one of the possible solution:
+  Erlang, this algorithm is part of the standard library. 
 
-  :ref:`dependencies/off_the_shelf`
+  The topological sort returns quickly only one of the possible
+  solution:
 
-* yet another way to solve this problem is to consider *the graph of
-  the candidates*, that is given an incomplete sorted list of nodes,
-  consider as the children of the last node of the list, all the nodes
-  which are not yet in the list and whose dependencies are in the
-  list. Then, it is just a matter of traversing the graph in depth
-  first or breadth first to find the list of all possible solutions.
+  :doc:`dependencies/off_the_shelf`
 
-  :ref:`dependencies/bfs_dfs`
+* Yet another way to solve this problem is to consider *the graph of
+  the candidates*, that is given the first part of the sorted list of
+  nodes, consider as the children of the last node of the list: all
+  the nodes which are not yet in the list and whose dependencies are
+  in the list. Then, it is just a matter of traversing the graph in
+  depth first or breadth first to find the list of all possible
+  solutions.
+
+  :doc:`dependencies/bfs_dfs`
 
   In depth search first (DFS), it is possible to build a generator of
   the solutions: the solution are not computed in a long batch,
   accumulated and returned as a long list, the solutions are available
   as soon as they are found. The processing of the solution alternates
-  with the search for the next solution. For instance, a solution can
-  be emitted to a client, while the server continues the exhaustion of
-  the solutions.
+  with the search for the next solution. 
 
-  :ref:`dependencies/idfs`
+  For instance, a solution can be emitted to a client which draws the
+  solution, while the server continues the exhaustion of the
+  solutions.
+
+  :doc:`dependencies/idfs`
 
   It is actually possible to a breadth first search traversal of the
   graph in pure SQL (since Postgresql 8.4) using the recent standard
   ``with recurse`` queries available in PostgreSQL 8.4.
   Performance-wise, the SQL query is one hundred time faster that the
   traversal in pure CPython. The SQL query (which find all solutions)
-  is on par with the topological sort (which finds only one).
+  is actually on par with the topological sort (which finds only one).
   
-  :ref:`dependencies/with_recurse`
+  :doc:`dependencies/with_recurse`
 
 
+.. todo::
+
+   Shows a grok + yui incremental drawing of the solutions.
+
+   Shows a distributed graph traversal.
 
