@@ -22,14 +22,14 @@ Several algorithms will be presented to build this list:
 
   :doc:`dependencies/brute.py`
 
-* Finding the sorted list is a known problem called a topological
-  sort. In Python, there is one implementation derived from a mail in
-  the Python mailing list written by Tim Peters in the package
-  *topsort*, and another version in the *python-graph* package. In
-  Erlang, this algorithm is part of the standard library. 
+* Finding the sorted list is actually a known problem and the
+  solutions are called topological sort. In Python, there is one
+  implementation derived from a mail in the Python mailing list
+  written by Tim Peters in the package *topsort*, and another version
+  in the *python-graph* package.
 
-  The topological sort returns quickly only one of the possible
-  solution:
+  A topological sort implementation returns quickly only one of the
+  possible solution:
 
   :doc:`dependencies/off_the_shelf`
 
@@ -63,6 +63,14 @@ Several algorithms will be presented to build this list:
   is actually on par with the topological sort (which finds only one).
   
   :doc:`dependencies/with_recurse`
+
+
+* Other languages have advantages: for a recursive algorithm dealing
+  and the manipulation of lists, Erlang is particularly adapted and
+  this makes the implementation short. Actually, the topsort algorithm
+  is part of Erlang standard library.
+
+  :doc:`dependencies/topsort.erl`
 
 
 .. todo::
