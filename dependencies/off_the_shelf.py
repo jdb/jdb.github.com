@@ -1,33 +1,35 @@
 
 
-# Topsort in available packages
-# =============================
+# Topsort in available Python packages
+# ====================================
 
-# Topsort are fast functions which finds only one of the available
-# solutions. This is usually wha is needed: as for a labyrinth, the
-# problem really to find the exit, not exhaustively list every
+# Topsort is fast, and only returns one of the available
+# solutions. This is usually what is needed: as for a labyrinth, the
+# problem really is to find the exit, not exhaustively list every
 # available way out.
 
 
 # The topsort package
 # -------------------
 
-# This package is not installable at this time (June 2010), but the
-# algorithm is reproduced here and simplified. The simplification
-# consist of suppressing the graph cycle detection (make sure, there
-# are no circular dependencies in the input graph).
+# This package available on Pypi does not successfully installs at
+# this time (*june 2010*), but the algorithm is reproduced here and
+# simplified (suppression of the graph cycle detection: make sure,
+# there are no circular dependencies in the input graph).
 
+# Prerequisite: *itertools.chain()* can turn a list of list into a
+# flat list (sometimes called flatten in other langages)
 
-# Prerequisite: chain() can turn a list of list into a flat list,
-# sometimes called flatten in other langages
 from itertools import chain
 
-def tims(deps):
+# The funtion is named after Tim Peters who also wrote the super
+# efficient timsort_ algorithm. The first step of the algorithm is
+# preparing a small data structure: it associates to every nodes its
+# number of child: it is the *num_parents* dictionary
 
+# .. _timsort: http://en.wikipedia.org/wiki/Timsort
 
-# The first step of the algorithm is preparing a small data structure:
-# it  associates to every nodes its number of
-# child: it is the *num_parents* dictionary
+def tim(deps):
 
     edges = list(chain(*[
                 [(child,parent) for parent in deps[child]] 
@@ -37,19 +39,17 @@ def tims(deps):
     for _,child in edges: 
         num_parents[child]+=1 
 
-# Here is how the algorithm unfolds:
-#
-# The graph roots are the nodes without parents, their num_parents'
-# value is zero. These roots are appended to the answer list and
-# suppressed from the num_parents dictionary. The iteration begins on
-# the list of nodes without parents.
+# Now, here is how the algorithm unfolds: the graph roots are the
+# nodes without parents: their num_parents' value is zero. These roots
+# are appended to the answer list and suppressed from the num_parents
+# dictionary. The iteration operates on this list of nodes without
+# parents.
 
 # At each iteration, each current node's children see its parent count
 # decremented by one, whenever a children has no more parents, it is
-# appended at the end of the answer and suppress from num_parents.
-
-# At each iteration, the num_parents shrinks and the algorithm
-# crunches a smaller graph.
+# appended at the end of the answer and suppress from num_parents. At
+# each iteration, the num_parents shrinks and the algorithm crunches a
+# smaller graph.
 
     answer = filter(lambda x: num_parents[x] == 0, num_parents)
 
@@ -67,13 +67,26 @@ def tims(deps):
 
     return list(reversed(answer))
 
-from data import deps
-print tims(deps)
+# Let's try it on a small real world graph in the data package:
 
+# >>> from data import deps
+# >>> from pprint import pprint
+# >>> pprint(deps)
+# {1: [2, 3],
+#  5: [4],
+#  6: [1],
+#  7: [6, 5, 4],
+#  8: [6, 4],
+#  9: [6, 5, 8, 7],
+#  10: [4, 6, 7],
+#  11: [6, 5, 4, 7],
+#  12: [6, 7, 11, 10, 8, 1, 9]}
 
+# >>> print tim(deps)
+# [3, 2, 4, 1, 5, 6, 7, 8, 9, 10, 11, 12] 
 
 # From the Pygraph package
-# =======================
+# ------------------------
 
 # The algorithm is import imported form the *sorting* algorithm, and
 # operates on digraphs.
@@ -102,11 +115,20 @@ def prepare(deps):
 
     return G
 
-print topological_sorting(prepare(deps))
+# >>> from data import deps
+# >>> print topological_sorting(prepare(deps))
+# [4, 5, 3, 2, 1, 6, 8, 7, 11, 10, 9, 12]
 
-# Performances
-# ============
 
-from timeit import Timer
-print Timer(lambda : tims(deps)).timeit(number=1000)
+# The simplified topsort runs four times faster than the
+# implementation in the pygraph packages.
 
+# >>> from timeit import Timer
+# >>> print Timer(lambda : tim(deps)).timeit(number=1000)
+# 0.0732760429382
+# >>> print Timer(lambda : topological_sorting(prepare(deps))
+# ...             ).timeit(number=1000)
+# 0.333679914474
+
+# The unit is the second, a thousand execution of *tim(deps)* last 7
+# hundredth of a second: *tim(deps)* executes in 7 microseconds.

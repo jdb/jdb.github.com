@@ -1,11 +1,16 @@
+
+# Graph traversal
+# ===============
+
 from pprint import pprint
 from itertools import chain
 
+# **prepare()** function adapts the input dictionary of dependencies
+# into the almost same dictionary: except that 1. the values are set
+# and that also that 2. the project with no dependencies are also set
+# as keys with an empty set as the value
+
 def prepare(deps):
-    # this function adapts the input dictionary of dependencies into
-    # the almost same dictionary: except that 1. the values are set
-    # and that also that 2. the project with no dependencies are also
-    # set as keys with an empty set as the value
     
     for p in set(chain(*deps.values())) - set(deps.keys()):
         deps[p]=[]
@@ -15,11 +20,15 @@ def prepare(deps):
 
     return set(deps), deps
 
-
-###################
+# **candidates()** returns the list of nodes which are not in path yet
+# and whose dependencies are already in the list
 
 def candidates(projects, deps, path):
     return filter( lambda p: deps[p] <= path, projects - path)
+
+
+# Depth first search
+# ------------------
 
 def dfs(projects, deps):
     def _dfs(projects, deps, path, acc):
@@ -33,6 +42,8 @@ def dfs(projects, deps):
     _dfs(projects, deps, [], acc)
     return acc
 
+# Breadth first search
+# --------------------
 
 def bfs(projects, deps, paths=[[]]):
     cands_lists= [ candidates(projects, deps, set(p)) for p in paths]
@@ -44,25 +55,8 @@ def bfs(projects, deps, paths=[[]]):
     else: 
         return paths
 
-def idfs(projects, deps):
-
-    class Path(list):
-        def __setitem__(self,key,item):
-            self.append(item)
-
-    def _idfs(path = Path()):
-        if len(path) == len(deps):
-            yield path[:]
-        else:
-            for path[0] in candidates(projects, deps, set(path)):
-                for winner in _idfs():
-                    yield winner
-                path.pop()
-                
-    return _idfs()
-
-
-
+# Testing our algorithms
+# ----------------------
 
 if __name__=="__main__":
     from data import deps
@@ -72,10 +66,8 @@ if __name__=="__main__":
 
     # pprint(dfs(projects, deps))
     # pprint(bfs(projects, deps))
-    # pprint(list(idfs(projects, deps)))
 
     # print Timer(lambda : dfs(projects,deps)).timeit(number=1000)
     # print Timer(lambda : bfs(projects,deps)).timeit(number=1000)
-    print Timer(lambda : list(idfs(projects,deps))).timeit(number=1000)
 
 

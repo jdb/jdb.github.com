@@ -1,5 +1,5 @@
 
-A Naive, CPU hungry solution
+A naive, CPU hungry solution
 ============================
 
 
@@ -122,48 +122,51 @@ lines of Python: let's recap briefly
 Complexity bites
 ----------------
 
-Death by complexity: this code seems to never return. Let's have a
-look at the respective complexity of the functions::
+::
 
-  O(edges)      = O(n)
-  
-  O(are_before) = O(l * 2 O(index))
-                = O(l * O(n))
-                = O(n2)
-  
-  O(is_winner)  = O(l * O(are_before) + O(l * O(deps) )
-                = O(l * O(n2)  + O(l* O(n)))
-                = O( O(n3)  + O(n2) )
-                = O(n3)
-  
-  O(search)     = O(is_winner) * O(perm)
-                = O(n3) * O(n!)
-                = O(n!)
-
-There is nothing you can really do with an algorithm in O(n!), if 12
-nodes needs to be sorted, as with the data part of the *deps* module
-below, then 12! = 479 001 600 permutations needs to be tested. The
-follozing lines import a dictionary of dependencies and transform it
-into a graph
-
-.. sourcecode:: python
-
-  from data import deps
-  
-  edges = list(
-      chain(*[[ (n,k) for n in v ] for k,v in data.iteritems()]))
-  nodes = list(chain(*data.values()))
-  nodes.extend(data.keys())
-  
-  G = Graph(set(nodes), edges)
-  
-The following resolution took the whole night to be able to compute 
-
-.. sourcecode:: python
-
-  print "Warning: long computation ahead, be patient"
-  with open('brute.result', 'w') as f:
-      f.write('\n'.join([str(e) for e in search(G)]))
-
-No really, we can't use such a costly algorithm, see the next article 
-:doc:`dependencies/off_the_shelf` for better results
+  # Death by complexity: this code seems to never return. Let's have a
+  # look at the respective complexity of the functions::
+  # 
+  #   O(edges)      = O(n)
+  #   
+  #   O(are_before) = O(l * 2 O(index))
+  #                 = O(l * O(n))
+  #                 = O(n2)
+  #   
+  #   O(is_winner)  = O(l * O(are_before) + O(l * O(deps) )
+  #                 = O(l * O(n2)  + O(l* O(n)))
+  #                 = O( O(n3)  + O(n2) )
+  #                 = O(n3)
+  #   
+  #   O(search)     = O(is_winner) * O(perm)
+  #                 = O(n3) * O(n!)
+  #                 = O(n!)
+  # 
+  # There is nothing you can really do with an algorithm in O(n!), if 12
+  # nodes needs to be sorted, as with the data part of the *deps* module
+  # below, then 12! = 479 001 600 permutations needs to be tested. The
+  # follozing lines import a dictionary of dependencies and transform it
+  # into a graph
+  # 
+  # .. sourcecode:: python
+  #
+  #   from data import deps
+  #   
+  #   edges = list(
+  #       chain(*[[ (n,k) for n in v ] for k,v in data.iteritems()]))
+  #   nodes = list(chain(*data.values()))
+  #   nodes.extend(data.keys())
+  #   
+  #   G = Graph(set(nodes), edges)
+  #   
+  # The following resolution took the whole night to be able to compute 
+  # 
+  # .. sourcecode:: python
+  #
+  #   print "Warning: long computation ahead, be patient"
+  #   with open('brute.result', 'w') as f:
+  #       f.write('\n'.join([str(e) for e in search(G)]))
+  # 
+  # No really, we can't use such a costly algorithm, see the next article:  
+  # :doc:`dependencies/off_the_shelf`, for better results
+  d

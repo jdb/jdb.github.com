@@ -31,7 +31,14 @@ Several algorithms will be presented to build this list:
   A topological sort implementation returns quickly only one of the
   possible solution:
 
-  :doc:`dependencies/off_the_shelf`
+  :doc:`dependencies/off_the_shelf.py`
+
+* Other languages have advantages: for a recursive algorithm dealing
+  and the manipulation of lists, Erlang is particularly adapted and
+  this makes the implementation short. Actually, the topsort algorithm
+  is part of Erlang standard library.
+
+  :doc:`dependencies/erlang`
 
 * Yet another way to solve this problem is to consider *the graph of
   the candidates*, that is given the first part of the sorted list of
@@ -41,7 +48,7 @@ Several algorithms will be presented to build this list:
   depth first or breadth first to find the list of all possible
   solutions.
 
-  :doc:`dependencies/bfs_dfs`
+  :doc:`dependencies/bfs_dfs.py`
 
   In depth search first (DFS), it is possible to build a generator of
   the solutions: the solution are not computed in a long batch,
@@ -53,7 +60,7 @@ Several algorithms will be presented to build this list:
   solution, while the server continues the exhaustion of the
   solutions.
 
-  :doc:`dependencies/idfs`
+  :doc:`dependencies/idfs.py`
 
   It is actually possible to a breadth first search traversal of the
   graph in pure SQL (since Postgresql 8.4) using the recent standard
@@ -65,12 +72,6 @@ Several algorithms will be presented to build this list:
   :doc:`dependencies/with_recurse`
 
 
-* Other languages have advantages: for a recursive algorithm dealing
-  and the manipulation of lists, Erlang is particularly adapted and
-  this makes the implementation short. Actually, the topsort algorithm
-  is part of Erlang standard library.
-
-  :doc:`dependencies/topsort.erl`
 
 
 .. todo::
