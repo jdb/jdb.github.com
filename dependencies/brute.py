@@ -1,5 +1,5 @@
 
-# A Naive, CPU hungry solution
+# A naive, CPU hungry solution
 # ============================
 
 
@@ -167,3 +167,4 @@ print search(G)
 # 
 # No really, we can't use such a costly algorithm, see the next article:  
 # :doc:`dependencies/off_the_shelf`, for better results
+d
