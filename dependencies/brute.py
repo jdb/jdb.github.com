@@ -166,5 +166,5 @@ print search(G)
 #       f.write('\n'.join([str(e) for e in search(G)]))
 # 
 # No really, we can't use such a costly algorithm, see the next article:  
-# :doc:`dependencies/off_the_shelf`, for better results
-d
+# :doc:`off_the_shelf.py`, for better results
+

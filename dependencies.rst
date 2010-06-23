@@ -31,7 +31,7 @@ Several algorithms will be presented to build this list:
   A topological sort implementation returns quickly only one of the
   possible solution:
 
-  :doc:`dependencies/off_the_shelf.py`
+  :doc:`dependencies/off_the_shelf`
 
 * Other languages have advantages: for a recursive algorithm dealing
   and the manipulation of lists, Erlang is particularly adapted and
