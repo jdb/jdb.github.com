@@ -1,6 +1,6 @@
 
-Topsort in available Python packages
-====================================
+Topsort in available packages
+=============================
 
 Topsort is a fast operating on a set of dependencies, and only returns
 one of the solutions. This is usually what is acutally needed: as for a
@@ -101,7 +101,7 @@ hundredths of a second that is *tim(deps)* took 7 microseconds.The
 
 .. _erlang:
 
-Toposrt in Erlang
+Topsort in Erlang
 -----------------
 
 Erlang actually provides a module in the standard library offering
@@ -114,7 +114,7 @@ the digraph, then the call to the algorithm.
 .. literalinclude:: topsort_stdlib.erl
    :language: erlang
 
-The next part of this :doc:`article <graph>` presents several "by hand"
+The next part of this :doc:`article <bfs_dfs>` presents several "by hand"
 implementations of topsort as graph traversal. These methods can
 easily be adapted to build high performance or distributed
 implementations.
