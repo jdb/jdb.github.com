@@ -27,7 +27,7 @@ Let's build a simple class to hold the nodes and edges as attributes
           self.nodes = nodes
           self.edges = edges
   
-  G = Graph( nodes, edges)
+  G = Graph(nodes, edges)
   
 Three primitives: *deps*, *are_before* and *is_winner*
 ------------------------------------------------------
@@ -41,7 +41,6 @@ To solve our problem, three simple primitives are written: *deps()*,
 
   def deps(graph,node):
       return (dep for (n,dep) in graph.edges if node==n)
-  
   
 Given *a*, *deps* returns *b* and *c*, given *c*, *deps* returns *b*, etc.
 
@@ -125,7 +124,7 @@ Complexity bites
 Death by complexity: this code seems to never return. Let's have a
 look at the respective complexity of the functions::
 
-  O(edges)      = O(n)
+  O(deps)       = O(n)
   
   O(are_before) = O(l * 2 O(index))
                 = O(l * O(n))
@@ -140,24 +139,36 @@ look at the respective complexity of the functions::
                 = O(n3) * O(n!)
                 = O(n!)
 
-There is nothing you can really do with an algorithm in O(n!), if 12
-nodes needs to be sorted, as with the data part of the *deps* module
-below, then 12! = 479 001 600 permutations needs to be tested. The
-follozing lines import a dictionary of dependencies and transform it
-into a graph
+*deps()* and *are_before()* can be enhanced, and their complexity
+reduced: 
+
+#. using a list that needs to be unrolled to get the dependencies of
+   a node is suboptimal, instead a dictionary data structure is more
+   adapted to access the dependencies of a node directly. Complexity
+   would come down from O(n) to O(1).
+
+#. *index()*'s execution depends on the size of the list. Checking
+   that an element is part of a set data structure is much more
+   efficient. *are_before()* would operate in O(n) instead of O(n2)
+
+But these improvements are cosmetic with regards to the size fo the
+data to test: if 12 nodes needs to be sorted, as with the data part
+of the *deps* module below, then 12! = 479 001 600 permutations
+needs to be tested. The follozing lines import a dictionary of
+dependencies and transform it into a graph
 
 .. sourcecode:: python
 
-  from data import deps
+   from data import deps
   
-  edges = list(
-      chain(*[[ (n,k) for n in v ] for k,v in data.iteritems()]))
-  nodes = list(chain(*data.values()))
-  nodes.extend(data.keys())
+   edges = list(
+       chain(*[[ (n,k) for n in v ] for k,v in data.iteritems()]))
+   nodes = list(chain(*data.values()))
+   nodes.extend(data.keys())
   
-  G = Graph(set(nodes), edges)
+   G = Graph(set(nodes), edges)
   
-The following resolution took the whole night to be able to compute 
+The resolution took the whole night to be able to compute 
 
 .. sourcecode:: python
 
@@ -165,6 +176,7 @@ The following resolution took the whole night to be able to compute
   with open('brute.result', 'w') as f:
       f.write('\n'.join([str(e) for e in search(G)]))
 
-No really, we can't use such a costly algorithm, see the next article:  
-:doc:`off_the_shelf.py`, for better results
+No really, we can not afford to test individually every
+permutations, see the next article: :doc:`off_the_shelf`, for
+better ways to sort dependencies.
 

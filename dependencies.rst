@@ -12,6 +12,14 @@ a*. *b* is first, because *b* has no dependencies, *c* is next because
 it only requires *b* which is already in the list, and *a* is last
 since it needs all the rest.
 
+.. toctree::
+   :hidden:
+
+   dependencies/brute.py
+   dependencies/off_the_shelf
+   dependencies/bfs_dfs
+
+
 Several algorithms will be presented to build this list:
 
 * A naive method which is simple to read and understand: a function
@@ -23,22 +31,20 @@ Several algorithms will be presented to build this list:
   :doc:`dependencies/brute.py`
 
 * Finding the sorted list is actually a known problem and the
-  solutions are called topological sort. In Python, there is one
-  implementation derived from a mail in the Python mailing list
-  written by Tim Peters in the package *topsort*, and another version
-  in the *python-graph* package.
-
-  A topological sort implementation returns quickly only one of the
-  possible solution:
+  solutions are called topological sort. A topological sort
+  implementation returns quickly only one of the possible solution. In
+  Python, there is one implementation in the package *topsort*,
+  derived from a mail in the Python mailing list written by Tim Peters
+  and also, another version in the *python-graph* package.
 
   :doc:`dependencies/off_the_shelf`
 
-* Other languages have advantages: for a recursive algorithm dealing
-  and the manipulation of lists, Erlang is particularly adapted and
-  this makes the implementation short. Actually, the topsort algorithm
-  is part of Erlang standard library.
+  All languages have their advantages: for a recursive algorithm
+  dealing and the manipulation of lists, Erlang is particularly
+  adapted. Even more, actually, the topsort algorithm is part of
+  Erlang standard library.
 
-  :doc:`dependencies/erlang`
+  :ref:`erlang`
 
 * Yet another way to solve this problem is to consider *the graph of
   the candidates*, that is given the first part of the sorted list of
@@ -48,7 +54,7 @@ Several algorithms will be presented to build this list:
   depth first or breadth first to find the list of all possible
   solutions.
 
-  :doc:`dependencies/bfs_dfs.py`
+  :doc:`dependencies/bfs_dfs`
 
   In depth search first (DFS), it is possible to build a generator of
   the solutions: the solution are not computed in a long batch,
@@ -60,19 +66,16 @@ Several algorithms will be presented to build this list:
   solution, while the server continues the exhaustion of the
   solutions.
 
-  :doc:`dependencies/idfs.py`
+  :ref:`recursive_gen`
 
-  It is actually possible to a breadth first search traversal of the
+  It is actually possible to do a breadth first search traversal of the
   graph in pure SQL (since Postgresql 8.4) using the recent standard
   ``with recurse`` queries available in PostgreSQL 8.4.
   Performance-wise, the SQL query is one hundred time faster that the
   traversal in pure CPython. The SQL query (which find all solutions)
   is actually on par with the topological sort (which finds only one).
   
-  :doc:`dependencies/with_recurse`
-
-
-
+  :ref:`recursive_query`
 
 .. todo::
 

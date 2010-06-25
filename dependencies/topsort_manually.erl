@@ -1,19 +1,16 @@
-
--module  ( current_sol ).
--compile ( export_all )
-.
+-module(topsort_manually).
+-export([start/0]).
 -import(lists,[member/2, foreach/2, all/2, filter/2,fold/2]).
 
-
 start() ->
-    {ok, [Data]} = file:consult("projects.term"),
+    {ok, [L]} = file:consult("projects.term"),
     Projects = lists:usort(
 		 lists:flatten(
-		   [ [P|D] || {P,D} <- Data ])),
+		   [ [P|D] || {P,D} <- L ])),
 
     Deps = lists:foldl(fun({K,V}, Dict) -> dict:append_list(K,V,Dict) end, 
 		       dict:from_list([{E,[]} || E <- Projects]), 
-		       Data),
+		       L),
     foreach(fun(P)-> sons(P,[],Deps,length(Projects)) end, 
 	    appropriate([],Deps)).
 

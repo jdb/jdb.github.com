@@ -44,11 +44,6 @@ Here is the code of this topsort:
 .. literalinclude:: off_the_shelf.py
    :pyobject: tims_topsort
 
-Topsort actually computes the path from the most dependent tasks to
-the most independent task, we'll want to reverse the list to suits
-our context.
-
-  return list(reversed(answer))
 
 Let's try it on a small real world graph in the data package:
 
@@ -71,8 +66,10 @@ Let's try it on a small real world graph in the data package:
 From the Pygraph package
 ------------------------
 
-The algorithm is imported from the *sorting* algorithm, and operates
-on digraphs
+The algorithm is imported from the *sorting* algorithm of the `Pygraph
+project`_, and operates on digraphs
+
+.. _`Pygraph project`: http://code.google.com/p/python-graph/
 
 >>> from pygraph.algorithms.sorting import topological_sorting
 >>> from pygraph.classes.digraph import digraph
@@ -89,14 +86,35 @@ edges and the set of nodes and returns an adapted digraph:
 [4, 5, 3, 2, 1, 6, 8, 7, 11, 10, 9, 12]
 
 The simplified topsort runs four times faster than the implementation
-in the pygraph packages::
+in the pygraph packages
 
-   >>> from timeit import Timer
-   >>> print Timer(lambda : tims_topsort(deps)).timeit(number=1000)
-   0.0732760429382
-   >>> print Timer(lambda : topological_sorting(prepare(deps))
-   ...             ).timeit(number=1000)
-   0.333679914474
+>>> from timeit import Timer
+>>> print Timer(lambda : tims_topsort(deps)).timeit(number=1000)
+0.0732760429382
+>>> print Timer(lambda : topological_sorting(prepare(deps))
+...             ).timeit(number=1000)
+0.333679914474
    
-The unit is the second, a thousand execution of *tim(deps)* last 7
-hundredth of a second: *tim(deps)* executes in 7 microseconds.
+The unit is the second, a thousand executions of *tim(deps)* took 7
+hundredths of a second that is *tim(deps)* took 7 microseconds.The
+*topsort* from python-grapgh took 33 microseconds.
+
+.. _erlang:
+
+Toposrt in Erlang
+-----------------
+
+Erlang actually provides a module in the standard library offering
+several algorithm dealing with graphs. The ``digraph`` package offers
+the primitives to manages graphs, the ``digraph_utils`` package offers
+the algorithm. The code presented below is actually very similar to
+our script baaed on the standrard library: first the construction of
+the digraph, then the call to the algorithm. 
+ 
+.. literalinclude:: topsort_stdlib.erl
+   :language: erlang
+
+The next part of this :doc:`article <graph>` presents several "by hand"
+implementations of topsort as graph traversal. These methods can
+easily be adapted to build high performance or distributed
+implementations.

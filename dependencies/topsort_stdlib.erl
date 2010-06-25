@@ -1,9 +1,8 @@
--module(topsort).
--compile(export_all).
+-module(topsort_stdlib).
+-export([start/0,test/0]).
 -import(lists,[map/2,foreach/2,flatmap/2,usort/1]).
 
-
-load_deps() ->
+prepare() ->
 
     {ok,[L]}=file:consult("projects.term"),
 
@@ -23,11 +22,10 @@ load_deps() ->
     G.
 
 
-
 start() ->
     G = ,
     io:format("Here are the projects, sorted by their dependences~n"
-	      "~p~n",[digraph_utils:topsort(load_deps())]).
+	      "~p~n",[digraph_utils:topsort(prepare())]).
 
 
 test()-> eunit:test(
