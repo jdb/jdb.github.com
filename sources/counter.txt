@@ -3,11 +3,13 @@ Counters in python
 ==================
 
 Counters serve many purposes in software development. It is sometimes
-handy to use a incrementor function which returns the new value every
-time it is called, like calling ``count()`` instead of manipulating
-directly a variable by using ``count += 1``. It has its uses
-especially in Python where binding a variable does not return the
-bound value, as in the C langage.
+handy to use a incrementor function which *returns* the new value
+every time it is called, like calling ``count()`` instead of
+manipulating directly a variable by using a binding statement such
+as``count += 1``. It has its uses especially in Python where binding a
+variable does not return the bound value, as in the C langage.
+
+*Update: itertools.count() is in the standard library*
 
 There is a peculiar example_ in the official Python documentation on
 *lambda*. The *make_incrementor* function is misleadingly named since
@@ -122,12 +124,16 @@ and the value would be written ``count`` and ``*count``, in Python,
 you get a similar result by defining *count* as list of one integer
 element, and writing ``count`` and ``count[0]``.
 
+The list or dictionnary default arguments in a function signature are
+only evaluated once at the declaration time. Whenever the function is
+called later on, the count list is not reset to *[start]*, whic make it
+possible to store data between calls, as if count was a *static* variable.
 
 using *yield*
 -------------
 
 The following function uses *yield*. Yielding, for a function, is the
-act of voluntarily suspending itsef. Functions using yield returns a
+act of voluntarily suspending itself. Functions using yield return a
 generator which have the *next()* and *send()* methods.
 
 >>> def make_incrementor(start, jump=1):

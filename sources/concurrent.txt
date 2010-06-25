@@ -8,13 +8,12 @@
 What is Twisted?
 ================
 
-Twisted_ is a an organised set of Python modules, classes and
-functions aiming at efficiently building network client or server
-applications. Twisted base classes wrap the UDP, TCP and SSL
-transports and child classes offer well tested, application protocol
-implementations which can weave file tranfer, email, chat and
-presence, enterprise messaging, name services, etc, with the same
-mental model.
+Twisted_ is a set of Python modules, classes and functions integrated
+to build efficiently network client or server applications. Twisted
+base classes wrap the UDP, TCP and SSL transports and child classes
+offer well tested, application protocol implementations which can
+weave file tranfer, email, chat, enterprise messaging, name services,
+etc, with the same mental model.
 
 .. _Twisted: http://twistedmatrix.com/trac/
 
@@ -28,8 +27,8 @@ Also, Twisted has methods for implementing features which are often
 required by sophisticated software projects. For instance, Twisted can
 map a tree of ressources behind URLs, can authentify users against
 flexible backends, or can safely distribute objects on a network
-enabling remote procedure calls and load balancing, etc (Twisted has_ many_
-modules_ available).
+enabling remote procedure calls and load balancing, etc (Twisted has_
+many_ modules_ available).
 
 .. _modules: https://launchpad.net/tx
 
@@ -156,7 +155,7 @@ keyword and decorator syntax in the context of Twisted. The page*
 works at the operating system system.*
 
 Want to learn more? The project documentation_ presents many code
-examples and reference articles. Would you trust the Twisted framework
+examples and reference articles. Would you use the Twisted framework
 for your core business development? Hmm, difficult question: maybe you
 can check at the development methods_ to get the beginning of an
 answer.

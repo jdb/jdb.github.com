@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Sorting dependencies &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.7',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
+    <link rel="next" title="A naive, CPU hungry solution" href="dependencies/brute.py.html" />
+    <link rel="prev" title="The yield keyword simplifies Twisted code" href="concurrent/smartpython.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="dependencies/brute.py.html" title="A naive, CPU hungry solution"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="concurrent/smartpython.html" title="The yield keyword simplifies Twisted code"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="concurrent/smartpython.html"
+                                  title="previous chapter">The <em>yield</em> keyword simplifies Twisted code</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="dependencies/brute.py.html"
+                                  title="next chapter">A naive, CPU hungry solution</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/dependencies.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="sorting-dependencies">
+<h1>Sorting dependencies<a class="headerlink" href="#sorting-dependencies" title="Permalink to this headline">¶</a></h1>
+<p>This article is on different ways to solve a set of dependencies. That
+is, given a set of dependencies between nodes (think of projects or
+software packages): a needs b, a needs c, c needs b, we want an
+<strong>sorted list of nodes where each nodes occurs *after* its
+dependencies</strong>. In this simple example, the sorted list is <em>b, c
+a</em>. <em>b</em> is first, because <em>b</em> has no dependencies, <em>c</em> is next because
+it only requires <em>b</em> which is already in the list, and <em>a</em> is last
+since it needs all the rest.</p>
+<p>Several algorithms will be presented to build this list:</p>
+<ul>
+<li><p class="first">A naive method which is simple to read and understand: a function
+test if list satisfies the dependencies, and this function is
+applied to all possible permutation of the node list. But is
+computationaly too hard to be useful: it takes much too long to
+solve even simple sets of dependencies:</p>
+<p><a class="reference external" href="dependencies/brute.py.html"><em>A naive, CPU hungry solution</em></a></p>
+</li>
+<li><p class="first">Finding the sorted list is actually a known problem and the
+solutions are called topological sort. A topological sort
+implementation returns quickly only one of the possible solution. In
+Python, there is one implementation in the package <em>topsort</em>,
+derived from a mail in the Python mailing list written by Tim Peters
+and also, another version in the <em>python-graph</em> package.</p>
+<p><a class="reference external" href="dependencies/off_the_shelf.html"><em>Topsort in available packages</em></a></p>
+<p>All languages have their advantages: for a recursive algorithm
+dealing and the manipulation of lists, Erlang is particularly
+adapted. Even more, actually, the topsort algorithm is part of
+Erlang standard library.</p>
+<p><a class="reference external" href="dependencies/off_the_shelf.html#erlang"><em>Topsort in Erlang</em></a></p>
+</li>
+<li><p class="first">Yet another way to solve this problem is to consider <em>the graph of
+the candidates</em>, that is given the first part of the sorted list of
+nodes, consider as the children of the last node of the list: all
+the nodes which are not yet in the list and whose dependencies are
+in the list. Then, it is just a matter of traversing the graph in
+depth first or breadth first to find the list of all possible
+solutions.</p>
+<p><a class="reference external" href="dependencies/bfs_dfs.html"><em>Graph traversal</em></a></p>
+<p>In depth search first (DFS), it is possible to build a generator of
+the solutions: the solution are not computed in a long batch,
+accumulated and returned as a long list, the solutions are available
+as soon as they are found. The processing of the solution alternates
+with the search for the next solution.</p>
+<p>For instance, a solution can be emitted to a client which draws the
+solution, while the server continues the exhaustion of the
+solutions.</p>
+<p><a class="reference external" href="dependencies/bfs_dfs.html#recursive-gen"><em>Recursive generator</em></a></p>
+<p>It is actually possible to do a breadth first search traversal of the
+graph in pure SQL (since Postgresql 8.4) using the recent standard
+<tt class="docutils literal"><span class="pre">with</span> <span class="pre">recurse</span></tt> queries available in PostgreSQL 8.4.
+Performance-wise, the SQL query is one hundred time faster that the
+traversal in pure CPython. The SQL query (which find all solutions)
+is actually on par with the topological sort (which finds only one).</p>
+<p><a class="reference external" href="dependencies/bfs_dfs.html#recursive-query"><em>Recursive SQL queries</em></a></p>
+</li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="dependencies/brute.py.html" title="A naive, CPU hungry solution"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="concurrent/smartpython.html" title="The yield keyword simplifies Twisted code"
+             >previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>

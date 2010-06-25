@@ -5,23 +5,23 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The yield keyword simplifies Twisted code &mdash; bits v0.6 documentation</title>
-    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <title>The yield keyword simplifies Twisted code &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6',
+        VERSION:     '0.7',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
-    <link rel="top" title="bits v0.6 documentation" href="../index.html" />
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../index.html" />
     <link rel="up" title="Concurrent network programming with Twisted" href="../concurrent.html" />
-    <link rel="next" title="Counters in python" href="../counter.html" />
+    <link rel="next" title="Sorting dependencies" href="../dependencies.html" />
     <link rel="prev" title="The Deferred" href="deferred.html" /> 
   </head>
   <body>
@@ -32,12 +32,12 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="../counter.html" title="Counters in python"
+          <a href="../dependencies.html" title="Sorting dependencies"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="deferred.html" title="The Deferred"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
           <li><a href="../concurrent.html" accesskey="U">Concurrent network programming with Twisted</a> &raquo;</li> 
       </ul>
     </div>
@@ -56,11 +56,11 @@
             <p class="topless"><a href="deferred.html"
                                   title="previous chapter">The <em>Deferred</em></a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="../counter.html"
-                                  title="next chapter">Counters in python</a></p>
+            <p class="topless"><a href="../dependencies.html"
+                                  title="next chapter">Sorting dependencies</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="../sources/concurrent/smartpython.txt"
+              <li><a href="../_sources/concurrent/smartpython.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -85,9 +85,9 @@
           <div class="body">
             
   <div class="section" id="the-yield-keyword-simplifies-twisted-code">
-<h1>The <em>yield</em> keyword simplifies Twisted code<a class="headerlink" href="#the-yield-keyword-simplifies-twisted-code" title="Permalink to this headline">¶</a></h1>
+<span id="yield"></span><h1>The <em>yield</em> keyword simplifies Twisted code<a class="headerlink" href="#the-yield-keyword-simplifies-twisted-code" title="Permalink to this headline">¶</a></h1>
 <p>... once you understand what this crazy keyword does</p>
-<p><tt class="xref docutils literal"><span class="pre">yield</span></tt> is a powerful Python keyword that Twisted uses to
+<p><a class="reference internal" href="#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> is a powerful Python keyword that Twisted uses to
 simplify the boilerplate of deferred and callback manipulation.  Also,
 the technical constraint, in Twisted, to manipulate the result of a
 request in a function different than the function making the request
@@ -168,7 +168,7 @@ implementation of the fibonacci suite.</p>
 <span class="gp">... </span>    <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span>
 <span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">):</span>
 <span class="gp">... </span>         <span class="k">yield</span> <span class="n">b</span>
-<span class="gp">... </span>         <span class="n">b</span><span class="p">,</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">,</span><span class="n">b</span>
+<span class="gp">... </span>         <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span><span class="n">a</span><span class="o">+</span><span class="n">b</span>
 </pre></div>
 </div>
 <p>Lazy in the sense that it behaves like a huge list but the whole list
@@ -288,12 +288,12 @@ be easier to apprehend.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="../counter.html" title="Counters in python"
+          <a href="../dependencies.html" title="Sorting dependencies"
              >next</a> |</li>
         <li class="right" >
           <a href="deferred.html" title="The Deferred"
              >previous</a> |</li>
-        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
           <li><a href="../concurrent.html" >Concurrent network programming with Twisted</a> &raquo;</li> 
       </ul>
     </div>

@@ -5,21 +5,21 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Concurrent network programming with Twisted &mdash; bits v0.6 documentation</title>
-    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <title>Concurrent network programming with Twisted &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '0.6',
+        VERSION:     '0.7',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="static/jquery.js"></script>
-    <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="bits v0.6 documentation" href="index.html" />
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
     <link rel="next" title="Twisted’s network concurrency model as compared with sockets and threads" href="concurrent/preemptive.html" />
     <link rel="prev" title="Les pseudo-terminaux" href="pty.html" /> 
   </head>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="pty.html" title="Les pseudo-terminaux"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -62,7 +62,7 @@
                                   title="next chapter">Twisted&#8217;s network concurrency model as compared with sockets and threads</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="sources/concurrent.txt"
+              <li><a href="_sources/concurrent.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -90,13 +90,12 @@
 <h1>Concurrent network programming with Twisted<a class="headerlink" href="#concurrent-network-programming-with-twisted" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="what-is-twisted">
 <h2>What is Twisted?<a class="headerlink" href="#what-is-twisted" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="http://twistedmatrix.com/trac/">Twisted</a> is a an organised set of Python modules, classes and
-functions aiming at efficiently building network client or server
-applications. Twisted base classes wrap the UDP, TCP and SSL
-transports and child classes offer well tested, application protocol
-implementations which can weave file tranfer, email, chat and
-presence, enterprise messaging, name services, etc, with the same
-mental model.</p>
+<p><a class="reference external" href="http://twistedmatrix.com/trac/">Twisted</a> is a set of Python modules, classes and functions integrated
+to build efficiently network client or server applications. Twisted
+base classes wrap the UDP, TCP and SSL transports and child classes
+offer well tested, application protocol implementations which can
+weave file tranfer, email, chat, enterprise messaging, name services,
+etc, with the same mental model.</p>
 <p>Twisted is written in Python and is fast partly because the data is
 processed as soon as it is available no matter how many connections
 are open. This <em>event-driven networking engine</em> enables developers to
@@ -106,8 +105,8 @@ server with less than fifty lines of code.</p>
 required by sophisticated software projects. For instance, Twisted can
 map a tree of ressources behind URLs, can authentify users against
 flexible backends, or can safely distribute objects on a network
-enabling remote procedure calls and load balancing, etc (Twisted <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/index.html">has</a> <a class="reference external" href="http://twistedmatrix.com/trac/wiki/TwistedProjects">many</a>
-<a class="reference external" href="https://launchpad.net/tx">modules</a> available).</p>
+enabling remote procedure calls and load balancing, etc (Twisted <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/index.html">has</a>
+<a class="reference external" href="http://twistedmatrix.com/trac/wiki/TwistedProjects">many</a> <a class="reference external" href="https://launchpad.net/tx">modules</a> available).</p>
 <p>This article introduces the problem of network concurrency, and
 compares Twisted&#8217;s model to the sequential model through the example
 of web pages download. This article points to other articles along the
@@ -250,7 +249,7 @@ keyword and decorator syntax in the context of Twisted. The page</em>
 <a class="reference external" href="concurrent/reactor.html"><em>The Reactor and the Protocols</em></a> <em>gives a precise overview of how Twisted
 works at the operating system system.</em></p>
 <p>Want to learn more? The project <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/index.html">documentation</a> presents many code
-examples and reference articles. Would you trust the Twisted framework
+examples and reference articles. Would you use the Twisted framework
 for your core business development? Hmm, difficult question: maybe you
 can check at the development <a class="reference external" href="http://twistedmatrix.com/trac/wiki/ContributingToTwistedLabs">methods</a> to get the beginning of an
 answer.</p>
@@ -276,7 +275,7 @@ answer.</p>
         <li class="right" >
           <a href="pty.html" title="Les pseudo-terminaux"
              >previous</a> |</li>
-        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

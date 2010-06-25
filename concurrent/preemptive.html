@@ -5,21 +5,21 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Twisted’s network concurrency model as compared with sockets and threads &mdash; bits v0.6 documentation</title>
-    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <title>Twisted’s network concurrency model as compared with sockets and threads &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6',
+        VERSION:     '0.7',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
-    <link rel="top" title="bits v0.6 documentation" href="../index.html" />
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../index.html" />
     <link rel="up" title="Concurrent network programming with Twisted" href="../concurrent.html" />
     <link rel="next" title="The Reactor and the Protocols" href="reactor.html" />
     <link rel="prev" title="Concurrent network programming with Twisted" href="../concurrent.html" /> 
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="../concurrent.html" title="Concurrent network programming with Twisted"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
           <li><a href="../concurrent.html" accesskey="U">Concurrent network programming with Twisted</a> &raquo;</li> 
       </ul>
     </div>
@@ -61,7 +61,7 @@
                                   title="next chapter">The Reactor and the Protocols</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="../sources/concurrent/preemptive.txt"
+              <li><a href="../_sources/concurrent/preemptive.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -217,8 +217,7 @@ ressource.</p>
 <p>The scheduling overhead does not occur with Twisted. I assume the
 reader is curious to see the Twisted can have many increment pending
 on a global variable and the associated performance, it is be shown
-as soon as the required Twisted concepts have been presented (<a href="#id1"><span class="problematic" id="id2">Spoiler_</span></a>:
-Twisted is twice as fast as even the fast unsafe code).</p>
+as soon as the required Twisted concepts have been presented.</p>
 </div>
 <div class="section" id="faster-data-received-does-not-sit-in-a-buffer-while-a-thread-is-paused">
 <h2>Faster: data received does not sit in a buffer while a thread is paused<a class="headerlink" href="#faster-data-received-does-not-sit-in-a-buffer-while-a-thread-is-paused" title="Permalink to this headline">¶</a></h2>
@@ -228,10 +227,8 @@ might actually sit there until the thread which takes care of this
 file descriptor gets a chance to run again. Event driven frameworks
 can alleviate this problem: the next section introduces the
 <tt class="xref docutils literal"><span class="pre">reactor</span></tt> and the <tt class="xref docutils literal"><span class="pre">Protocol</span></tt>, which are a pre-requisites
-for understanding how Twisted eliminates this delay.
-e <strong>xpath</strong>  to find urls or page titles</p>
-<blockquote>
-in a HTML document.</blockquote>
+for understanding how Twisted eliminates this delay.</p>
+<p>XXX e <strong>xpath</strong> to find urls or page titles in a HTML document.</p>
 <p>And here is the script which brings all this together (and includes a
 design problem):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># sequential.py</span>
@@ -276,7 +273,7 @@ complexity and this will rightful</p>
         <li class="right" >
           <a href="../concurrent.html" title="Concurrent network programming with Twisted"
              >previous</a> |</li>
-        <li><a href="../index.html">bits v0.6 documentation</a> &raquo;</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
           <li><a href="../concurrent.html" >Concurrent network programming with Twisted</a> &raquo;</li> 
       </ul>
     </div>

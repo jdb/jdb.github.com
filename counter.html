@@ -5,23 +5,23 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Counters in python &mdash; bits v0.6 documentation</title>
-    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <title>Counters in python &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '0.6',
+        VERSION:     '0.7',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="static/jquery.js"></script>
-    <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="bits v0.6 documentation" href="index.html" />
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
     <link rel="next" title="Surprising imports" href="package.html" />
-    <link rel="prev" title="The yield keyword simplifies Twisted code" href="concurrent/smartpython.html" /> 
+    <link rel="prev" title="Graph traversal" href="dependencies/bfs_dfs.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,9 +34,9 @@
           <a href="package.html" title="Surprising imports"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="concurrent/smartpython.html" title="The yield keyword simplifies Twisted code"
+          <a href="dependencies/bfs_dfs.html" title="Graph traversal"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -53,14 +53,14 @@
 </ul>
 
             <h4>Previous topic</h4>
-            <p class="topless"><a href="concurrent/smartpython.html"
-                                  title="previous chapter">The <em>yield</em> keyword simplifies Twisted code</a></p>
+            <p class="topless"><a href="dependencies/bfs_dfs.html"
+                                  title="previous chapter">Graph traversal</a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="package.html"
                                   title="next chapter">Surprising imports</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="sources/counter.txt"
+              <li><a href="_sources/counter.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -87,11 +87,12 @@
   <div class="section" id="counters-in-python">
 <h1>Counters in python<a class="headerlink" href="#counters-in-python" title="Permalink to this headline">¶</a></h1>
 <p>Counters serve many purposes in software development. It is sometimes
-handy to use a incrementor function which returns the new value every
-time it is called, like calling <tt class="docutils literal"><span class="pre">count()</span></tt> instead of manipulating
-directly a variable by using <tt class="docutils literal"><span class="pre">count</span> <span class="pre">+=</span> <span class="pre">1</span></tt>. It has its uses
-especially in Python where binding a variable does not return the
-bound value, as in the C langage.</p>
+handy to use a incrementor function which <em>returns</em> the new value
+every time it is called, like calling <tt class="docutils literal"><span class="pre">count()</span></tt> instead of
+manipulating directly a variable by using a binding statement such
+as``count += 1``. It has its uses especially in Python where binding a
+variable does not return the bound value, as in the C langage.</p>
+<p><em>Update: itertools.count() is in the standard library</em></p>
 <p>There is a peculiar <a class="reference external" href="http://docs.python.org/tutorial/controlflow.html#lambda-forms">example</a> in the official Python documentation on
 <em>lambda</em>. The <em>make_incrementor</em> function is misleadingly named since
 nothing is incremented: the created callable merely returns the
@@ -197,11 +198,15 @@ reference. If <em>count</em> is a pointer on an integer, in C, the pointer
 and the value would be written <tt class="docutils literal"><span class="pre">count</span></tt> and <tt class="docutils literal"><span class="pre">*count</span></tt>, in Python,
 you get a similar result by defining <em>count</em> as list of one integer
 element, and writing <tt class="docutils literal"><span class="pre">count</span></tt> and <tt class="docutils literal"><span class="pre">count[0]</span></tt>.</p>
+<p>The list or dictionnary default arguments in a function signature are
+only evaluated once at the declaration time. Whenever the function is
+called later on, the count list is not reset to <em>[start]</em>, whic make it
+possible to store data between calls, as if count was a <em>static</em> variable.</p>
 </div>
 <div class="section" id="using-yield">
 <h2>using <em>yield</em><a class="headerlink" href="#using-yield" title="Permalink to this headline">¶</a></h2>
 <p>The following function uses <em>yield</em>. Yielding, for a function, is the
-act of voluntarily suspending itsef. Functions using yield returns a
+act of voluntarily suspending itself. Functions using yield return a
 generator which have the <em>next()</em> and <em>send()</em> methods.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">make_incrementor</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">count</span> <span class="o">=</span> <span class="n">start</span>
@@ -237,9 +242,9 @@ state: they can keep track of a counter.</p>
           <a href="package.html" title="Surprising imports"
              >next</a> |</li>
         <li class="right" >
-          <a href="concurrent/smartpython.html" title="The yield keyword simplifies Twisted code"
+          <a href="dependencies/bfs_dfs.html" title="Graph traversal"
              >previous</a> |</li>
-        <li><a href="index.html">bits v0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

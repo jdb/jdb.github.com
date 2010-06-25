@@ -1,0 +1,242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Graph traversal &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.7',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../index.html" />
+    <link rel="up" title="Sorting dependencies" href="../dependencies.html" />
+    <link rel="next" title="Counters in python" href="../counter.html" />
+    <link rel="prev" title="Topsort in available packages" href="off_the_shelf.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../counter.html" title="Counters in python"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="off_the_shelf.html" title="Topsort in available packages"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../dependencies.html" accesskey="U">Sorting dependencies</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Graph traversal</a><ul>
+<li><a class="reference external" href="#depth-first-search">Depth first search</a></li>
+<li><a class="reference external" href="#breadth-first-search">Breadth first search</a></li>
+<li><a class="reference external" href="#recursive-generator">Recursive generator</a></li>
+<li><a class="reference external" href="#recursive-sql-queries">Recursive SQL queries</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="off_the_shelf.html"
+                                  title="previous chapter">Topsort in available packages</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="../counter.html"
+                                  title="next chapter">Counters in python</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/dependencies/bfs_dfs.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="graph-traversal">
+<h1>Graph traversal<a class="headerlink" href="#graph-traversal" title="Permalink to this headline">¶</a></h1>
+<p>Four algorithm are presented here which exhaustively find all the
+solutions, first the basic depth search first and breadth search
+first. Then two variations of each which both present interesting
+features:</p>
+<ol class="arabic simple">
+<li>the iterative generator based on a depth search first algorithm does
+not return the whole list after a while, instead, (being a
+generator) it returns one solution and then yield back execution
+until called again.</li>
+<li>the recursive SQL query makes it possible to solve problems
+directly on the SQL server without going to the trouble of
+extracting the data to an SQL client, then finding the
+solution. This solution is very fast.</li>
+</ol>
+<p>They Python algorithm will make use of these primitives.</p>
+<p><strong>prepare()</strong> function adapts the input dictionary of dependencies
+into the almost same dictionary: except that 1. the values are set
+and that also that 2. the project with no dependencies are also set
+as keys with an empty set as the value</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="n">deps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the set of projects, the input dictionnary is also</span>
+<span class="sd">    updated with project without dependencies&quot;&quot;&quot;</span>
+    
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">deps</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">deps</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">deps</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">:</span> 
+        <span class="n">deps</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">deps</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">deps</span><span class="p">),</span> <span class="n">deps</span>
+</pre></div>
+</div>
+<p><strong>candidates()</strong> returns the list of nodes satisfying the constraint
+to be added to the path.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">candidates</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="s">&quot;Returns project not in the path, but whose dependencies are&quot;</span>
+    <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">deps</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">path</span><span class="p">,</span> <span class="n">projects</span> <span class="o">-</span> <span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="depth-first-search">
+<h2>Depth first search<a class="headerlink" href="#depth-first-search" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">dfs</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">):</span>
+    <span class="s">&quot;Returns a sorted list of the dependencies - depth first traversal&quot;</span>
+    <span class="k">def</span> <span class="nf">_dfs</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">acc</span><span class="p">):</span>
+        <span class="n">candids</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">candids</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">candids</span><span class="p">:</span>
+                <span class="n">_dfs</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="n">path</span> <span class="o">+</span> <span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">acc</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">acc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">acc</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_dfs</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="p">[],</span> <span class="n">acc</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">acc</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="breadth-first-search">
+<h2>Breadth first search<a class="headerlink" href="#breadth-first-search" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">bfs</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="n">paths</span><span class="o">=</span><span class="p">[[]]):</span>
+    <span class="s">&quot;Returns a sorted list of the dependencies - breadth first traversal&quot;</span>
+    <span class="n">cands_lists</span><span class="o">=</span> <span class="p">[</span> <span class="n">candidates</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">cands_lists</span><span class="p">):</span>
+        <span class="n">newpaths</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span><span class="n">cands</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span><span class="n">cands_lists</span><span class="p">):</span> 
+            <span class="n">newpaths</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">p</span><span class="o">+</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cands</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">bfs</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="n">newpaths</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">paths</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="recursive-generator">
+<span id="recursive-gen"></span><h2>Recursive generator<a class="headerlink" href="#recursive-generator" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">idfs</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">):</span>
+
+    <span class="k">class</span> <span class="nc">Path</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">item</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_idfs</span><span class="p">(</span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">deps</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">path</span><span class="p">[:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">(</span><span class="n">projects</span><span class="p">,</span> <span class="n">deps</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">winner</span> <span class="ow">in</span> <span class="n">_idfs</span><span class="p">():</span>
+                    <span class="k">yield</span> <span class="n">winner</span>
+                <span class="n">path</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                
+    <span class="k">return</span> <span class="n">_idfs</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="recursive-sql-queries">
+<span id="recursive-query"></span><h2>Recursive SQL queries<a class="headerlink" href="#recursive-sql-queries" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sql"><div class="highlight"><pre><span class="c1">-- create table  deps (p int, d int[]);</span>
+
+<span class="c1">-- insert into deps values ( 1  array[2,3]);,</span>
+<span class="c1">-- insert into deps values ( 5  array[4]);</span>
+<span class="c1">-- insert into deps values ( 6  array[1]);</span>
+<span class="c1">-- insert into deps values ( 7  array[6, 5, 4]);</span>
+<span class="c1">-- insert into deps values ( 8  array[6, 4]);</span>
+<span class="c1">-- insert into deps values ( 9  array[6, 5, 8, 7]);</span>
+<span class="c1">-- insert into deps values ( 11 array[6, 5, 4, 7]);</span>
+<span class="c1">-- insert into deps values ( 10 array[4, 6, 7]);</span>
+<span class="c1">-- insert into deps values ( 12 array[6, 7, 11, 10, 8, 1, 9]);</span>
+
+<span class="k">with</span> <span class="k">recursive</span> <span class="n">topsort</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">depth</span><span class="p">)</span> <span class="k">as</span> <span class="p">(</span>
+     <span class="k">select</span> <span class="n">deps</span><span class="p">.</span><span class="n">p</span><span class="p">,</span> <span class="n">deps</span><span class="p">.</span><span class="n">d</span><span class="p">,</span> <span class="nb">array</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="mi">1</span> 
+     <span class="k">from</span> <span class="n">deps</span>
+     <span class="k">where</span> <span class="n">d</span> <span class="o">=</span> <span class="nb">array</span><span class="p">[]::</span><span class="nb">integer</span><span class="p">[]</span>
+<span class="k">UNION</span> <span class="k">ALL</span>
+     <span class="k">select</span> <span class="n">deps</span><span class="p">.</span><span class="n">p</span><span class="p">,</span> <span class="n">deps</span><span class="p">.</span><span class="n">d</span><span class="p">,</span> <span class="n">path</span> <span class="o">||</span> <span class="n">deps</span><span class="p">.</span><span class="n">p</span><span class="p">,</span> <span class="n">depth</span><span class="o">+</span><span class="mi">1</span>
+     <span class="k">from</span> <span class="n">topsort</span><span class="p">,</span> <span class="n">deps</span>
+     <span class="k">where</span> <span class="p">(</span><span class="n">deps</span><span class="p">.</span><span class="n">d</span> <span class="o">&lt;@</span> <span class="n">path</span> <span class="k">and</span> <span class="k">not</span> <span class="n">deps</span><span class="p">.</span><span class="n">p</span> <span class="o">=</span> <span class="k">any</span><span class="p">(</span><span class="n">path</span><span class="p">))</span> <span class="c1">-- and length(path)</span>
+<span class="p">)</span>
+<span class="k">select</span> <span class="n">path</span> <span class="k">from</span> <span class="n">topsort</span> <span class="k">where</span> <span class="n">depth</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
+
+<span class="c1">-- # if not redirected, &#39;more&#39; is spawn and interactively blocks</span>
+<span class="c1">-- psql -f topsort.sql &gt; toto &amp;&amp; cat toto   </span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../counter.html" title="Counters in python"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="off_the_shelf.html" title="Topsort in available packages"
+             >previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../dependencies.html" >Sorting dependencies</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>
