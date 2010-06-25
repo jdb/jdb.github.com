@@ -124,12 +124,16 @@ and the value would be written ``count`` and ``*count``, in Python,
 you get a similar result by defining *count* as list of one integer
 element, and writing ``count`` and ``count[0]``.
 
+The list or dictionnary default arguments in a function signature are
+only evaluated once at the declaration time. Whenever the function is
+called later on, the count list is not reset to *[start]*, whic make it
+possible to store data between calls, as if count was a *static* variable.
 
 using *yield*
 -------------
 
 The following function uses *yield*. Yielding, for a function, is the
-act of voluntarily suspending itsef. Functions using yield returns a
+act of voluntarily suspending itself. Functions using yield return a
 generator which have the *next()* and *send()* methods.
 
 >>> def make_incrementor(start, jump=1):
