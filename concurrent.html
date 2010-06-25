@@ -1,0 +1,286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Concurrent network programming with Twisted &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.7',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
+    <link rel="next" title="Twisted’s network concurrency model as compared with sockets and threads" href="concurrent/preemptive.html" />
+    <link rel="prev" title="Les pseudo-terminaux" href="pty.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="concurrent/preemptive.html" title="Twisted’s network concurrency model as compared with sockets and threads"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pty.html" title="Les pseudo-terminaux"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Concurrent network programming with Twisted</a><ul>
+<li><a class="reference external" href="#what-is-twisted">What is Twisted?</a><ul>
+</ul>
+</li>
+<li><a class="reference external" href="#retrieving-the-title-of-a-list-of-blog-articles">Retrieving the title of a list of blog articles</a></li>
+<li><a class="reference external" href="#concurrency-vs-sequential-processing">Concurrency vs sequential processing</a></li>
+<li><a class="reference external" href="#a-concurrent-solution">A concurrent solution</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="pty.html"
+                                  title="previous chapter">Les pseudo-terminaux</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="concurrent/preemptive.html"
+                                  title="next chapter">Twisted&#8217;s network concurrency model as compared with sockets and threads</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/concurrent.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="concurrent-network-programming-with-twisted">
+<h1>Concurrent network programming with Twisted<a class="headerlink" href="#concurrent-network-programming-with-twisted" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-is-twisted">
+<h2>What is Twisted?<a class="headerlink" href="#what-is-twisted" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://twistedmatrix.com/trac/">Twisted</a> is a set of Python modules, classes and functions integrated
+to build efficiently network client or server applications. Twisted
+base classes wrap the UDP, TCP and SSL transports and child classes
+offer well tested, application protocol implementations which can
+weave file tranfer, email, chat, enterprise messaging, name services,
+etc, with the same mental model.</p>
+<p>Twisted is written in Python and is fast partly because the data is
+processed as soon as it is available no matter how many connections
+are open. This <em>event-driven networking engine</em> enables developers to
+produce a stable and performant mail transfer agent or domain name
+server with less than fifty lines of code.</p>
+<p>Also, Twisted has methods for implementing features which are often
+required by sophisticated software projects. For instance, Twisted can
+map a tree of ressources behind URLs, can authentify users against
+flexible backends, or can safely distribute objects on a network
+enabling remote procedure calls and load balancing, etc (Twisted <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/index.html">has</a>
+<a class="reference external" href="http://twistedmatrix.com/trac/wiki/TwistedProjects">many</a> <a class="reference external" href="https://launchpad.net/tx">modules</a> available).</p>
+<p>This article introduces the problem of network concurrency, and
+compares Twisted&#8217;s model to the sequential model through the example
+of web pages download. This article points to other articles along the
+lines which they present with more depth the concepts only mentioned
+here. They are listed here for memo:</p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="concurrent/preemptive.html">Comparison with threads and sockets</a></li>
+<li class="toctree-l1"><a class="reference external" href="concurrent/reactor.html">Twisted&#8217;s core objects : the reactor and the Protocols</a></li>
+<li class="toctree-l1"><a class="reference external" href="concurrent/deferred.html">Twisted&#8217;s abstraction for pending results: the Deferred</a></li>
+<li class="toctree-l1"><a class="reference external" href="concurrent/smartpython.html">The <em>yield</em> keyword simplifies Twisted code</a></li>
+</ul>
+</div>
+<div class="section" id="retrieving-the-title-of-a-list-of-blog-articles">
+<h2>Retrieving the title of a list of blog articles<a class="headerlink" href="#retrieving-the-title-of-a-list-of-blog-articles" title="Permalink to this headline">¶</a></h2>
+<p>Network concurrency is a key concept particularly for performance:
+take a simple problem such as retrieving, for each blog of a list of
+blogs, the title of the web page of the first article of the
+blog. This first problem is actually the core job of a Web scraper or
+a crawler. This means:</p>
+<div class="highlight-python"><pre>for each blog url
+    retrieve the list of articles
+    parses the first article url in the list
+    retrieve the web page of the first article
+    display the title</pre>
+</div>
+<p>Let&#8217;s provide a quick and naive solution to this problem. Here are
+three handy functions :</p>
+<ul class="simple">
+<li><strong>urlopen</strong>(url) sends an HTTP GET request to the url and returns
+the body of the HTTP response as an open file,</li>
+<li><strong>parse</strong>(HTML string) takes an HTML string as an input and
+returns a tree structure of HTML nodes,</li>
+<li>htmltree.<strong>xpath</strong>(pattern) returns a list of nodes matching the
+pattern. The text content of a HTML node is accessed via the member
+attribute <tt class="docutils literal"><span class="pre">.text</span></tt>. We will use <strong>xpath</strong>  to find urls or page titles
+in a HTML document.</li>
+</ul>
+<p>And here is the script which brings all this together (and includes a
+design problem):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># sequential.py</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
+
+<span class="k">for</span> <span class="n">planet</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;http://planet.debian.net&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://planetzope.org&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://planet.gnome.org&quot;</span><span class="p">,</span>
+               <span class="s">&quot;http://gstreamer.freedesktop.org/planet/&quot;</span><span class="p">]:</span>
+
+    <span class="c"># first Xpath pattern matches articles links, second pattern: html titles</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">planet</span> <span class="p">))</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;//h3/a/@href&#39;</span>    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">title</span>   <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">article</span><span class="p">))</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s">&#39;/html/head/title&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+
+    <span class="k">print</span> <span class="s">&quot;first article on </span><span class="si">%s</span><span class="s"> : </span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">planet</span><span class="p">,</span> <span class="n">article</span><span class="p">,</span> <span class="n">title</span> <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="concurrency-vs-sequential-processing">
+<h2>Concurrency vs sequential processing<a class="headerlink" href="#concurrency-vs-sequential-processing" title="Permalink to this headline">¶</a></h2>
+<p>When there are <em>n</em> element in the blog list, there will be <em>2n</em> page
+downloaded, one after the other, and this will take <em>2n * time to
+download a page</em>. When the time taken by an algorithm is directly
+proportional to the number of inputs, this is called a linear
+complexity and this will rightfully raise the eyebrow of any developer
+concerned with performance and scalability.</p>
+<p>As each download is completely independent from each other, it is
+obvious that these downloads should be executed in parallel, or,
+<em>concurrently</em>, and this is the raison d&#8217;être of the Twisted Python
+framework. <a class="reference external" href="concurrent/preemptive.html"><em>Processes and threads</em></a> are
+well-known primitives for programming concurrently but Twisted does
+without (not even behind your back), because it is not adapted for
+scalable network programming. This frees the developer from using
+locks, recursive locks, or mutexes. The solution presented at the end
+of the article does not have more lines of code, does not take much
+longer for <em>n</em> downloads than it takes for one download (ie <em>constant
+complexity</em>) and is actually three times faster.</p>
+<p>A frequently heard reaction at this point is &#8220;Python is a slow
+language to start with, <strong>a fast language</strong> is the answer to
+performance&#8221;. Notwithstanding the many existing techniques to make
+Python code compile and run on multiple processors, the speed of the
+language is not the point. In many case, even a C compiler can not fix
+a bad design. For example, take the download of an install CD, there
+is an insignificant gain in performance in a download client written
+in C over an implementation in Python, because 1. both implementations
+are very likely to end up leaving the network and disk stuff to the
+kernel and most importantly because 2. this job is inherently bound by
+the network bandwidth, not by CPU computations, where C shines. Both
+in C and in Python, in the context of multiple downloads, performance
+depends on concurrent connections.</p>
+<p>This example is obvious but most network libraries blocks when doing a
+network request. This is the core idea: <strong>Twisted functions which make
+a network call do not block the application while the response is not
+yet available</strong>. Network functions are split: first the request is sent,
+then the <em>callback</em> code receives and manipulates the received
+data. <strong>In the period of time between the return of the requesting
+function and the execution of the callback, the</strong> <tt class="xref docutils literal"><span class="pre">reactor</span></tt>,
+<strong>(Twisted&#8217;s event loop) can run other processing</strong>. This is
+the basic idea which makes asynchronous code faster than blocking
+code.</p>
+</div>
+<div class="section" id="a-concurrent-solution">
+<h2>A concurrent solution<a class="headerlink" href="#a-concurrent-solution" title="Permalink to this headline">¶</a></h2>
+<p>Here is a concurrent solution to the blog problem. It is three times
+faster than the sequential approach:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># concurrent.py </span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="kn">import</span> <span class="n">inlineCallbacks</span>
+<span class="kn">from</span> <span class="nn">twisted.web.client</span> <span class="kn">import</span> <span class="n">getPage</span>
+<span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">fromstring</span>
+
+<span class="n">planets</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;http://planet.debian.net&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://planetzope.org&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://planet.gnome.org&quot;</span><span class="p">,</span>
+           <span class="s">&quot;http://gstreamer.freedesktop.org/planet/&quot;</span><span class="p">]</span>
+
+<span class="nd">@inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">first_title</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+
+    <span class="n">dig</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">html</span><span class="p">,</span><span class="n">pattern</span><span class="p">:</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">html</span><span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c"># takes a html page and a xpath pattern, returns the first matching node</span>
+
+    <span class="n">article</span> <span class="o">=</span> <span class="n">dig</span><span class="p">(</span> <span class="p">(</span><span class="k">yield</span> <span class="n">getPage</span><span class="p">(</span><span class="n">url</span><span class="p">)),</span>     <span class="s">&#39;//h3/a/@href&#39;</span><span class="p">)</span>
+    <span class="n">title</span>   <span class="o">=</span> <span class="n">dig</span><span class="p">(</span> <span class="p">(</span><span class="k">yield</span> <span class="n">getPage</span><span class="p">(</span><span class="n">article</span><span class="p">)),</span> <span class="s">&#39;/html/head/title&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+    <span class="k">print</span> <span class="s">&quot;first article on </span><span class="si">%s</span><span class="s"> : </span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">article</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">planets</span><span class="p">:</span>
+    <span class="n">first_title</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+<span class="n">reactor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span> 
+<span class="c"># Use Ctrl-C to terminate the script</span>
+</pre></div>
+</div>
+<p>The Twisted equivalent of <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt> is called
+<tt class="xref docutils literal"><span class="pre">getPage()</span></tt>. It is asynchronous and returns a <a class="reference external" href="concurrent/deferred.html"><em>deferred</em></a>. The low level steps composing <tt class="xref docutils literal"><span class="pre">getPage()</span></tt>
+are asynchronous as well: even the DNS request turning the url
+argument into an IP address will not block the application and let
+other processing occurs.</p>
+<p><em>The page</em> <a class="reference external" href="concurrent/smartpython.html"><em>The yield keyword simplifies Twisted code</em></a> <em>explains the Python yield
+keyword and decorator syntax in the context of Twisted. The page</em>
+<a class="reference external" href="concurrent/reactor.html"><em>The Reactor and the Protocols</em></a> <em>gives a precise overview of how Twisted
+works at the operating system system.</em></p>
+<p>Want to learn more? The project <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/index.html">documentation</a> presents many code
+examples and reference articles. Would you use the Twisted framework
+for your core business development? Hmm, difficult question: maybe you
+can check at the development <a class="reference external" href="http://twistedmatrix.com/trac/wiki/ContributingToTwistedLabs">methods</a> to get the beginning of an
+answer.</p>
+<p><em>15 May 2010</em></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="concurrent/preemptive.html" title="Twisted’s network concurrency model as compared with sockets and threads"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pty.html" title="Les pseudo-terminaux"
+             >previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>

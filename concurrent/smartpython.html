@@ -1,0 +1,305 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The yield keyword simplifies Twisted code &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.7',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../index.html" />
+    <link rel="up" title="Concurrent network programming with Twisted" href="../concurrent.html" />
+    <link rel="next" title="Sorting dependencies" href="../dependencies.html" />
+    <link rel="prev" title="The Deferred" href="deferred.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../dependencies.html" title="Sorting dependencies"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="deferred.html" title="The Deferred"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../concurrent.html" accesskey="U">Concurrent network programming with Twisted</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">The <em>yield</em> keyword simplifies Twisted code</a><ul>
+<li><a class="reference external" href="#the-yield-python-keyword">the <em>yield</em> Python keyword</a></li>
+<li><a class="reference external" href="#decorators-in-python">Decorators in Python</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="deferred.html"
+                                  title="previous chapter">The <em>Deferred</em></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="../dependencies.html"
+                                  title="next chapter">Sorting dependencies</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../sources/concurrent/smartpython.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-yield-keyword-simplifies-twisted-code">
+<span id="yield"></span><h1>The <em>yield</em> keyword simplifies Twisted code<a class="headerlink" href="#the-yield-keyword-simplifies-twisted-code" title="Permalink to this headline">¶</a></h1>
+<p>... once you understand what this crazy keyword does</p>
+<p><a class="reference internal" href="#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> is a powerful Python keyword that Twisted uses to
+simplify the boilerplate of deferred and callback manipulation.  Also,
+the technical constraint, in Twisted, to manipulate the result of a
+request in a function different than the function making the request
+can be inconvenient: the integration of <em>yield</em> with the
+<tt class="xref docutils literal"><span class="pre">reactor</span></tt> alleviates this problem. Here are three versions of
+the <tt class="xref docutils literal"><span class="pre">title()</span></tt> scraping function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">getPage</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">getpage_callback</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">parse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="o">...</span> <span class="p">)</span>
+
+    <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">getpage_callback</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Another <em>traditional</em> version, where the callback is defined before
+the request. It is easier to read from the bottom:</p>
+<div class="highlight-python"><pre>def getpage_callback( html )
+    print parse(html).xpath( ... )
+
+getPage(url).addCallback(getpage_callback)</pre>
+</div>
+<p>The third one is a rewrite with the <em>yield</em> keyword, and requires
+Python 2.5:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">parse</span><span class="p">((</span><span class="k">yield</span> <span class="n">getPage</span><span class="p">(</span><span class="n">url</span><span class="p">)))</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span> <span class="o">...</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>This version is shorter, there is no need to create and name a nested
+function, and to add a level of indentation to the callback code. The
+callback codes are in the same function that initiated the request,
+hence the name of <em>inline callbacks</em>. Because <tt class="xref docutils literal"><span class="pre">title()</span></tt> is marked
+with the <tt class="xref docutils literal"><span class="pre">inlineCallbacks()</span></tt> decorator, it will return a deferred,
+the <tt class="xref docutils literal"><span class="pre">reactor</span></tt> will trigger the call to the <tt class="xref docutils literal"><span class="pre">send()</span></tt> method on
+the generator, with the requested HTML page as the argument.</p>
+<p>But let&#8217;s proceed step by step: first the <em>yield</em> keyword, then the
+decorator syntax.</p>
+<div class="section" id="the-yield-python-keyword">
+<h2>the <em>yield</em> Python keyword<a class="headerlink" href="#the-yield-python-keyword" title="Permalink to this headline">¶</a></h2>
+<p>For a function, <em>yielding</em> means <em>volontarily suspending itself</em>. When
+the function is called again, it is resumed where it was
+suspended. The arguments of <em>yield</em> are returned to the caller of the
+function as if the <em>return</em> keyword had been used. If you
+already know <em>yield</em>, just skip to the next section.</p>
+<p>The following examples only include code from the core Python
+language, there is no Twistery involved:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">func_with_several_entry_points</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">yield</span> <span class="s">&#39;this string is the first return value&#39;</span>
+<span class="gp">... </span>    <span class="n">val</span> <span class="o">=</span> <span class="mi">1</span><span class="o">+</span><span class="mi">1</span>
+<span class="gp">... </span>    <span class="k">yield</span> <span class="s">&#39;the latest portion of the function was executed&#39;</span><span class="p">,</span><span class="n">val</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">=</span><span class="n">func_with_several_entry_points</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span>                                      <span class="c"># doctest:+ELLIPSIS</span>
+<span class="go">&lt;generator object func_with_several_entry_points at ...&gt;</span>
+</pre></div>
+</div>
+<p>On call, a function using <em>yield</em> returns a Python <em>generator</em>
+object. <em>Generators</em> always have a <em>next()</em> method which, on
+successive calls, runs the sections of code delimited by <em>yield</em>,
+one after the other.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="go">&#39;this string is the first return value&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="go">(&#39;the latest portion of the function was executed&#39;, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n-Identifier">&lt;module&gt;</span>
+<span class="nc">StopIteration</span>
+</pre></div>
+</div>
+<p>Generators object raises a :<em>StopIteration</em> exception to
+signal when it has reached the end of the last code section, and that
+it is no use calling it again.</p>
+<p><em>yield</em> is really powerful: for instance, here is a <em>lazy</em>
+implementation of the fibonacci suite.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">fib</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="mi">1000000</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">):</span>
+<span class="gp">... </span>         <span class="k">yield</span> <span class="n">b</span>
+<span class="gp">... </span>         <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span><span class="n">a</span><span class="o">+</span><span class="n">b</span>
+</pre></div>
+</div>
+<p>Lazy in the sense that it behaves like a huge list but the whole list
+is never completely computed in one shot and never fully stored in
+memory: the next element is computed <strong>on demand</strong>, when the
+<em>next()</em> method is called:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span><span class="o">=</span><span class="n">fib</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span><span class="o">.</span><span class="n">next</span><span class="p">(),</span> <span class="n">gen</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="go">(0, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n-Identifier">&lt;module&gt;</span>
+<span class="nc">StopIteration</span>
+</pre></div>
+</div>
+<p>Generators are integrated with the <em>for</em> keyword which
+dutifully call the <em>next()</em> method on and on, until the
+<em>for</em> keyword catches the <em>StopIteration</em> exception:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">fib</span><span class="p">(</span><span class="mi">16</span><span class="p">)]</span>
+<span class="go">[0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">fib</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">n</span><span class="p">,</span>
+<span class="gp">...</span>
+<span class="go">0 1 1 2 3 5 8 13 21 34</span>
+</pre></div>
+</div>
+<p>But we digress, now back to Twisted, do you see the similarity of
+concept between the functions using <em>yield</em> and the Twisted
+chains of callback? <em>Both specify section of codes to be called
+successively</em>.</p>
+<p>A limitation of <em>yield</em> mechanism was <a class="reference external" href="http://docs.python.org/whatsnew/2.5.html#pep-342-new-generator-features">lifted</a> in Python2.5, enabling
+their use with the Twisted reactor: the next section of code of a
+generator can be called with input data thanks the new <em>send()</em>
+method instead of <em>next()</em>. <em>Yield</em>, enclosed in parenthesis, is
+an expression:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">func</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">double_received</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="k">yield</span> <span class="s">&quot;Ok, I am ready to receive data&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">yield</span> <span class="s">&quot;The double of the data I just received&quot;</span><span class="p">,</span> <span class="n">double_received</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">=</span><span class="n">func</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="go">&#39;Ok, I am ready to receive data&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">&#39;Hello&#39;</span><span class="p">)</span>
+<span class="go">(&#39;The double of the data I just received&#39;, &#39;HelloHello&#39;)</span>
+</pre></div>
+</div>
+<p><em>These changes turn generators from one-way producers of information
+into both producers and consumers</em>. The reactor can build generators
+which send network requests the first time they are called, and can
+<em>send</em> the generator the response data for processing, when it is
+available.</p>
+</div>
+<div class="section" id="decorators-in-python">
+<h2>Decorators in Python<a class="headerlink" href="#decorators-in-python" title="Permalink to this headline">¶</a></h2>
+<p>Twisted uses the <em>decorator syntax</em> to write callbacks in simpler manner,
+this section is just a brief recap of what is a <a class="reference external" href="http://wiki.python.org/moin/PythonDecorators">decorator</a>, skip to the
+next section if already comfortable with Python decorators.</p>
+<p>A decorator is a function returning another function, usually applied
+as a function transformation. For example, it is useful when you want
+to debug a series of nested calls, such as</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If there is a need to know what was returned by urlopen <em>without
+modifying the nested call</em>, a solution is to insert the following
+statement at the previous line:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">parse</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">parse</span><span class="p">)</span>
+<span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Where <tt class="xref docutils literal"><span class="pre">log()</span></tt> is defined as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">print</span> <span class="s">&quot;Here is the argument:&quot;</span><span class="p">,</span> <span class="n">n</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">foo</span>
+</pre></div>
+</div>
+<p><tt class="xref docutils literal"><span class="pre">log</span></tt> prints the argument, then <tt class="xref docutils literal"><span class="pre">log</span></tt> calls the decorated
+function and returns the result. In our example, the HTML string will
+be printed before being passed on to the parse function. Here on a
+custom function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">double</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="n">n</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">double</span><span class="o">=</span><span class="n">log</span><span class="p">(</span><span class="n">double</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Python allows some syntactic sugar, with the use of the <em>&#64;</em> character,
+for applying a decorator on a custom function to simplify the function
+definition above (both definitions are equivalent):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nd">@log</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">double</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="n">n</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">double</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">Here is the argument: 5</span>
+<span class="go">10</span>
+</pre></div>
+</div>
+<p>Now that the <em>yield</em> keyword and the decorator syntax are clearer,
+understanding the integration of yield with the Twisted reactor should
+be easier to apprehend.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../dependencies.html" title="Sorting dependencies"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="deferred.html" title="The Deferred"
+             >previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../concurrent.html" >Concurrent network programming with Twisted</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>

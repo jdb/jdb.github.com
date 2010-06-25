@@ -1,0 +1,291 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Topsort in available packages &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.7',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../index.html" />
+    <link rel="up" title="Sorting dependencies" href="../dependencies.html" />
+    <link rel="next" title="Graph traversal" href="bfs_dfs.html" />
+    <link rel="prev" title="A naive, CPU hungry solution" href="brute.py.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="bfs_dfs.html" title="Graph traversal"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="brute.py.html" title="A naive, CPU hungry solution"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../dependencies.html" accesskey="U">Sorting dependencies</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Topsort in available packages</a><ul>
+<li><a class="reference external" href="#the-topsort-package">The <em>topsort</em> package</a></li>
+<li><a class="reference external" href="#from-the-pygraph-package">From the Pygraph package</a></li>
+<li><a class="reference external" href="#topsort-in-erlang">Topsort in Erlang</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="brute.py.html"
+                                  title="previous chapter">A naive, CPU hungry solution</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="bfs_dfs.html"
+                                  title="next chapter">Graph traversal</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../sources/dependencies/off_the_shelf.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="topsort-in-available-packages">
+<h1>Topsort in available packages<a class="headerlink" href="#topsort-in-available-packages" title="Permalink to this headline">¶</a></h1>
+<p>Topsort is a fast operating on a set of dependencies, and only returns
+one of the solutions. This is usually what is acutally needed: as for a
+labyrinth, the problem really is to find the exit, not exhaustively
+list every available way out.</p>
+<div class="section" id="the-topsort-package">
+<h2>The <em>topsort</em> package<a class="headerlink" href="#the-topsort-package" title="Permalink to this headline">¶</a></h2>
+<p>This package, <a class="reference external" href="http://pypi.python.org/pypi/topsort">available</a> on Pypi, does not successfully installs at
+this time (<em>june 2010</em>), but a working simplified version of the
+algorithm is reproduced here (the graph cycle detection was suppressed
+: make sure there are no circular dependencies in the input graph).</p>
+<p>The function <a class="reference external" href="http://groups.google.com/group/comp.lang.python/msg/16d99cd6e9fe0302?dmode=source">seems</a> to have been written by Tim Peters, authors of the
+super efficient <a class="reference external" href="http://en.wikipedia.org/wiki/Timsort">timsort</a> algorithm. The function is in three steps :</p>
+<ol class="arabic simple">
+<li>the preparation of a small data structure: every nodes is
+associated to its number of child in a dictionary called <em>num_parents</em></li>
+<li>the initial condition: the nodes without parents (their
+num_parents&#8217; value is zero) are appended to the <em>answer</em> list and
+suppressed from the num_parents dictionary,</li>
+<li>the iteration operates on the nodes without parents in the .  At each iteration, each current
+node&#8217;s children see its parent count decremented by one, whenever a
+children has no more parents, it is appended at the end of the
+answer and suppress from num_parents. At each iteration, the
+num_parents shrinks and the algorithm crunches a smaller graph.</li>
+</ol>
+<p>Here is the code of this topsort:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">tims_topsort</span><span class="p">(</span><span class="n">deps</span><span class="p">):</span>
+
+    <span class="c"># 1. data structure preparation</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[[(</span><span class="n">parent</span><span class="p">,</span><span class="n">child</span><span class="p">)</span> <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">[</span><span class="n">child</span><span class="p">]]</span> 
+                         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">deps</span> <span class="p">]))</span>
+
+    <span class="n">num_parents</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">)</span> <span class="p">])</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">child</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span> 
+        <span class="n">num_parents</span><span class="p">[</span><span class="n">child</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span> 
+
+    <span class="c"># 2. initial condition</span>
+    <span class="n">answer</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">num_parents</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_parents</span><span class="p">)</span>
+
+    <span class="c"># 3. traversing the graph</span>
+    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">answer</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">num_parents</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">deps</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">[</span><span class="n">parent</span><span class="p">]:</span>
+                <span class="n">num_parents</span><span class="p">[</span><span class="n">child</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">num_parents</span><span class="p">[</span><span class="n">child</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">answer</span>
+</pre></div>
+</div>
+<p>Let&#8217;s try it on a small real world graph in the data package:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">data</span> <span class="kn">import</span> <span class="n">deps</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>
+<span class="go">{1: [2, 3],</span>
+<span class="go"> 5: [4],</span>
+<span class="go"> 6: [1],</span>
+<span class="go"> 7: [6, 5, 4],</span>
+<span class="go"> 8: [6, 4],</span>
+<span class="go"> 9: [6, 5, 8, 7],</span>
+<span class="go"> 10: [4, 6, 7],</span>
+<span class="go"> 11: [6, 5, 4, 7],</span>
+<span class="go"> 12: [6, 7, 11, 10, 8, 1, 9]}</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">tims_topsort</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>
+<span class="go">[3, 2, 4, 1, 5, 6, 7, 8, 9, 10, 11, 12]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-the-pygraph-package">
+<h2>From the Pygraph package<a class="headerlink" href="#from-the-pygraph-package" title="Permalink to this headline">¶</a></h2>
+<p>The algorithm is imported from the <em>sorting</em> algorithm of the <a class="reference external" href="http://code.google.com/p/python-graph/">Pygraph
+project</a>, and operates on digraphs</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pygraph.algorithms.sorting</span> <span class="kn">import</span> <span class="n">topological_sorting</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pygraph.classes.digraph</span> <span class="kn">import</span> <span class="n">digraph</span>
+</pre></div>
+</div>
+<p>Before using the algorithm, the input digraph must be built:
+<em>prepare()</em> takes a dictionary of dependencies, detects the list of
+edges and the set of nodes and returns an adapted digraph:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="n">deps</span><span class="p">):</span>
+   
+    <span class="c"># As the topsort algorithm expects edges in the form (dependency,</span>
+    <span class="c"># project) and not (project, dependency), the dependency</span>
+    <span class="c"># dictionary entry 1:[2,3] becomes (3, 1), (2, 1), etc..</span>
+
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[[(</span><span class="n">parent</span><span class="p">,</span><span class="n">child</span><span class="p">)</span> <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">[</span><span class="n">child</span><span class="p">]]</span>
+                         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">]))</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">))</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">digraph</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span> 
+        <span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span> 
+        <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">G</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">data</span> <span class="kn">import</span> <span class="n">deps</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">topological_sorting</span><span class="p">(</span><span class="n">prepare</span><span class="p">(</span><span class="n">deps</span><span class="p">))</span>
+<span class="go">[4, 5, 3, 2, 1, 6, 8, 7, 11, 10, 9, 12]</span>
+</pre></div>
+</div>
+<p>The simplified topsort runs four times faster than the implementation
+in the pygraph packages</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Timer</span><span class="p">(</span><span class="k">lambda</span> <span class="p">:</span> <span class="n">tims_topsort</span><span class="p">(</span><span class="n">deps</span><span class="p">))</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="go">0.0732760429382</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Timer</span><span class="p">(</span><span class="k">lambda</span> <span class="p">:</span> <span class="n">topological_sorting</span><span class="p">(</span><span class="n">prepare</span><span class="p">(</span><span class="n">deps</span><span class="p">))</span>
+<span class="gp">... </span>            <span class="p">)</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="go">0.333679914474</span>
+</pre></div>
+</div>
+<p>The unit is the second, a thousand executions of <em>tim(deps)</em> took 7
+hundredths of a second that is <em>tim(deps)</em> took 7 microseconds.The
+<em>topsort</em> from python-grapgh took 33 microseconds.</p>
+</div>
+<div class="section" id="topsort-in-erlang">
+<span id="erlang"></span><h2>Topsort in Erlang<a class="headerlink" href="#topsort-in-erlang" title="Permalink to this headline">¶</a></h2>
+<p>Erlang actually provides a module in the standard library offering
+several algorithm dealing with graphs. The <tt class="docutils literal"><span class="pre">digraph</span></tt> package offers
+the primitives to manages graphs, the <tt class="docutils literal"><span class="pre">digraph_utils</span></tt> package offers
+the algorithm. The code presented below is actually very similar to
+our script baaed on the standrard library: first the construction of
+the digraph, then the call to the algorithm.</p>
+<div class="highlight-erlang"><div class="highlight"><pre><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">topsort_stdlib</span><span class="p">).</span>
+<span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">start</span><span class="o">/</span><span class="mi">0</span><span class="p">,</span><span class="n">test</span><span class="o">/</span><span class="mi">0</span><span class="p">]).</span>
+<span class="p">-</span><span class="ni">import</span><span class="p">(</span><span class="n">lists</span><span class="p">,[</span><span class="n">map</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">foreach</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">flatmap</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">usort</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
+
+<span class="nf">prepare</span><span class="p">()</span> <span class="o">-&gt;</span>
+
+    <span class="p">{</span><span class="n">ok</span><span class="p">,[</span><span class="nv">L</span><span class="p">]}</span><span class="o">=</span><span class="nn">file</span><span class="p">:</span><span class="n">consult</span><span class="p">(</span><span class="s">&quot;projects.term&quot;</span><span class="p">),</span>
+
+    <span class="nv">Edges</span><span class="o">=</span><span class="n">flatmap</span><span class="p">(</span><span class="k">fun</span><span class="p">({</span><span class="nv">C</span><span class="p">,</span><span class="nv">G</span><span class="p">})</span> <span class="o">-&gt;</span> <span class="p">[</span> <span class="p">{</span><span class="nv">P</span><span class="p">,</span><span class="nv">C</span><span class="p">}</span> <span class="p">||</span> <span class="nv">P</span><span class="o">&lt;-</span><span class="nv">G</span><span class="p">]</span> <span class="k">end</span><span class="p">,</span><span class="nv">D</span><span class="p">),</span>
+    <span class="nv">Vertices</span><span class="o">=</span><span class="n">usort</span><span class="p">(</span><span class="n">flatmap</span><span class="p">(</span><span class="k">fun</span> <span class="nb">tuple_to_list</span><span class="o">/</span><span class="mi">1</span><span class="p">,</span> <span class="nv">Edges</span><span class="p">)),</span>
+
+    <span class="nv">G</span><span class="o">=</span><span class="nn">digraph</span><span class="p">:</span><span class="n">new</span><span class="p">(),</span>
+
+    <span class="n">foreach</span><span class="p">(</span>
+      <span class="k">fun</span><span class="p">(</span><span class="nv">Vertex</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nn">digraph</span><span class="p">:</span><span class="n">add_vertex</span><span class="p">(</span><span class="nv">G</span><span class="p">,</span><span class="nv">Vertex</span><span class="p">)</span> <span class="k">end</span><span class="p">,</span>
+      <span class="nv">Vertices</span><span class="p">),</span>
+
+    <span class="n">foreach</span><span class="p">(</span>
+      <span class="k">fun</span><span class="p">({</span><span class="nv">Parent</span><span class="p">,</span><span class="nv">Child</span><span class="p">})</span> <span class="o">-&gt;</span> <span class="nn">digraph</span><span class="p">:</span><span class="n">add_edge</span><span class="p">(</span><span class="nv">G</span><span class="p">,</span><span class="nv">Parent</span><span class="p">,</span><span class="nv">Child</span><span class="p">)</span> <span class="k">end</span><span class="p">,</span>
+      <span class="nv">Edges</span><span class="p">),</span>
+
+    <span class="nv">G</span><span class="p">.</span>
+
+
+<span class="nf">start</span><span class="p">()</span> <span class="o">-&gt;</span>
+    <span class="nv">G</span> <span class="o">=</span> <span class="p">,</span>
+    <span class="nn">io</span><span class="p">:</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;Here are the projects, sorted by their dependences</span><span class="si">~n</span><span class="s">&quot;</span>
+	      <span class="s">&quot;</span><span class="si">~p~n</span><span class="s">&quot;</span><span class="p">,[</span><span class="nn">digraph_utils</span><span class="p">:</span><span class="n">topsort</span><span class="p">(</span><span class="n">prepare</span><span class="p">())]).</span>
+
+
+<span class="nf">test</span><span class="p">()</span><span class="o">-&gt;</span> <span class="nn">eunit</span><span class="p">:</span><span class="n">test</span><span class="p">(</span>
+	   <span class="p">[</span>
+	    <span class="k">fun</span><span class="p">()</span> <span class="o">-&gt;</span> 
+		    <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span>
+			<span class="o">=</span> <span class="n">topsort_from_deps</span><span class="p">(</span><span class="n">load_deps</span><span class="p">())</span> <span class="k">end</span>
+	    <span class="p">]).</span>
+
+    
+</pre></div>
+</div>
+<p>The next part of this <a class="reference external" href="bfs_dfs.html"><em>article</em></a> presents several &#8220;by hand&#8221;
+implementations of topsort as graph traversal. These methods can
+easily be adapted to build high performance or distributed
+implementations.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="bfs_dfs.html" title="Graph traversal"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="brute.py.html" title="A naive, CPU hungry solution"
+             >previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../dependencies.html" >Sorting dependencies</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>
