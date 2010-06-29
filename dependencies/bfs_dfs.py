@@ -34,33 +34,17 @@ def dfs(projects, deps):
     _dfs(projects, deps, [], acc)
     return acc
 
-def idfs(projects, deps):
-
-    class Path(list):
-        def __setitem__(self,key,item):
-            self.append(item)
-
-    def _idfs(path = Path()):
-        if len(path) == len(deps):
-            yield path[:]
-        else:
-            for path[0] in candidates(projects, deps, set(path)):
-                for winner in _idfs():
-                    yield winner
-                path.pop()
-                
-    return _idfs()
 
 def idfs(projects, deps, path=[]):
-    if len(path) == len(deps):
-        yield path[:]
-    else:
-        for c in candidates(projects, deps, set(path)):
+    candids = candidates(projects, deps, set(path))
+    if candids:
+        for c in candids:
             path.append(c)
             for winner in idfs(projects, deps, path):
                 yield winner
             path.pop()
-
+    else:
+        yield path[:]
 
 def bfs(projects, deps, paths=[[]]):
     "Returns a sorted list of the dependencies - breadth first traversal"
@@ -85,7 +69,11 @@ if __name__=="__main__":
     #for l in idfs(projects, deps):
     #    print l
 
+    for i in idfs(projects,deps):
+        print i
     print Timer(lambda : dfs(projects,deps)).timeit(number=1000)
+    print list(idfs(projects,deps))
+
     # print Timer(lambda : bfs(projects,deps)).timeit(number=1000)
     print Timer(lambda : list(idfs(projects,deps))
                ).timeit(number=1000)
