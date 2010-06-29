@@ -178,22 +178,66 @@ lines of Python: let&#8217;s recap briefly</p>
 <span class="n">are_before</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">L</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">p</span><span class="p">:</span> <span class="nb">all</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">L</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">l</span><span class="p">)</span>
 <span class="n">is_winner</span>  <span class="o">=</span> <span class="k">lambda</span> <span class="n">G</span><span class="p">,</span><span class="n">l</span><span class="p">:</span> <span class="nb">all</span><span class="p">(</span><span class="n">are_before</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">deps</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">n</span><span class="p">),</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">l</span><span class="p">)</span>
 <span class="n">search</span>     <span class="o">=</span> <span class="k">lambda</span> <span class="n">G</span><span class="p">:</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">l</span><span class="p">:</span><span class="n">is_winner</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">l</span><span class="p">),</span> <span class="n">perm</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">))</span>
-
-<span class="k">print</span> <span class="n">search</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">search</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="go">[b, c, a]</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="complexity-bites">
 <h2>Complexity bites<a class="headerlink" href="#complexity-bites" title="Permalink to this headline">¶</a></h2>
-<p>Death by complexity: this code seems to never return. Let&#8217;s have a
-look at the respective complexity of the functions:</p>
-<div class="highlight-python"><pre>O(deps)       = O(n)
+<p>Let&#8217;s try our functions on a real life example, it is not even
+really big. There are nine tasks with dependencies:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">data</span> <span class="kn">import</span> <span class="n">deps</span> <span class="k">as</span> <span class="n">data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="go">{1: [2, 3],</span>
+<span class="go"> 5: [4],</span>
+<span class="go"> 6: [1],</span>
+<span class="go"> 7: [6, 5, 4],</span>
+<span class="go"> 8: [6, 4],</span>
+<span class="go"> 9: [6, 5, 8, 7],</span>
+<span class="go"> 10: [4, 6, 7],</span>
+<span class="go"> 11: [6, 5, 4, 7],</span>
+<span class="go"> 12: [6, 7, 11, 10, 8, 1, 9]}</span>
 
-O(are_before) = O(l * 2 O(index))
+<span class="go"># Transforming the dictionary into two lists: edges and nodes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+<span class="go">    chain(*[[ (n,k) for n in v ] for k,v in data.iteritems()]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">nodes</span>
+<span class="go">[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">edges</span>
+<span class="go">[(2, 1), (3, 1), (4, 5), (1, 6), (6, 7), (5, 7), (4, 7), (6, 8),</span>
+<span class="go">(4, 8), (6, 9), (5, 9), (8, 9), (7, 9), (4, 10), (6, 10), (7, 10),</span>
+<span class="go">(6, 11), (5, 11), (4, 11), (7, 11), (6, 12), (7, 12), (11, 12),</span>
+<span class="go">(10, 12), (8, 12), (1, 12), (9, 12)]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">G</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">search</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="go">[[4, 5, 3, 2, 1, 6, 8, 7, 11, 10, 9, 12], ...</span>
+</pre></div>
+</div>
+<p>The search seems to never return and actually took a whole night to
+be able to finish.  We hit a <em>complexity wall</em>. Let&#8217;s have a look at
+the respective algorithmic complexity of the functions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">O</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>       <span class="o">=</span> <span class="n">O</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This notation means that the computations defined in <em>deps()</em> is
+directly proportional to the size <em>n</em>, of the input data. For
+<em>are_before()</em>, this is worse: the computations are proportional to
+the <em>square</em> on the input data:</p>
+<div class="highlight-python"><pre>O(are_before) = O(l * 2 O(index))
               = O(l * O(n))
-              = O(n2)
-
-O(is_winner)  = O(l * O(are_before) + O(l * O(deps) )
+              = O(n2)</pre>
+</div>
+<p>The complexity for <em>is_winner()</em> and <em>search()</em> are also high:</p>
+<div class="highlight-python"><pre>O(is_winner)  = O(l * O(are_before) + O(l * O(deps))
               = O(l * O(n2)  + O(l* O(n)))
               = O( O(n3)  + O(n2) )
               = O(n3)
@@ -202,41 +246,24 @@ O(search)     = O(is_winner) * O(perm)
               = O(n3) * O(n!)
               = O(n!)</pre>
 </div>
-<p><em>deps()</em> and <em>are_before()</em> can be enhanced, and their complexity
-reduced:</p>
+<p>On the first hand, <em>deps()</em> and <em>are_before()</em> can be enhanced to
+reduce their complexity:</p>
 <ol class="arabic simple">
 <li>using a list that needs to be unrolled to get the dependencies of
 a node is suboptimal, instead a dictionary data structure is more
 adapted to access the dependencies of a node directly. Complexity
 would come down from O(n) to O(1).</li>
-<li><em>index()</em>&#8216;s execution depends on the size of the list. Checking
-that an element is part of a set data structure is much more
-efficient. <em>are_before()</em> would operate in O(n) instead of O(n2)</li>
+<li><em>index()</em>&#8216;s execution time depends on the size of the list. Using
+a dictionary where the position of the list value would be
+accessed in constant time is more efficient. <em>are_before()</em> would
+operate in O(n) instead of O(n2)</li>
 </ol>
 <p>But these improvements are cosmetic with regards to the size fo the
 data to test: if 12 nodes needs to be sorted, as with the data part
-of the <em>deps</em> module below, then 12! = 479 001 600 permutations
-needs to be tested. The follozing lines import a dictionary of
-dependencies and transform it into a graph</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">data</span> <span class="kn">import</span> <span class="n">deps</span>
-
-<span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-    <span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[[</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">v</span> <span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()]))</span>
-<span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-<span class="n">nodes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-
-<span class="n">G</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nodes</span><span class="p">),</span> <span class="n">edges</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The resolution took the whole night to be able to compute</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="s">&quot;Warning: long computation ahead, be patient&quot;</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;brute.result&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">search</span><span class="p">(</span><span class="n">G</span><span class="p">)]))</span>
-</pre></div>
-</div>
-<p>No really, we can not afford to test individually every
-permutations, see the next article: <a class="reference external" href="off_the_shelf.html"><em>Topsort in available packages</em></a>, for
-better ways to sort dependencies.</p>
+of the <em>deps</em> module below, then 12! = 479 001 600 (half a billion)
+permutations needs to be tested. While actually, entire branches do
+not need to be tested: see the next article: <a class="reference external" href="off_the_shelf.html"><em>Topsort in available packages</em></a>,
+for better ways to sort dependencies.</p>
 </div>
 </div>
 

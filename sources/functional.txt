@@ -1,8 +1,8 @@
 
 
 
-A journey with Pi, Python, functional algorithm and multicore
-=============================================================
+A journey with Pi, Python, a functional algorithm and multicore
+===============================================================
 
 This article describes a journey with the Python programming language,
 and :math:`\pi`. It begins by the comparison of the *procedural* and

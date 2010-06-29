@@ -101,9 +101,8 @@ and also, another version in the <em>python-graph</em> package.</p>
 <p><a class="reference external" href="dependencies/off_the_shelf.html"><em>Topsort in available packages</em></a></p>
 <p>All languages have their advantages: for a recursive algorithm
 dealing and the manipulation of lists, Erlang is particularly
-adapted. Even more, actually, the topsort algorithm is part of
-Erlang standard library.</p>
-<p><a class="reference external" href="dependencies/off_the_shelf.html#erlang"><em>Topsort in Erlang</em></a></p>
+adapted. Actually, the topsort algorithm is part of Erlang standard
+library, as examplified in the previous article.</p>
 </li>
 <li><p class="first">Yet another way to solve this problem is to consider <em>the graph of
 the candidates</em>, that is given the first part of the sorted list of
@@ -113,22 +112,20 @@ in the list. Then, it is just a matter of traversing the graph in
 depth first or breadth first to find the list of all possible
 solutions.</p>
 <p><a class="reference external" href="dependencies/bfs_dfs.html"><em>Graph traversal</em></a></p>
-<p>In depth search first (DFS), it is possible to build a generator of
-the solutions: the solution are not computed in a long batch,
-accumulated and returned as a long list, the solutions are available
-as soon as they are found. The processing of the solution alternates
-with the search for the next solution.</p>
-<p>For instance, a solution can be emitted to a client which draws the
-solution, while the server continues the exhaustion of the
-solutions.</p>
-<p><a class="reference external" href="dependencies/bfs_dfs.html#recursive-gen"><em>Recursive generator</em></a></p>
-<p>It is actually possible to do a breadth first search traversal of the
-graph in pure SQL (since Postgresql 8.4) using the recent standard
-<tt class="docutils literal"><span class="pre">with</span> <span class="pre">recurse</span></tt> queries available in PostgreSQL 8.4.
-Performance-wise, the SQL query is one hundred time faster that the
-traversal in pure CPython. The SQL query (which find all solutions)
-is actually on par with the topological sort (which finds only one).</p>
-<p><a class="reference external" href="dependencies/bfs_dfs.html#recursive-query"><em>Recursive SQL queries</em></a></p>
+<p>In depth search first, it is possible to build a generator
+(<a class="reference external" href="dependencies/bfs_dfs.html#recursive-gen"><em>a recursive generator</em></a>) of the solutions: the
+solution are not computed in a long batch, accumulated and returned
+as a long list, the solutions are available as soon as they are
+found. The processing of the solution alternates with the search for
+the next solution. For instance, a solution can be handed to a
+client which draws the solution, while the server continues the
+exhaustion of the solutions.</p>
+<p>It is actually possible to do a <a class="reference external" href="dependencies/bfs_dfs.html#recursive-query"><em>breadth first search traversal
+in pure SQL</em></a> using the recent standard <tt class="docutils literal"><span class="pre">with</span>
+<span class="pre">recurse</span></tt> queries available in PostgreSQL 8.4. Performance-wise, the
+SQL query is one hundred time faster that the traversal in pure
+CPython. The SQL query (which find all solutions) is actually on par
+with the topological sort (which finds only one).</p>
 </li>
 </ul>
 </div>

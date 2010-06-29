@@ -87,87 +87,81 @@
             
   <div class="section" id="topsort-in-available-packages">
 <h1>Topsort in available packages<a class="headerlink" href="#topsort-in-available-packages" title="Permalink to this headline">¶</a></h1>
-<p>Topsort is a fast operating on a set of dependencies, and only returns
-one of the solutions. This is usually what is acutally needed: as for a
-labyrinth, the problem really is to find the exit, not exhaustively
-list every available way out.</p>
+<p>Topsort is a fast algorithm operating on a set of dependencies, it
+only returns one of the solutions. This is usually what is actually
+needed: as for a labyrinth for instance, the problem usually is to
+find the exit, not exhaustively list every possible way out.</p>
 <div class="section" id="the-topsort-package">
 <h2>The <em>topsort</em> package<a class="headerlink" href="#the-topsort-package" title="Permalink to this headline">¶</a></h2>
 <p>This package, <a class="reference external" href="http://pypi.python.org/pypi/topsort">available</a> on Pypi, does not successfully installs at
 this time (<em>june 2010</em>), but a working simplified version of the
 algorithm is reproduced here (the graph cycle detection was suppressed
 : make sure there are no circular dependencies in the input graph).</p>
-<p>The function <a class="reference external" href="http://groups.google.com/group/comp.lang.python/msg/16d99cd6e9fe0302?dmode=source">seems</a> to have been written by Tim Peters, authors of the
+<p>The function has been <a class="reference external" href="http://groups.google.com/group/comp.lang.python/msg/16d99cd6e9fe0302?dmode=source">written</a> by Tim Peters, author of the
 super efficient <a class="reference external" href="http://en.wikipedia.org/wiki/Timsort">timsort</a> algorithm. The function is in three steps :</p>
-<ol class="arabic simple">
-<li>the preparation of a small data structure: every nodes is
-associated to its number of child in a dictionary called <em>num_parents</em></li>
-<li>the initial condition: the nodes without parents (their
-num_parents&#8217; value is zero) are appended to the <em>answer</em> list and
-suppressed from the num_parents dictionary,</li>
-<li>the iteration operates on the nodes without parents in the .  At each iteration, each current
-node&#8217;s children see its parent count decremented by one, whenever a
-children has no more parents, it is appended at the end of the
-answer and suppress from num_parents. At each iteration, the
-num_parents shrinks and the algorithm crunches a smaller graph.</li>
+<ol class="arabic">
+<li><p class="first">the preparation of a small data structure: every nodes is
+associated to its number of child in a dictionary called
+<em>num_childs</em>,</p>
+</li>
+<li><p class="first">the initial condition: the nodes without children (their
+<em>num_childs</em>&#8216; value is zero) are stored in the <em>answer</em> list,</p>
+</li>
+<li><p class="first">the loop iterates on the nodes in the <em>answer</em> list.  At
+each iteration, each current node&#8217;s parents see its child count
+decremented by one. Whenever a child has zero parents, it is
+appended to the answer list.</p>
+<p>The iteration stops when all nodes in the answer list has been
+processed.</p>
+</li>
 </ol>
-<p>Here is the code of this topsort:</p>
+<p>At each iteration, the num_parents shrinks and the algorithm crunches
+a smaller graph. The memory use of this algorithm does not increase
+along the execution. Here is the code of this topsort:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">tims_topsort</span><span class="p">(</span><span class="n">deps</span><span class="p">):</span>
 
     <span class="c"># 1. data structure preparation</span>
     <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[[(</span><span class="n">parent</span><span class="p">,</span><span class="n">child</span><span class="p">)</span> <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">[</span><span class="n">child</span><span class="p">]]</span> 
                          <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">deps</span> <span class="p">]))</span>
 
-    <span class="n">num_parents</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">)</span> <span class="p">])</span>
-    <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">child</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span> 
-        <span class="n">num_parents</span><span class="p">[</span><span class="n">child</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span> 
+    <span class="n">num_childs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">)</span> <span class="p">])</span>
+    <span class="k">for</span> <span class="n">parent</span><span class="p">,</span><span class="n">_</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span> 
+        <span class="n">num_childs</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span> 
 
     <span class="c"># 2. initial condition</span>
-    <span class="n">answer</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">num_parents</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_parents</span><span class="p">)</span>
+    <span class="n">answer</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">num_childs</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_childs</span><span class="p">)</span>
 
     <span class="c"># 3. traversing the graph</span>
-    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">answer</span><span class="p">:</span>
-        <span class="k">del</span> <span class="n">num_parents</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">deps</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">[</span><span class="n">parent</span><span class="p">]:</span>
-                <span class="n">num_parents</span><span class="p">[</span><span class="n">child</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="n">num_parents</span><span class="p">[</span><span class="n">child</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">answer</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">deps</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">child</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">deps</span><span class="p">[</span><span class="n">child</span><span class="p">]:</span>
+                <span class="n">num_childs</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">num_childs</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">answer</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">answer</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>Let&#8217;s try it on a small real world graph in the data package:</p>
+<p>Let&#8217;s try it on the small real world data used previously:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">data</span> <span class="kn">import</span> <span class="n">deps</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>
-<span class="go">{1: [2, 3],</span>
-<span class="go"> 5: [4],</span>
-<span class="go"> 6: [1],</span>
-<span class="go"> 7: [6, 5, 4],</span>
-<span class="go"> 8: [6, 4],</span>
-<span class="go"> 9: [6, 5, 8, 7],</span>
-<span class="go"> 10: [4, 6, 7],</span>
-<span class="go"> 11: [6, 5, 4, 7],</span>
-<span class="go"> 12: [6, 7, 11, 10, 8, 1, 9]}</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">tims_topsort</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">tims_topsort</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>
 <span class="go">[3, 2, 4, 1, 5, 6, 7, 8, 9, 10, 11, 12]</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="from-the-pygraph-package">
 <h2>From the Pygraph package<a class="headerlink" href="#from-the-pygraph-package" title="Permalink to this headline">¶</a></h2>
-<p>The algorithm is imported from the <em>sorting</em> algorithm of the <a class="reference external" href="http://code.google.com/p/python-graph/">Pygraph
-project</a>, and operates on digraphs</p>
+<p>The topsort algorithm from the <a class="reference external" href="http://code.google.com/p/python-graph/">Pygraph project</a> is imported from the
+<em>sorting</em> algorithms package:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pygraph.algorithms.sorting</span> <span class="kn">import</span> <span class="n">topological_sorting</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pygraph.classes.digraph</span> <span class="kn">import</span> <span class="n">digraph</span>
 </pre></div>
 </div>
-<p>Before using the algorithm, the input digraph must be built:
-<em>prepare()</em> takes a dictionary of dependencies, detects the list of
-edges and the set of nodes and returns an adapted digraph:</p>
+<p>This alogrithm requires a digraph as the input. <em>prepare()</em> takes a
+dictionary of dependencies, detects the list of edges and the set of
+nodes and returns an adapted digraph:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pygraph.classes.digraph</span> <span class="kn">import</span> <span class="n">digraph</span>
+</pre></div>
+</div>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="n">deps</span><span class="p">):</span>
    
     <span class="c"># As the topsort algorithm expects edges in the form (dependency,</span>
@@ -187,13 +181,15 @@ edges and the set of nodes and returns an adapted digraph:</p>
     <span class="k">return</span> <span class="n">G</span>
 </pre></div>
 </div>
+<p>Then, it is just a matter of calling <em>topsort</em> on the digraph output:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">data</span> <span class="kn">import</span> <span class="n">deps</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">topological_sorting</span><span class="p">(</span><span class="n">prepare</span><span class="p">(</span><span class="n">deps</span><span class="p">))</span>
 <span class="go">[4, 5, 3, 2, 1, 6, 8, 7, 11, 10, 9, 12]</span>
 </pre></div>
 </div>
 <p>The simplified topsort runs four times faster than the implementation
-in the pygraph packages</p>
+in the pygraph packages, but most importantly it is a <strong>million time
+faster than the naive implementation</strong></p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Timer</span><span class="p">(</span><span class="k">lambda</span> <span class="p">:</span> <span class="n">tims_topsort</span><span class="p">(</span><span class="n">deps</span><span class="p">))</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
 <span class="go">0.0732760429382</span>
@@ -205,6 +201,9 @@ in the pygraph packages</p>
 <p>The unit is the second, a thousand executions of <em>tim(deps)</em> took 7
 hundredths of a second that is <em>tim(deps)</em> took 7 microseconds.The
 <em>topsort</em> from python-grapgh took 33 microseconds.</p>
+<p>A big difference between the two algorithm it that the naive solution
+will check every permutation possible while topsort starts with a small list
+and only append correct nodes.</p>
 </div>
 <div class="section" id="topsort-in-erlang">
 <span id="erlang"></span><h2>Topsort in Erlang<a class="headerlink" href="#topsort-in-erlang" title="Permalink to this headline">¶</a></h2>
@@ -212,8 +211,8 @@ hundredths of a second that is <em>tim(deps)</em> took 7 microseconds.The
 several algorithm dealing with graphs. The <tt class="docutils literal"><span class="pre">digraph</span></tt> package offers
 the primitives to manages graphs, the <tt class="docutils literal"><span class="pre">digraph_utils</span></tt> package offers
 the algorithm. The code presented below is actually very similar to
-our script baaed on the standrard library: first the construction of
-the digraph, then the call to the algorithm.</p>
+our script based on the Pygraph project: first the construction of the
+digraph, then the execution of the algorithm.</p>
 <div class="highlight-erlang"><div class="highlight"><pre><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">topsort_stdlib</span><span class="p">).</span>
 <span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">start</span><span class="o">/</span><span class="mi">0</span><span class="p">,</span><span class="n">test</span><span class="o">/</span><span class="mi">0</span><span class="p">]).</span>
 <span class="p">-</span><span class="ni">import</span><span class="p">(</span><span class="n">lists</span><span class="p">,[</span><span class="n">map</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">foreach</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">flatmap</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">usort</span><span class="o">/</span><span class="mi">1</span><span class="p">]).</span>
@@ -254,10 +253,10 @@ the digraph, then the call to the algorithm.</p>
     
 </pre></div>
 </div>
-<p>The next part of this <a class="reference external" href="bfs_dfs.html"><em>article</em></a> presents several &#8220;by hand&#8221;
-implementations of topsort as graph traversal. These methods can
-easily be adapted to build high performance or distributed
-implementations.</p>
+<p>The next part of this article, <a class="reference external" href="bfs_dfs.html"><em>Graph traversal</em></a> presents several &#8220;by
+hand&#8221; implementations of topsort as graph traversal. The generic
+method of graph traversal can be adapted to build high performance or
+distributed implementations.</p>
 </div>
 </div>
 
