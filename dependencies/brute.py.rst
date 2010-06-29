@@ -116,21 +116,65 @@ lines of Python: let's recap briefly
   is_winner  = lambda G,l: all(are_before(l,deps(G,n),n) for n in l)
   search     = lambda G: filter(lambda l:is_winner(G, l), perm(G.nodes))
   
-  print search(G)
-  
+>>> print search(G)
+[b, c, a]
+
 Complexity bites
 ----------------
 
-Death by complexity: this code seems to never return. Let's have a
-look at the respective complexity of the functions::
+Let's try our functions on a real life example, it is not even
+really big. There are nine tasks with dependencies::
+
+  >>> from data import deps as data
+  >>> from pprint import pprint
+  >>> pprint(data)
+  {1: [2, 3],
+   5: [4],
+   6: [1],
+   7: [6, 5, 4],
+   8: [6, 4],
+   9: [6, 5, 8, 7],
+   10: [4, 6, 7],
+   11: [6, 5, 4, 7],
+   12: [6, 7, 11, 10, 8, 1, 9]}
+
+  # Transforming the dictionary into two lists: edges and nodes
+  >>> edges = list(
+      chain(*[[ (n,k) for n in v ] for k,v in data.iteritems()]))
+  >>> nodes = list(set(chain(*data.values())))
+  >>> nodes.extend(data.keys())
+
+  >>> print nodes
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+  >>> print edges
+  [(2, 1), (3, 1), (4, 5), (1, 6), (6, 7), (5, 7), (4, 7), (6, 8),
+  (4, 8), (6, 9), (5, 9), (8, 9), (7, 9), (4, 10), (6, 10), (7, 10),
+  (6, 11), (5, 11), (4, 11), (7, 11), (6, 12), (7, 12), (11, 12),
+  (10, 12), (8, 12), (1, 12), (9, 12)]
+
+  >>> G = Graph(nodes, edges)
+  >>> print search(G)
+  [[4, 5, 3, 2, 1, 6, 8, 7, 11, 10, 9, 12], ...
+
+The search seems to never return and actually took a whole night to
+be able to finish.  We hit a *complexity wall*. Let's have a look at
+the respective algorithmic complexity of the functions::
 
   O(deps)       = O(n)
   
+This notation means that the computations defined in *deps()* is
+directly proportional to the size *n*, of the input data. For
+*are_before()*, this is worse: the computations are proportional to
+the *square* on the input data::
+
   O(are_before) = O(l * 2 O(index))
                 = O(l * O(n))
                 = O(n2)
   
-  O(is_winner)  = O(l * O(are_before) + O(l * O(deps) )
+The complexity for *is_winner()* and *search()* are also high::
+
+  O(is_winner)  = O(l * O(are_before) + O(l * O(deps))
                 = O(l * O(n2)  + O(l* O(n)))
                 = O( O(n3)  + O(n2) )
                 = O(n3)
@@ -139,44 +183,23 @@ look at the respective complexity of the functions::
                 = O(n3) * O(n!)
                 = O(n!)
 
-*deps()* and *are_before()* can be enhanced, and their complexity
-reduced: 
+On the first hand, *deps()* and *are_before()* can be enhanced to
+reduce their complexity:
 
 #. using a list that needs to be unrolled to get the dependencies of
    a node is suboptimal, instead a dictionary data structure is more
    adapted to access the dependencies of a node directly. Complexity
    would come down from O(n) to O(1).
 
-#. *index()*'s execution depends on the size of the list. Checking
-   that an element is part of a set data structure is much more
-   efficient. *are_before()* would operate in O(n) instead of O(n2)
+#. *index()*'s execution time depends on the size of the list. Using
+   a dictionary where the position of the list value would be
+   accessed in constant time is more efficient. *are_before()* would
+   operate in O(n) instead of O(n2)
 
 But these improvements are cosmetic with regards to the size fo the
 data to test: if 12 nodes needs to be sorted, as with the data part
-of the *deps* module below, then 12! = 479 001 600 permutations
-needs to be tested. The follozing lines import a dictionary of
-dependencies and transform it into a graph
-
-.. sourcecode:: python
-
-   from data import deps
-  
-   edges = list(
-       chain(*[[ (n,k) for n in v ] for k,v in data.iteritems()]))
-   nodes = list(chain(*data.values()))
-   nodes.extend(data.keys())
-  
-   G = Graph(set(nodes), edges)
-  
-The resolution took the whole night to be able to compute 
-
-.. sourcecode:: python
-
-  print "Warning: long computation ahead, be patient"
-  with open('brute.result', 'w') as f:
-      f.write('\n'.join([str(e) for e in search(G)]))
-
-No really, we can not afford to test individually every
-permutations, see the next article: :doc:`off_the_shelf`, for
-better ways to sort dependencies.
+of the *deps* module below, then 12! = 479 001 600 (half a billion)
+permutations needs to be tested. While actually, entire branches do
+not need to be tested: see the next article: :doc:`off_the_shelf`,
+for better ways to sort dependencies.
 

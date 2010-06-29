@@ -41,10 +41,9 @@ Several algorithms will be presented to build this list:
 
   All languages have their advantages: for a recursive algorithm
   dealing and the manipulation of lists, Erlang is particularly
-  adapted. Even more, actually, the topsort algorithm is part of
-  Erlang standard library.
+  adapted. Actually, the topsort algorithm is part of Erlang standard
+  library, as examplified in the previous article.
 
-  :ref:`erlang`
 
 * Yet another way to solve this problem is to consider *the graph of
   the candidates*, that is given the first part of the sorted list of
@@ -56,26 +55,21 @@ Several algorithms will be presented to build this list:
 
   :doc:`dependencies/bfs_dfs`
 
-  In depth search first (DFS), it is possible to build a generator of
-  the solutions: the solution are not computed in a long batch,
-  accumulated and returned as a long list, the solutions are available
-  as soon as they are found. The processing of the solution alternates
-  with the search for the next solution. 
+  In depth search first, it is possible to build a generator
+  (:ref:`a recursive generator <recursive_gen>`) of the solutions: the
+  solution are not computed in a long batch, accumulated and returned
+  as a long list, the solutions are available as soon as they are
+  found. The processing of the solution alternates with the search for
+  the next solution. For instance, a solution can be handed to a
+  client which draws the solution, while the server continues the
+  exhaustion of the solutions.
 
-  For instance, a solution can be emitted to a client which draws the
-  solution, while the server continues the exhaustion of the
-  solutions.
-
-  :ref:`recursive_gen`
-
-  It is actually possible to do a breadth first search traversal of the
-  graph in pure SQL (since Postgresql 8.4) using the recent standard
-  ``with recurse`` queries available in PostgreSQL 8.4.
-  Performance-wise, the SQL query is one hundred time faster that the
-  traversal in pure CPython. The SQL query (which find all solutions)
-  is actually on par with the topological sort (which finds only one).
-  
-  :ref:`recursive_query`
+  It is actually possible to do a :ref:`breadth first search traversal
+  in pure SQL <recursive_query>` using the recent standard ``with
+  recurse`` queries available in PostgreSQL 8.4. Performance-wise, the
+  SQL query is one hundred time faster that the traversal in pure
+  CPython. The SQL query (which find all solutions) is actually on par
+  with the topological sort (which finds only one).
 
 .. todo::
 

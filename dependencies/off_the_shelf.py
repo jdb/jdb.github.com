@@ -7,24 +7,26 @@ def tims_topsort(deps):
     edges = list(chain(*[[(parent,child) for parent in deps[child]] 
                          for child in deps ]))
 
-    num_parents = dict([ (k,0) for k in chain(*edges) ])
-    for _,child in edges: 
-        num_parents[child]+=1 
+    num_childs = dict([ (k,0) for k in chain(*edges) ])
+    for parent,_ in edges: 
+        num_childs[parent] += 1 
 
     # 2. initial condition
-    answer = filter(lambda x: num_parents[x] == 0, num_parents)
+    answer = filter(lambda x: num_childs[x] == 0, num_childs)
 
     # 3. traversing the graph
-    for parent in answer:
-        del num_parents[parent]
-        if deps.has_key(parent):
-            for child in deps[parent]:
-                num_parents[child] -= 1
-                if num_parents[child] == 0:
-                    answer.append(child)
+    for child in answer:
+        if deps.has_key(child):
+            for parent in deps[child]:
+                num_childs[parent] -= 1
+                if num_childs[parent] == 0:
+                    answer.append(parent)
 
-    return answer
+    return list(reversed(answer))
 
+if __name__=="__main__":
+    from data import deps
+    print tims_topsort(deps)
 
 from pygraph.algorithms.sorting import topological_sorting
 from pygraph.classes.digraph import digraph
@@ -46,3 +48,7 @@ def prepare(deps):
         G.add_edge(e)
 
     return G
+
+if __name__=="__main__":
+    from data import deps
+    print topological_sorting(prepare(deps))
