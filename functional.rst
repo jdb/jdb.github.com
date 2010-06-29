@@ -144,8 +144,8 @@ it gets more precise with more points but it is rather slow:
    Pi ~ 3.140128 
 
 In your opinion, which style fits the job best? I would say the
-procedural style is a sequence of small operation, without much
-structure. The functional style better split the problem into
+procedural style is a sequence of small operations, without much
+structure. The functional style better splits the problem into
 simpler bits whose integration solve the problem .
 
 Better performance through *lazyness*
@@ -228,7 +228,7 @@ over the previous functional implementation:
       Pi ~ 3.141496
       duration: 13.10 seconds
 
-At this point, the two styles are technically rougly equivalent, the
+At this point, the two styles are technically roughly equivalent, the
 functional style is 10% slower than the procedural counterpart. Maybe,
 those 10% are the small efficiencies that Knuth was telling us about:
 "we should forget about small inefficiencies, say about 97% of the
@@ -287,7 +287,7 @@ and the split into processes are only done once so their impact on
 performance are negligible, it is very practical to do it in
 Python. In our example, the hard work in this script is the *pi*
 function, which could not be simpler in terms of signature: it
-requires an int, returns a float, raise no errors, and make no side
+requires an int, returns a float, raises no errors, and makes no side
 effects. We can write the pi function in C so that, when compiled, it
 is directly understood by the processor, sidestepping the Python
 virtual machine. Here are the steps involved:
@@ -458,7 +458,7 @@ executions of the callable.
    
 Obtaining the 13 correct digits of :math:`\pi` can be done in less
 than 20 microseconds in pure Python with a good algorithm. And now, on
-to something fantastic : *On December 31st, 2009, about 2700 billion
+to something fantastic: *On December 31st, 2009, about 2700 billion
 decimal digits of Pi were computed using a single desktop
 computer. This is presently the World Record for the computation of
 Pi.* Kudos to `Fabrice Bellard`_. He combined a fast math method, with
