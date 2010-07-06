@@ -1,26 +1,27 @@
 
-
-tp01: guess the number
-======================
+========================
+ tp01: guess the number
+========================
 
 Copy and paste the following Python script in a text file and execute
 : ``python guess.py`` to test it.
 
-.. include:: guess.py
+.. include:: guess/guess.py
    :literal:
-
 
 
 Internationalized version !
 
-.. include:: guess2.py
+.. include:: guess/guess_i18n.py
    :literal:
+
 
 Look at the commands at the top of the source. The
 internationalization (i18n) tools will look for the translation file:
 
-.. include:: en.po
+.. include:: guess/en.po
    :literal:
+
 
 This file was created by ::
 

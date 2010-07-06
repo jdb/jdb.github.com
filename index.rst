@@ -1,7 +1,7 @@
 
-
-Every bit counts
-================
+==================
+ Every bit counts
+==================
 
 Articles	
 
@@ -24,3 +24,4 @@ Shorter Python tips
    package
    missing_method
    classmethod
+   dup
