@@ -14,6 +14,7 @@ Articles
    pty
    concurrent
    dependencies
+   imap_idle
 
 Shorter Python tips
 
