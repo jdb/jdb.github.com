@@ -1,0 +1,263 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Suppressing duplicates in a list &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
+    <link rel="prev" title="Class method and static method" href="classmethod.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="classmethod.html" title="Class method and static method"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Suppressing duplicates in a list</a><ul>
+<li><a class="reference internal" href="#simplest-naive-algorithm">Simplest naive algorithm</a></li>
+<li><a class="reference internal" href="#faster-methods-which-does-not-respect-input-list-order">Faster methods, which does not respect input list order</a></li>
+<li><a class="reference internal" href="#respect-the-original-order">Respect the original order</a></li>
+<li><a class="reference internal" href="#what-do-you-mean-by-fast">What do you mean by fast?</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="classmethod.html"
+                        title="previous chapter">Class method and static method</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/dup.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="suppressing-duplicates-in-a-list">
+<h1>Suppressing duplicates in a list<a class="headerlink" href="#suppressing-duplicates-in-a-list" title="Permalink to this headline">¶</a></h1>
+<p>Each of the following functions returns a list with no duplicates from
+the list given as argument. Three approaches: the simplest approach,
+then faster methods which do not respect the original ordering, and
+finally fast methods which do respect the ordering.</p>
+<p>All in all, this problem is easily solved with Python&#8217;s <em>set</em> and <em>dict</em>
+builtins.</p>
+<div class="section" id="simplest-naive-algorithm">
+<h2>Simplest naive algorithm<a class="headerlink" href="#simplest-naive-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>The following function checks that the new values in the input list
+were not already <em>seen</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">naive</span><span class="p">(</span><span class="n">liste</span><span class="p">):</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">liste</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">seen</span>
+</pre></div>
+</div>
+<p>The <em>in</em> operator, operating on a list gets slower when the list
+grows. Here is a shorter implementation of the same algorithm which
+presents two subtleties with regard to the Python language:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">buggy_naive</span><span class="p">(</span><span class="n">liste</span><span class="p">,</span> <span class="n">nodups</span> <span class="o">=</span> <span class="p">[]):</span>
+    <span class="p">[</span><span class="n">nodups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">liste</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodups</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nodups</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li>the argument default values are only evaluated once: when the
+function is defined. In our case, the default value for <em>nodups</em>
+is a pointer to a list which happens to be empty at the function
+definition. while the pointer to the list will never change, the
+list itself might be updated and modified. Do not be surprised if
+the function&#8217;s data is not the same between each call: the
+default value is not re-initialiased.</li>
+<li><em>nodups.append()</em> does not really return a result as it is a side
+effect (<em>None</em> is actually returned). The list comprehensions will
+update the <em>nodups</em> list, but will also create internally a list as
+long as the input list, filled with <em>None</em>. This unused list is
+wasted.</li>
+</ol>
+</div>
+<div class="section" id="faster-methods-which-does-not-respect-input-list-order">
+<h2>Faster methods, which does not respect input list order<a class="headerlink" href="#faster-methods-which-does-not-respect-input-list-order" title="Permalink to this headline">¶</a></h2>
+<p>The list gets sorted first. Then to check whether a value has been
+seen: it is only necessary to check against one value instead of a
+list.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">usort</span><span class="p">(</span><span class="n">liste</span><span class="p">):</span>
+  <span class="n">l</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">liste</span><span class="p">)</span>
+  <span class="n">nodups</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+  <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+       <span class="k">if</span> <span class="n">e</span> <span class="o">!=</span> <span class="n">nodups</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+           <span class="n">nodups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">nodups</span>
+</pre></div>
+</div>
+<p>Another approach is to store the elements behind a hash: the
+duplicates are quickly found, they are behind the same hash. The
+Python dictionary can do that easily (it is only a matter of storing
+an empty value):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">dico</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">((</span><span class="n">i</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">l</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Actually a iterable without duplicate is also called a <em>set</em>. Another
+way to present the problem is this: how to transform a list into a
+set!</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">set</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="go">set([1, 2, 3, 4])</span>
+</pre></div>
+</div>
+<p>The Python set is actually implemented with a dictionary whose values
+are set to <em>None</em>.</p>
+</div>
+<div class="section" id="respect-the-original-order">
+<h2>Respect the original order<a class="headerlink" href="#respect-the-original-order" title="Permalink to this headline">¶</a></h2>
+<p>Returns a list whose <em>first</em> occurences of duplicates were removed. A
+dictionary is built from the input list, the keys are the list element
+which ensures unicity, the value is the position. The keys are
+returned sorted on the position:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">keep_last</span><span class="p">(</span><span class="n">liste</span><span class="p">):</span>
+   <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">liste</span><span class="p">))</span>
+   <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Same algorithm but the <em>last</em> duplicates are removed:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">keep_first</span><span class="p">(</span><span class="n">liste</span><span class="p">):</span>
+   <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">liste</span><span class="p">)))</span>
+   <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Recent Python2.7 and Python3.1 gained a new data structure in the
+collections package: the ordered dict which remembers the order of the
+input keys:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">odict</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">i</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">l</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><em>Et voila</em>, set and OrderedDict are Python builtins: the language has
+many facilities directly available to solve this problem.</p>
+</div>
+<div class="section" id="what-do-you-mean-by-fast">
+<h2>What do you mean by fast?<a class="headerlink" href="#what-do-you-mean-by-fast" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s build different lists with different characteristics and compare
+each implementation. <em>randlist</em> returns a list according to input
+characteristics:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">randlist</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">almost_sorted</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a list of int according to three parameters: </span>
+
+<span class="sd">    - size of the list: either *short* or *long*, </span>
+<span class="sd">    - whether there are *few* or *tons* of duplicates in the list,</span>
+<span class="sd">    - either the list is completely shuffled of almost sorted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;short&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s">&#39;long&#39;</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span> <span class="s">&#39;few&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&#39;tons&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span> <span class="n">d</span><span class="p">[</span><span class="n">size</span><span class="p">]</span><span class="o">*</span><span class="n">d</span><span class="p">[</span><span class="n">freq</span><span class="p">]))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">size</span><span class="p">])]</span>
+    <span class="k">if</span> <span class="n">almost_sorted</span><span class="p">:</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.01</span><span class="p">)):</span>
+            <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="n">size</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="n">size</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">l</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">l</span>
+</pre></div>
+</div>
+<p><em>make_lists</em> yields the random lists for all the permutations of the
+possible characteristics:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">make_lists</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="s">&#39;short&#39;</span><span class="p">,</span> <span class="s">&#39;long&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="s">&#39;few&#39;</span><span class="p">,</span> <span class="s">&#39;tons&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">almost_sorted</span> <span class="ow">in</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">almost_sorted</span><span class="p">),</span> <span class="n">randlist</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> 
+                                                            <span class="n">freq</span><span class="p">,</span> 
+                                                            <span class="n">almost_sorted</span><span class="p">)</span>
+<span class="c"># the main</span>
+</pre></div>
+</div>
+<p>The <em>main</em> section of the module iterates over the different
+implementations, and time the implementations on each list yielded by
+<em>make_list</em>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
+
+    <span class="k">for</span> <span class="n">fun</span> <span class="ow">in</span> <span class="p">[</span> <span class="n">naive</span><span class="p">,</span> <span class="n">usort</span><span class="p">,</span> <span class="n">keep_last</span><span class="p">,</span> <span class="n">keep_first</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="n">dico</span><span class="p">,</span> <span class="n">odict</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">make_lists</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">a</span> <span class="p">,</span>
+                                   <span class="n">Timer</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span><span class="n">fun</span><span class="p">(</span><span class="n">l</span><span class="p">))</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">100</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Conclusion form this short benchmark: the <em>set</em> and <em>keep_*</em>
+functions are efficient. The naive algorithm should really be avoided
+and the ordered dict, though a builtin, seems four times less
+efficient than the keep_* function based on the dict and enumerate
+functions.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="classmethod.html" title="Class method and static method"
+             >previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
+    </div>
+  </body>
+</html>
