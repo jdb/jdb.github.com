@@ -55,7 +55,8 @@ element are quickly found, they are behind the same checksum. The
 Python dictionary can do that easily (it is only a matter of storing
 an empty value):
 
->>> dict( (i,None) for i in [1, 2, 3, 4, 3, 4, 3, 4] ).keys()
+.. literalinclude:: dup.py
+   :pyobject: dico
 
 Actually a iterable without duplicate is also called a set: another
 way to present the problem is to transform a list into a set!
@@ -85,99 +86,30 @@ Recent Python2.7 and Python3.1 gained a new data structure in the
 collections package: the ordered dict which remembers the order of the
 input keys:
 
->>> from collections import OrderedDict
->>> list(OrderedDict((i,None) for i in [1, 2, 3, 4, 3, 4, 3, 4]).keys())
-[1, 4, 3, 2]
+.. literalinclude:: dup.py
+   :pyobject: odict
 
+*Et voila*, set and OrderedDict are Python builtins: the language has
+many facilities directly available to solve this problem.
 
-.. it seems it is not adapted to declare function in doctests, they
-.. are not available for other snippets. 
-
-.. doc difficulties: reference each other easily, structure doc and
-.. code orthogonally, test documentation
 
 What do you mean by fast?
 =========================
 
->>> from random import randint
->>> def randlist(size, freq, almost_sorted=False):
-...     d = {'short': 10, 'long': 500, 'few': 3, 'tons': 0.5}
-...     l = [ randint(1, int( d[size]*d[freq])) for _ in range(d[size]) ]
-...     if almost_sorted:
-...         l.sort()
-...         for _ in range(int(d[size] * 0.01)):
-...             n, m = randint(0, d[size]-1), randint(0, d[size]-1)
-...             l[n], l[m] = l[m], l[n]
-...     return l
+Let's build different lists with different characteristics and time
+each implementation. *randlist* returns a list according to input
+characteristics:
 
+.. literalinclude:: dup.py
+   :pyobject: randlist
 
->>> liste = dict([ ((s, f, a), randlist(s, f, a)) for s in ('short', 'long') for f in ('few', 'tons' ) for a in (True, False)])
+*make_lists* yields the random lists for all the permutations of the
+possible characteristics:
 
->>> if __name__ == '__main__':
-...    from timeit import Timer
-...    for k,v in liste.items():
-...       for cmd in "forloop oneline dicodsu dico dicofirst listexp genexp".split():
-...          t=Timer( 'dup.%s(dup.liste[%s])' % (cmd,k), "import dup").timeit(number=10)
-...          print ';'.join([cmd, k[0], k[1], k[2] and "shuffle" or "almost_sorted", str(t)]) # .replace('.',',')
+.. literalinclude:: dup.py
+   :pyobject: make_lists
 
-
-Here are the results computed on a laptop. The size for the long lists
-was 100 000::
-  
-  forloop	long	few	shuffle		1.23025918007
-  oneline	long	few	shuffle		0.466639995575
-  dicodsu	long	few	shuffle		3.7867770195
-  dico		long	few	shuffle		2.11409592628
-  dicofirst	long	few	shuffle		2.12672519684
-  listexp	long	few	shuffle		1683.45610189
-  genexp	long	few	shuffle		1687.05760503
-  forloop	long	tons	almost_sorted	0.596557855606
-  oneline	long	tons	almost_sorted	0.464272022247
-  dicodsu	long	tons	almost_sorted	1.32849097252
-  dico		long	tons	almost_sorted	0.931100845337
-  dicofirst	long	tons	almost_sorted	0.938807964325
-  listexp	long	tons	almost_sorted	3163.15273285
-  genexp	long	tons	almost_sorted	3197.41649318
-  forloop	long	few	almost_sorted	0.807441949844
-  oneline	long	few	almost_sorted	0.492161035538
-  dicodsu	long	few	almost_sorted	2.99654698372
-  dico		long	few	almost_sorted	1.69496893883
-  dicofirst	long	few	almost_sorted	1.68966412544
-  listexp	long	few	almost_sorted	4815.66312003
-  genexp	long	few	almost_sorted	4811.47094703
-  forloop	long	tons	shuffle		1.55969285965
-  oneline	long	tons	shuffle		0.436213970184
-  dicodsu	long	tons	shuffle		2.12376403809
-  dico		long	tons	shuffle		1.31656694412
-  dicofirst	long	tons	shuffle		1.3203151226
-  listexp	long	tons	shuffle		3476.23947001
-  genexp	long	tons	shuffle		3506.11089492
-  forloop	short	tons	shuffle		0.507568836212
-  oneline	short	tons	shuffle		8.58306884766e-05
-  dicodsu	short	tons	shuffle		0.000180006027222
-  dico		short	tons	shuffle		0.000163078308105
-  dicofirst	short	tons	shuffle		0.000141143798828
-  listexp	short	tons	shuffle		0.297842979431
-  genexp	short	tons	shuffle		0.301390886307
-  forloop	short	few	almost_sorted	0.508334875107
-  oneline	short	few	almost_sorted	9.08374786377e-05
-  dicodsu	short	few	almost_sorted	0.000224113464355
-  dico		short	few	almost_sorted	0.000182867050171
-  dicofirst	short	few	almost_sorted	0.00016188621521
-  listexp	short	few	almost_sorted	0.278187036514
-  genexp	short	few	almost_sorted	0.281796216965
-  forloop	short	tons	almost_sorted	0.512351036072
-  oneline	short	tons	almost_sorted	8.48770141602e-05
-  dicodsu	short	tons	almost_sorted	0.000176906585693
-  dico		short	tons	almost_sorted	0.000161170959473
-  dicofirst	short	tons	almost_sorted	0.000136852264404
-  listexp	short	tons	almost_sorted	0.272169113159
-  genexp	short	tons	almost_sorted	0.275593042374
-  forloop	short	few	shuffle		0.511206865311
-  oneline	short	few	shuffle		9.10758972168e-05
-  dicodsu	short	few	shuffle		0.000253200531006
-  dico		short	few	shuffle		0.000255107879639
-  dicofirst	short	few	shuffle		0.000176906585693
-  listexp	short	few	shuffle		0.345485925674
-  genexp	short	few	shuffle		0.349174022675
-  
+From our short benchmark, the *set* and *keep_\** functions are
+efficient. The naive algorithm should really be avoided and the
+ordered dict, though a builtin, seems four times less efficient than
+the keep_* function based on the dict and enumerate functions.
