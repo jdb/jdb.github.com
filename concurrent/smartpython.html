@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -12,12 +14,13 @@
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '0.7',
-        COLLAPSE_MODINDEX: false,
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
     <link rel="top" title="bits v0.7 documentation" href="../index.html" />
     <link rel="up" title="Concurrent network programming with Twisted" href="../concurrent.html" />
@@ -43,39 +46,39 @@
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">The <em>yield</em> keyword simplifies Twisted code</a><ul>
-<li><a class="reference external" href="#the-yield-python-keyword">the <em>yield</em> Python keyword</a></li>
-<li><a class="reference external" href="#decorators-in-python">Decorators in Python</a></li>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <em>yield</em> keyword simplifies Twisted code</a><ul>
+<li><a class="reference internal" href="#the-yield-python-keyword">the <em>yield</em> Python keyword</a></li>
+<li><a class="reference internal" href="#decorators-in-python">Decorators in Python</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="deferred.html"
-                                  title="previous chapter">The <em>Deferred</em></a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="../dependencies.html"
-                                  title="next chapter">Sorting dependencies</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../sources/concurrent/smartpython.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="deferred.html"
+                        title="previous chapter">The <em>Deferred</em></a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../dependencies.html"
+                        title="next chapter">Sorting dependencies</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../sources/concurrent/smartpython.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -87,13 +90,13 @@
   <div class="section" id="the-yield-keyword-simplifies-twisted-code">
 <span id="yield"></span><h1>The <em>yield</em> keyword simplifies Twisted code<a class="headerlink" href="#the-yield-keyword-simplifies-twisted-code" title="Permalink to this headline">¶</a></h1>
 <p>... once you understand what this crazy keyword does</p>
-<p><a class="reference internal" href="#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> is a powerful Python keyword that Twisted uses to
+<p><a class="reference internal" href="#yield"><tt class="xref std std-keyword docutils literal"><span class="pre">yield</span></tt></a> is a powerful Python keyword that Twisted uses to
 simplify the boilerplate of deferred and callback manipulation.  Also,
 the technical constraint, in Twisted, to manipulate the result of a
 request in a function different than the function making the request
 can be inconvenient: the integration of <em>yield</em> with the
-<tt class="xref docutils literal"><span class="pre">reactor</span></tt> alleviates this problem. Here are three versions of
-the <tt class="xref docutils literal"><span class="pre">title()</span></tt> scraping function:</p>
+<tt class="xref py py-class docutils literal"><span class="pre">reactor</span></tt> alleviates this problem. Here are three versions of
+the <tt class="xref py py-func docutils literal"><span class="pre">title()</span></tt> scraping function:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">getPage</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 
@@ -120,9 +123,9 @@ Python 2.5:</p>
 <p>This version is shorter, there is no need to create and name a nested
 function, and to add a level of indentation to the callback code. The
 callback codes are in the same function that initiated the request,
-hence the name of <em>inline callbacks</em>. Because <tt class="xref docutils literal"><span class="pre">title()</span></tt> is marked
-with the <tt class="xref docutils literal"><span class="pre">inlineCallbacks()</span></tt> decorator, it will return a deferred,
-the <tt class="xref docutils literal"><span class="pre">reactor</span></tt> will trigger the call to the <tt class="xref docutils literal"><span class="pre">send()</span></tt> method on
+hence the name of <em>inline callbacks</em>. Because <tt class="xref py py-func docutils literal"><span class="pre">title()</span></tt> is marked
+with the <tt class="xref py py-func docutils literal"><span class="pre">inlineCallbacks()</span></tt> decorator, it will return a deferred,
+the <tt class="xref py py-obj docutils literal"><span class="pre">reactor</span></tt> will trigger the call to the <tt class="xref py py-func docutils literal"><span class="pre">send()</span></tt> method on
 the generator, with the requested HTML page as the argument.</p>
 <p>But let&#8217;s proceed step by step: first the <em>yield</em> keyword, then the
 decorator syntax.</p>
@@ -141,7 +144,7 @@ language, there is no Twistery involved:</p>
 <span class="gp">... </span>    <span class="k">yield</span> <span class="s">&#39;the latest portion of the function was executed&#39;</span><span class="p">,</span><span class="n">val</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">=</span><span class="n">func_with_several_entry_points</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span>                                      <span class="c"># doctest:+ELLIPSIS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span>                                      
 <span class="go">&lt;generator object func_with_several_entry_points at ...&gt;</span>
 </pre></div>
 </div>
@@ -239,7 +242,7 @@ statement at the previous line:</p>
 <span class="n">parse</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>Where <tt class="xref docutils literal"><span class="pre">log()</span></tt> is defined as:</p>
+<p>Where <tt class="xref py py-meth docutils literal"><span class="pre">log()</span></tt> is defined as:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 <span class="gp">... </span>        <span class="k">print</span> <span class="s">&quot;Here is the argument:&quot;</span><span class="p">,</span> <span class="n">n</span>
@@ -247,7 +250,7 @@ statement at the previous line:</p>
 <span class="gp">... </span>    <span class="k">return</span> <span class="n">foo</span>
 </pre></div>
 </div>
-<p><tt class="xref docutils literal"><span class="pre">log</span></tt> prints the argument, then <tt class="xref docutils literal"><span class="pre">log</span></tt> calls the decorated
+<p><tt class="xref py py-obj docutils literal"><span class="pre">log</span></tt> prints the argument, then <tt class="xref py py-obj docutils literal"><span class="pre">log</span></tt> calls the decorated
 function and returns the result. In our example, the HTML string will
 be printed before being passed on to the parse function. Here on a
 custom function:</p>
@@ -298,8 +301,8 @@ be easier to apprehend.</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Jean Daniel Browne.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
     </div>
   </body>
 </html>

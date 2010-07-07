@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -12,12 +14,13 @@
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '0.7',
-        COLLAPSE_MODINDEX: false,
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
     <link rel="top" title="bits v0.7 documentation" href="../index.html" />
     <link rel="up" title="Concurrent network programming with Twisted" href="../concurrent.html" />
@@ -43,39 +46,39 @@
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">The <em>Deferred</em></a><ul>
-<li><a class="reference external" href="#advantages-and-usage">Advantages and usage</a></li>
-<li><a class="reference external" href="#synchronisation">Synchronisation</a></li>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The <em>Deferred</em></a><ul>
+<li><a class="reference internal" href="#advantages-and-usage">Advantages and usage</a></li>
+<li><a class="reference internal" href="#synchronisation">Synchronisation</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="reactor.html"
-                                  title="previous chapter">The Reactor and the Protocols</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="smartpython.html"
-                                  title="next chapter">The <em>yield</em> keyword simplifies Twisted code</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../sources/concurrent/deferred.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="reactor.html"
+                        title="previous chapter">The Reactor and the Protocols</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="smartpython.html"
+                        title="next chapter">The <em>yield</em> keyword simplifies Twisted code</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../sources/concurrent/deferred.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -98,12 +101,12 @@ name. Something like:</p>
 </div>
 <p>Twisted indeed provides similar pattern, but Twisted also introduces a
 powerful abstraction to represent an event and its pending action: the
-<tt class="xref docutils literal"><span class="pre">Deferred</span></tt> is an object which can holds a function. The code
+<tt class="xref py py-class docutils literal"><span class="pre">Deferred</span></tt> is an object which can holds a function. The code
 creating a request is expected to return a result, which is
 unavailable at this point, so instead, it returns a deferred, for
 which the requesting code expect the user to be filled it with a function
 to process the results. The requester object which is usually an
-instance of child class of <tt class="xref docutils literal"><span class="pre">Protocol</span></tt> also keeps a reference to
+instance of child class of <tt class="xref py py-class docutils literal"><span class="pre">Protocol</span></tt> also keeps a reference to
 this deferred and should call the callback, as soon as it is
 notified by the reactor that the data is received. The Twisted
 documentation calls it a &#8220;promise of a result&#8221;, <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/defer.html">here</a> and <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/gendefer.html">there</a>.</p>
@@ -142,7 +145,7 @@ functions will do just fine.</p>
 <li><p class="first">the code making a request does not have to specify, know or care
 about the name of the callback function, which simplifies the
 writing of new requesting API. The requester calls the method
-<tt class="xref docutils literal"><span class="pre">callback()</span></tt> on a deferred, when the data is
+<tt class="xref py py-meth docutils literal"><span class="pre">callback()</span></tt> on a deferred, when the data is
 received. It is up to the user to store the callable it seems
 adapted, in the Deferred return by asynchronous function.</p>
 <p>It is up to the job of the protocol implementer to create a
@@ -164,7 +167,7 @@ actions will take place. In a sequential script, the execution schema
 is implicit and so obvious that it is not even worth mentioning it:</p>
 <ul class="simple">
 <li>the network calls are executed along with the successive
-<tt class="xref docutils literal"><span class="pre">urlopen()</span></tt> function calls</li>
+<tt class="xref py py-func docutils literal"><span class="pre">urlopen()</span></tt> function calls</li>
 <li>and the program stops when the interpreter reaches the end of the
 script.</li>
 </ul>
@@ -175,15 +178,15 @@ phases:</p>
 <ol class="arabic simple">
 <li>the first phase is the specification of the execution steps through
 the stacking of connections request to the reactor, and the
-definition of callbacks path. <tt class="xref docutils literal"><span class="pre">getPage()</span></tt> function call does not
+definition of callbacks path. <tt class="xref py py-func docutils literal"><span class="pre">getPage()</span></tt> function call does not
 actually trigger a network HTTP request but creates a deferred
 which stacks a step in a callback chain,</li>
-<li>the second phase is inside <tt class="xref docutils literal"><span class="pre">reactor.run()</span></tt> , which triggers the
+<li>the second phase is inside <tt class="xref py py-meth docutils literal"><span class="pre">reactor.run()</span></tt> , which triggers the
 execution of the callback chains and synchronizes the callbacks
 depending on when the response are available.</li>
 </ol>
 <p>Just comment out the call to run the reactor in the concurrent script,
-and use wireshark to check that <tt class="xref docutils literal"><span class="pre">getPage()</span></tt> does not carry out the
+and use wireshark to check that <tt class="xref py py-func docutils literal"><span class="pre">getPage()</span></tt> does not carry out the
 network call by itself.</p>
 <p>In our last problem, the concurrent script did not stop when the 30
 calls completed successfully and require an explicit signal to
@@ -203,20 +206,20 @@ reactor is attached as a callback to the <em>DeferredList</em>:</p>
 </pre></div>
 </div>
 <p>Here, the expression <tt class="docutils literal"><span class="pre">lambda</span> <span class="pre">n:reactor.stop()</span></tt> returns a function
-whose only action is to call the <tt class="xref docutils literal"><span class="pre">reactor.stop()</span></tt>. This new
-function is required because <tt class="xref docutils literal"><span class="pre">reactor.stop()</span></tt> does not comply with
+whose only action is to call the <tt class="xref py py-meth docutils literal"><span class="pre">reactor.stop()</span></tt>. This new
+function is required because <tt class="xref py py-meth docutils literal"><span class="pre">reactor.stop()</span></tt> does not comply with
 the callback specification: <em>a callback must have at least one
-argument</em>. The anonymous function created with <tt class="xref docutils literal"><span class="pre">lambda</span></tt> is
+argument</em>. The anonymous function created with <tt class="xref std std-keyword docutils literal"><span class="pre">lambda</span></tt> is
 created to present the correct signature.</p>
 <p>Now that the script terminates gracefully, let&#8217;s clarify a common
 misunderstanding: what does the reactor know about the deferreds that
 the user manipulate? The answer is: nothing.  The interfaces that the
 reactor knows are the few hardcoded functions from the UDP, TCP and
-SSL transport protocols such as <tt class="xref docutils literal"><span class="pre">connectionMade()</span></tt>,
-<tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt>, and other methods. The reactor maintains a list
+SSL transport protocols such as <tt class="xref py py-meth docutils literal"><span class="pre">connectionMade()</span></tt>,
+<tt class="xref py py-meth docutils literal"><span class="pre">dataReceived()</span></tt>, and other methods. The reactor maintains a list
 of transport instances stored as attributes of protocoles instances
 which hold a Deferred created by the request methods and that the
-<tt class="xref docutils literal"><span class="pre">dataReceived()</span></tt> methods expects to fire the callback.</p>
+<tt class="xref py py-meth docutils literal"><span class="pre">dataReceived()</span></tt> methods expects to fire the callback.</p>
 <p>Now this concurrent version terminates, its performance can be
 compared to a sequential script. It is much more efficient (on my
 machine, it is 8 times more efficient). Note that for a threaded
@@ -230,7 +233,7 @@ real 0m10.315s
 <p>The central mechanisms of Twisted were presented in the previous
 sections, you are almost there ! The last section before the
 conclusion shows a nicer way to present Twisted code. The two first
-subsections are recaps on the standard <a class="reference external" href="smartpython.html#yield"><tt class="xref docutils literal"><span class="pre">yield</span></tt></a> keyword and
+subsections are recaps on the standard <a class="reference internal" href="smartpython.html#yield"><tt class="xref std std-keyword docutils literal"><span class="pre">yield</span></tt></a> keyword and
 Python decorators.</p>
 </div>
 </div>
@@ -258,8 +261,8 @@ Python decorators.</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Jean Daniel Browne.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
     </div>
   </body>
 </html>

@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -12,12 +14,13 @@
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '0.7',
-        COLLAPSE_MODINDEX: false,
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
     <link rel="top" title="bits v0.7 documentation" href="../index.html" />
     <link rel="up" title="Sorting dependencies" href="../dependencies.html" />
@@ -43,40 +46,40 @@
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">A naive, CPU hungry solution</a><ul>
-<li><a class="reference external" href="#three-primitives-deps-are-before-and-is-winner">Three primitives: <em>deps</em>, <em>are_before</em> and <em>is_winner</em></a></li>
-<li><a class="reference external" href="#the-search-function">The search() function</a></li>
-<li><a class="reference external" href="#complexity-bites">Complexity bites</a></li>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">A naive, CPU hungry solution</a><ul>
+<li><a class="reference internal" href="#three-primitives-deps-are-before-and-is-winner">Three primitives: <em>deps</em>, <em>are_before</em> and <em>is_winner</em></a></li>
+<li><a class="reference internal" href="#the-search-function">The search() function</a></li>
+<li><a class="reference internal" href="#complexity-bites">Complexity bites</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="../dependencies.html"
-                                  title="previous chapter">Sorting dependencies</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="off_the_shelf.html"
-                                  title="next chapter">Topsort in available packages</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../sources/dependencies/brute.py.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../dependencies.html"
+                        title="previous chapter">Sorting dependencies</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="off_the_shelf.html"
+                        title="next chapter">Topsort in available packages</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../sources/dependencies/brute.py.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -262,7 +265,7 @@ operate in O(n) instead of O(n2)</li>
 data to test: if 12 nodes needs to be sorted, as with the data part
 of the <em>deps</em> module below, then 12! = 479 001 600 (half a billion)
 permutations needs to be tested. While actually, entire branches do
-not need to be tested: see the next article: <a class="reference external" href="off_the_shelf.html"><em>Topsort in available packages</em></a>,
+not need to be tested: see the next article: <a class="reference internal" href="off_the_shelf.html"><em>Topsort in available packages</em></a>,
 for better ways to sort dependencies.</p>
 </div>
 </div>
@@ -290,8 +293,8 @@ for better ways to sort dependencies.</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Jean Daniel Browne.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
     </div>
   </body>
 </html>

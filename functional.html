@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,14 +12,15 @@
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
+        URL_ROOT:    '',
         VERSION:     '0.7',
-        COLLAPSE_MODINDEX: false,
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <link rel="top" title="bits v0.7 documentation" href="index.html" />
     <link rel="next" title="One application, multiple languages" href="i18n.html" />
@@ -41,42 +44,42 @@
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">A journey with Pi, Python, a functional algorithm and multicore</a><ul>
-<li><a class="reference external" href="#the-math-of-the-problem">The math of the problem</a></li>
-<li><a class="reference external" href="#a-procedural-and-a-functional-algorithm">A procedural and a functional algorithm</a></li>
-<li><a class="reference external" href="#better-performance-through-lazyness">Better performance through <em>lazyness</em></a></li>
-<li><a class="reference external" href="#optimization-with-processes-and-a-compiled-c-function">Optimization with processes and a compiled C function</a></li>
-<li><a class="reference external" href="#a-fast-algorithm-to-compute-pi">A fast algorithm to compute Pi</a></li>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">A journey with Pi, Python, a functional algorithm and multicore</a><ul>
+<li><a class="reference internal" href="#the-math-of-the-problem">The math of the problem</a></li>
+<li><a class="reference internal" href="#a-procedural-and-a-functional-algorithm">A procedural and a functional algorithm</a></li>
+<li><a class="reference internal" href="#better-performance-through-lazyness">Better performance through <em>lazyness</em></a></li>
+<li><a class="reference internal" href="#optimization-with-processes-and-a-compiled-c-function">Optimization with processes and a compiled C function</a></li>
+<li><a class="reference internal" href="#a-fast-algorithm-to-compute-pi">A fast algorithm to compute Pi</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="index.html"
-                                  title="previous chapter">Every bit counts</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="i18n.html"
-                                  title="next chapter">One application, multiple languages</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="sources/functional.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Every bit counts</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="i18n.html"
+                        title="next chapter">One application, multiple languages</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/functional.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -160,12 +163,12 @@ salt.</p>
 <p>That was for the theory, let&#8217;s <em>implement</em> the recipe which means
 let&#8217;s make a working example. Actually, we will make two working
 examples in the <a class="reference external" href="http://www.python.org/doc/2.6.4/howto/advocacy.html">Python</a> programming language and compare the styles.</p>
-<p>In either styles, we will use the functions <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/math.html#math.sqrt"><tt class="xref docutils literal"><span class="pre">math.sqrt()</span></tt></a> and
-<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/random.html#random.uniform"><tt class="xref docutils literal"><span class="pre">random.uniform()</span></tt></a>: the former returns the <em>square root</em> of the
+<p>In either styles, we will use the functions <a class="reference external" href="http://docs.python.org/dev/library/math.html#math.sqrt" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">math.sqrt()</span></tt></a> and
+<a class="reference external" href="http://docs.python.org/dev/library/random.html#random.uniform" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">random.uniform()</span></tt></a>: the former returns the <em>square root</em> of the
 argument given as input, the latter returns a random decimal number
 <em>uniformly</em> distributed between the values of the first and the second
 arguments. Also, both scripts will take the number of points (the
-sample size) as the first argument, so we will need <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/sys.html#sys.argv"><tt class="xref docutils literal"><span class="pre">sys.argv</span></tt></a>:
+sample size) as the first argument, so we will need <tt class="xref py py-attr docutils literal"><span class="pre">sys.argv</span></tt>:
 it holds the command line parameters of the script</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">uniform</span>
@@ -215,8 +218,8 @@ Pi ~ 3.140128
 </pre></div>
 </div>
 <p>In your opinion, which style fits the job best? I would say the
-procedural style is a sequence of small operation, without much
-structure. The functional style better split the problem into
+procedural style is a sequence of small operations, without much
+structure. The functional style better splits the problem into
 simpler bits whose integration solve the problem .</p>
 </div>
 <div class="section" id="better-performance-through-lazyness">
@@ -249,7 +252,7 @@ five million points in the sample:</p>
 </pre></div>
 </div>
 <p>Mmh, the functional version takes longer and it does not scale. The
-problem stems from the fact that <tt class="xref docutils literal"><span class="pre">points()</span></tt> and <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a>
+problem stems from the fact that <tt class="xref py py-func docutils literal"><span class="pre">points()</span></tt> and <a class="reference external" href="http://docs.python.org/dev/library/functions.html#filter" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">filter()</span></tt></a>
 make up lists of several million elements, all stored in the laptop
 memory where the script was tested, which is too small to handle them
 all efficiently. It is no use to store them all, in this problem, we
@@ -259,9 +262,9 @@ is a kind of Python magic which behaves like a list, but which
 <em>generates</em> the element of the list on the fly when they are requested
 by the function which manipulates the generator. They are not stored,
 it is <em>on demand</em>. This technique is also called <em>lazy evaluation</em>.
-This is the goal of the the <tt class="xref docutils literal"><span class="pre">yield()</span></tt> Python statement, if there
+This is the goal of the the <tt class="xref py py-meth docutils literal"><span class="pre">yield()</span></tt> Python statement, if there
 is a need to create its own custom generator.</p>
-<p>The <tt class="xref docutils literal"><span class="pre">points()</span></tt> function is slightly modified: this expression,
+<p>The <tt class="xref py py-func docutils literal"><span class="pre">points()</span></tt> function is slightly modified: this expression,
 which returns a list</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">[</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="n">size</span> <span class="p">)</span> <span class="p">]</span>
 </pre></div>
@@ -270,10 +273,10 @@ which returns a list</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span> <span class="p">(</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="n">size</span> <span class="p">)</span> <span class="p">)</span>
 </pre></div>
 </div>
-<p>The <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a> function is substituted by its
-<em>generator-returning</em> counterpart <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/itertools.html#itertools.ifilter"><tt class="xref docutils literal"><span class="pre">ifilter()</span></tt></a> in the
-<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/itertools.html#module-itertools"><tt class="xref docutils literal"><span class="pre">itertools</span></tt></a> module. One last change: a generator has no length,
-so <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#len"><tt class="xref docutils literal"><span class="pre">len()</span></tt></a> is substituted by a trick: sum a list of <em>ones</em> for
+<p>The <a class="reference external" href="http://docs.python.org/dev/library/functions.html#filter" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">filter()</span></tt></a> function is substituted by its
+<em>generator-returning</em> counterpart <a class="reference external" href="http://docs.python.org/dev/library/itertools.html#itertools.ifilter" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">ifilter()</span></tt></a> in the
+<a class="reference external" href="http://docs.python.org/dev/library/itertools.html#module-itertools" title="(in Python v2.7)"><tt class="xref py py-mod docutils literal"><span class="pre">itertools</span></tt></a> module. One last change: a generator has no length,
+so <a class="reference external" href="http://docs.python.org/dev/library/functions.html#len" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">len()</span></tt></a> is substituted by a trick: sum a list of <em>ones</em> for
 each point in the circle:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">ifilter</span>
 
@@ -286,7 +289,7 @@ each point in the circle:</p>
       <span class="p">(</span> <span class="nb">sum</span><span class="p">(</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ifilter</span><span class="p">(</span> <span class="n">in_circle</span><span class="p">,</span> <span class="n">points</span><span class="p">(</span> <span class="n">n</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="n">n</span> <span class="p">))</span>
 </pre></div>
 </div>
-<p>The <tt class="xref docutils literal"><span class="pre">test_it()</span></tt> function shows that <em>lazy</em> functional
+<p>The <tt class="xref py py-func docutils literal"><span class="pre">test_it()</span></tt> function shows that <em>lazy</em> functional
 implementation operates with a performance boost of 14%, 25% and 55%
 over the previous functional implementation:</p>
 <div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>test_it ./harder_better_stronger_faster.py
@@ -298,7 +301,7 @@ over the previous functional implementation:</p>
    duration: 13.10 seconds
 </pre></div>
 </div>
-<p>At this point, the two styles are technically rougly equivalent, the
+<p>At this point, the two styles are technically roughly equivalent, the
 functional style is 10% slower than the procedural counterpart. Maybe,
 those 10% are the small efficiencies that Knuth was telling us about:
 &#8220;we should forget about small inefficiencies, say about 97% of the
@@ -310,12 +313,12 @@ same algorithm.</p>
 <h2>Optimization with processes and a compiled C function<a class="headerlink" href="#optimization-with-processes-and-a-compiled-c-function" title="Permalink to this headline">¶</a></h2>
 <p>It is interesting to note that all the previous scripts run on only
 one core even if the host features many processors and cores. Python
-makes it easy with the <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/multiprocessing.html#module-multiprocessing"><tt class="xref docutils literal"><span class="pre">multiprocessing</span></tt></a> module to run functions
+makes it easy with the <a class="reference external" href="http://docs.python.org/dev/library/multiprocessing.html#module-multiprocessing" title="(in Python v2.7)"><tt class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></tt></a> module to run functions
 into their own separate system process which are dispatched by the
 kernel on the available processors and cores.</p>
 <p>In the following version of the script, four processes will be run,
 each handling a fourth of the requested iterations. The
-<a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/multiprocessing.html#module-multiprocessing"><tt class="xref docutils literal"><span class="pre">multiprocessing</span></tt></a> make the <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/queue.html#Queue"><tt class="xref docutils literal"><span class="pre">Queue</span></tt></a> available which is
+<a class="reference external" href="http://docs.python.org/dev/library/multiprocessing.html#module-multiprocessing" title="(in Python v2.7)"><tt class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></tt></a> make the <tt class="xref py py-class docutils literal"><span class="pre">Queue</span></tt> available which is
 reachable by each processes and safe for concurrent read and write
 access.</p>
 <p><em>processpool(function, args)</em> takes a function and its parameters as
@@ -373,7 +376,7 @@ and the split into processes are only done once so their impact on
 performance are negligible, it is very practical to do it in
 Python. In our example, the hard work in this script is the <em>pi</em>
 function, which could not be simpler in terms of signature: it
-requires an int, returns a float, raise no errors, and make no side
+requires an int, returns a float, raises no errors, and makes no side
 effects. We can write the pi function in C so that, when compiled, it
 is directly understood by the processor, sidestepping the Python
 virtual machine. Here are the steps involved:</p>
@@ -516,7 +519,7 @@ executions of the callable.</p>
 </div>
 <p>Obtaining the 13 correct digits of <img class="math" src="images/math/f2ca003a7da0de4994b4733e203b74ff52d42553.png" alt="\pi"/> can be done in less
 than 20 microseconds in pure Python with a good algorithm. And now, on
-to something fantastic : <em>On December 31st, 2009, about 2700 billion
+to something fantastic: <em>On December 31st, 2009, about 2700 billion
 decimal digits of Pi were computed using a single desktop
 computer. This is presently the World Record for the computation of
 Pi.</em> Kudos to <a class="reference external" href="http://bellard.org/pi/pi2700e9/">Fabrice Bellard</a>. He combined a fast math method, with
@@ -547,8 +550,8 @@ hardware optimization at the processor level.</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Jean Daniel Browne.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
     </div>
   </body>
 </html>

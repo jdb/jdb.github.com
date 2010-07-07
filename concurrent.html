@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,14 +12,15 @@
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
+        URL_ROOT:    '',
         VERSION:     '0.7',
-        COLLAPSE_MODINDEX: false,
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
     <link rel="top" title="bits v0.7 documentation" href="index.html" />
     <link rel="next" title="Twisted’s network concurrency model as compared with sockets and threads" href="concurrent/preemptive.html" />
@@ -41,43 +44,43 @@
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Concurrent network programming with Twisted</a><ul>
-<li><a class="reference external" href="#what-is-twisted">What is Twisted?</a><ul>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Concurrent network programming with Twisted</a><ul>
+<li><a class="reference internal" href="#what-is-twisted">What is Twisted?</a><ul>
 </ul>
 </li>
-<li><a class="reference external" href="#retrieving-the-title-of-a-list-of-blog-articles">Retrieving the title of a list of blog articles</a></li>
-<li><a class="reference external" href="#concurrency-vs-sequential-processing">Concurrency vs sequential processing</a></li>
-<li><a class="reference external" href="#a-concurrent-solution">A concurrent solution</a></li>
+<li><a class="reference internal" href="#retrieving-the-title-of-a-list-of-blog-articles">Retrieving the title of a list of blog articles</a></li>
+<li><a class="reference internal" href="#concurrency-vs-sequential-processing">Concurrency vs sequential processing</a></li>
+<li><a class="reference internal" href="#a-concurrent-solution">A concurrent solution</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="pty.html"
-                                  title="previous chapter">Les pseudo-terminaux</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="concurrent/preemptive.html"
-                                  title="next chapter">Twisted&#8217;s network concurrency model as compared with sockets and threads</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="sources/concurrent.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pty.html"
+                        title="previous chapter">Les pseudo-terminaux</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="concurrent/preemptive.html"
+                        title="next chapter">Twisted&#8217;s network concurrency model as compared with sockets and threads</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/concurrent.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -112,12 +115,14 @@ compares Twisted&#8217;s model to the sequential model through the example
 of web pages download. This article points to other articles along the
 lines which they present with more depth the concepts only mentioned
 here. They are listed here for memo:</p>
+<div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference external" href="concurrent/preemptive.html">Comparison with threads and sockets</a></li>
-<li class="toctree-l1"><a class="reference external" href="concurrent/reactor.html">Twisted&#8217;s core objects : the reactor and the Protocols</a></li>
-<li class="toctree-l1"><a class="reference external" href="concurrent/deferred.html">Twisted&#8217;s abstraction for pending results: the Deferred</a></li>
-<li class="toctree-l1"><a class="reference external" href="concurrent/smartpython.html">The <em>yield</em> keyword simplifies Twisted code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concurrent/preemptive.html">Comparison with threads and sockets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concurrent/reactor.html">Twisted&#8217;s core objects : the reactor and the Protocols</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concurrent/deferred.html">Twisted&#8217;s abstraction for pending results: the Deferred</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concurrent/smartpython.html">The <em>yield</em> keyword simplifies Twisted code</a></li>
 </ul>
+</div>
 </div>
 <div class="section" id="retrieving-the-title-of-a-list-of-blog-articles">
 <h2>Retrieving the title of a list of blog articles<a class="headerlink" href="#retrieving-the-title-of-a-list-of-blog-articles" title="Permalink to this headline">¶</a></h2>
@@ -174,7 +179,7 @@ concerned with performance and scalability.</p>
 <p>As each download is completely independent from each other, it is
 obvious that these downloads should be executed in parallel, or,
 <em>concurrently</em>, and this is the raison d&#8217;être of the Twisted Python
-framework. <a class="reference external" href="concurrent/preemptive.html"><em>Processes and threads</em></a> are
+framework. <a class="reference internal" href="concurrent/preemptive.html"><em>Processes and threads</em></a> are
 well-known primitives for programming concurrently but Twisted does
 without (not even behind your back), because it is not adapted for
 scalable network programming. This frees the developer from using
@@ -201,7 +206,7 @@ a network call do not block the application while the response is not
 yet available</strong>. Network functions are split: first the request is sent,
 then the <em>callback</em> code receives and manipulates the received
 data. <strong>In the period of time between the return of the requesting
-function and the execution of the callback, the</strong> <tt class="xref docutils literal"><span class="pre">reactor</span></tt>,
+function and the execution of the callback, the</strong> <tt class="xref py py-class docutils literal"><span class="pre">reactor</span></tt>,
 <strong>(Twisted&#8217;s event loop) can run other processing</strong>. This is
 the basic idea which makes asynchronous code faster than blocking
 code.</p>
@@ -239,14 +244,14 @@ faster than the sequential approach:</p>
 <span class="c"># Use Ctrl-C to terminate the script</span>
 </pre></div>
 </div>
-<p>The Twisted equivalent of <tt class="xref docutils literal"><span class="pre">urlopen()</span></tt> is called
-<tt class="xref docutils literal"><span class="pre">getPage()</span></tt>. It is asynchronous and returns a <a class="reference external" href="concurrent/deferred.html"><em>deferred</em></a>. The low level steps composing <tt class="xref docutils literal"><span class="pre">getPage()</span></tt>
+<p>The Twisted equivalent of <tt class="xref py py-func docutils literal"><span class="pre">urlopen()</span></tt> is called
+<tt class="xref py py-func docutils literal"><span class="pre">getPage()</span></tt>. It is asynchronous and returns a <a class="reference internal" href="concurrent/deferred.html"><em>deferred</em></a>. The low level steps composing <tt class="xref py py-func docutils literal"><span class="pre">getPage()</span></tt>
 are asynchronous as well: even the DNS request turning the url
 argument into an IP address will not block the application and let
 other processing occurs.</p>
-<p><em>The page</em> <a class="reference external" href="concurrent/smartpython.html"><em>The yield keyword simplifies Twisted code</em></a> <em>explains the Python yield
+<p><em>The page</em> <a class="reference internal" href="concurrent/smartpython.html"><em>The yield keyword simplifies Twisted code</em></a> <em>explains the Python yield
 keyword and decorator syntax in the context of Twisted. The page</em>
-<a class="reference external" href="concurrent/reactor.html"><em>The Reactor and the Protocols</em></a> <em>gives a precise overview of how Twisted
+<a class="reference internal" href="concurrent/reactor.html"><em>The Reactor and the Protocols</em></a> <em>gives a precise overview of how Twisted
 works at the operating system system.</em></p>
 <p>Want to learn more? The project <a class="reference external" href="http://twistedmatrix.com/documents/current/core/howto/index.html">documentation</a> presents many code
 examples and reference articles. Would you use the Twisted framework
@@ -279,8 +284,8 @@ answer.</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Jean Daniel Browne.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
     </div>
   </body>
 </html>

@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -12,12 +14,13 @@
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '0.7',
-        COLLAPSE_MODINDEX: false,
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
     <link rel="top" title="bits v0.7 documentation" href="../index.html" />
     <link rel="up" title="Sorting dependencies" href="../dependencies.html" />
@@ -43,40 +46,40 @@
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Topsort in available packages</a><ul>
-<li><a class="reference external" href="#the-topsort-package">The <em>topsort</em> package</a></li>
-<li><a class="reference external" href="#from-the-pygraph-package">From the Pygraph package</a></li>
-<li><a class="reference external" href="#topsort-in-erlang">Topsort in Erlang</a></li>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Topsort in available packages</a><ul>
+<li><a class="reference internal" href="#the-topsort-package">The <em>topsort</em> package</a></li>
+<li><a class="reference internal" href="#from-the-pygraph-package">From the Pygraph package</a></li>
+<li><a class="reference internal" href="#topsort-in-erlang">Topsort in Erlang</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="brute.py.html"
-                                  title="previous chapter">A naive, CPU hungry solution</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="bfs_dfs.html"
-                                  title="next chapter">Graph traversal</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../sources/dependencies/off_the_shelf.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="brute.py.html"
+                        title="previous chapter">A naive, CPU hungry solution</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="bfs_dfs.html"
+                        title="next chapter">Graph traversal</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../sources/dependencies/off_the_shelf.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -253,7 +256,7 @@ digraph, then the execution of the algorithm.</p>
     
 </pre></div>
 </div>
-<p>The next part of this article, <a class="reference external" href="bfs_dfs.html"><em>Graph traversal</em></a> presents several &#8220;by
+<p>The next part of this article, <a class="reference internal" href="bfs_dfs.html"><em>Graph traversal</em></a> presents several &#8220;by
 hand&#8221; implementations of topsort as graph traversal. The generic
 method of graph traversal can be adapted to build high performance or
 distributed implementations.</p>
@@ -283,8 +286,8 @@ distributed implementations.</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Jean Daniel Browne.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
     </div>
   </body>
 </html>
