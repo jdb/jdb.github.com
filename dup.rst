@@ -5,9 +5,11 @@
 
 Each of the following functions returns a list with no duplicates from
 the list given as argument. Three approaches: the simplest approach,
-faster methods which do not respect the original ordering, and fast
-methods which do respect the ordering. All in all, this problem is
-easily solved with Python's builtin.
+then faster methods which do not respect the original ordering, and
+finally fast methods which do respect the ordering. 
+
+All in all, this problem is easily solved with Python's *set* and *dict*
+builtins.
 
 Simplest naive algorithm
 ========================
@@ -17,7 +19,6 @@ were not already *seen*:
 
 .. literalinclude:: dup.py
    :pyobject: naive
-
 
 The *in* operator, operating on a list gets slower when the list
 grows. Here is a shorter implementation of the same algorithm which
@@ -35,31 +36,33 @@ presents two subtleties with regard to the Python language:
    default value is not re-initialiased.
 
 #. *nodups.append()* does not really return a result as it is a side
-   effect (*None* is actually returned). The list comprehensions
-   will update the *nodups* list, but will also create internally a
-   list as long as the input list, filled with *None*.
+   effect (*None* is actually returned). The list comprehensions will
+   update the *nodups* list, but will also create internally a list as
+   long as the input list, filled with *None*. This unused list is
+   wasted.
 
-There are faster methods to get rid of duplicates.
 
 Faster methods, which does not respect input list order
 =======================================================
 
-The list gets sorted first, then to check whether a value has been
-seen: it is only necessary to check against one value instead of a list.
+The list gets sorted first. Then to check whether a value has been
+seen: it is only necessary to check against one value instead of a
+list.
 
 .. literalinclude:: dup.py
    :pyobject: usort
 
-Another approach is to store the elements behind a checksum: the same
-element are quickly found, they are behind the same checksum. The
+Another approach is to store the elements behind a hash: the
+duplicates are quickly found, they are behind the same hash. The
 Python dictionary can do that easily (it is only a matter of storing
 an empty value):
 
 .. literalinclude:: dup.py
    :pyobject: dico
 
-Actually a iterable without duplicate is also called a set: another
-way to present the problem is to transform a list into a set!
+Actually a iterable without duplicate is also called a *set*. Another
+way to present the problem is this: how to transform a list into a
+set!
 
 >>> set([1, 2, 3, 4, 3, 4, 3, 4])
 set([1, 2, 3, 4])
@@ -71,13 +74,15 @@ are set to *None*.
 Respect the original order
 ==========================
 
-Returns a list whose *first* occurences of duplicates were removed:
+Returns a list whose *first* occurences of duplicates were removed. A
+dictionary is built from the input list, the keys are the list element
+which ensures unicity, the value is the position. The keys are
+returned sorted on the position:
 	
 .. literalinclude:: dup.py
    :pyobject: keep_last
 
-Same algorithm but the *last* duplicates are removed (pretty much
-what is really expected) same performance as dicofirst()
+Same algorithm but the *last* duplicates are removed:
 
 .. literalinclude:: dup.py
    :pyobject: keep_first
@@ -96,7 +101,7 @@ many facilities directly available to solve this problem.
 What do you mean by fast?
 =========================
 
-Let's build different lists with different characteristics and time
+Let's build different lists with different characteristics and compare
 each implementation. *randlist* returns a list according to input
 characteristics:
 
@@ -109,7 +114,16 @@ possible characteristics:
 .. literalinclude:: dup.py
    :pyobject: make_lists
 
-From our short benchmark, the *set* and *keep_\** functions are
-efficient. The naive algorithm should really be avoided and the
-ordered dict, though a builtin, seems four times less efficient than
-the keep_* function based on the dict and enumerate functions.
+The *main* section of the module iterates over the different
+implementations, and time the implementations on each list yielded by
+*make_list*.
+
+.. literalinclude:: dup.py
+   :start-after: the main
+
+
+Conclusion form this short benchmark: the *set* and *keep_\**
+functions are efficient. The naive algorithm should really be avoided
+and the ordered dict, though a builtin, seems four times less
+efficient than the keep_* function based on the dict and enumerate
+functions.

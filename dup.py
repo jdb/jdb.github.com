@@ -66,7 +66,7 @@ def make_lists():
                 yield (size, freq, almost_sorted), randlist(size, 
                                                             freq, 
                                                             almost_sorted)
-
+# the main
 if __name__ == '__main__':
     from timeit import Timer
 
