@@ -18,7 +18,6 @@ were not already *seen*:
 .. literalinclude:: dup.py
    :pyobject: naive
 
-
 The *in* operator, operating on a list gets slower when the list
 grows. Here is a shorter implementation of the same algorithm which
 presents two subtleties with regard to the Python language:

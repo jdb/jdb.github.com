@@ -5,54 +5,80 @@ from twisted.protocols import basic
 class Client(basic.LineReceiver):
     
     delimiter = '\n'
+    d = None
 
-    # called by the main loop
-
-    @defer.inlineCallbacks
-    def connectionMade(self):
-        print (yield self.plizRandom())
-#        print (yield self.plizRecent())
-        print (yield self.notifyMe())
-        
+    # callback executed by Twisted
+    # ----------------------------
     def lineReceived(self, data):
+        if self.d is None:    # if self.d does not hold a deferred,
+            return            # no command has been sent, bail out:
+                              # just ignore unexpected packets
         d, self.d = self.d, None
         d.callback(data)
         
+    # internal method
+    # ---------------
+    def command(self, cmd):
+        assert self.d is None
+        self.sendLine(cmd)
+        self.d = defer.Deferred()
+        return self.d
 
-    # called by the user
-        
-    def plizRandom(self): 
+    def ackNotif(self):
+        return self.sendLine("got_notif")
 
-        def _gotRandom(data):
+    # public API
+    # ----------
+    def plizRandom(self,_): 
+        def gotRandom(data):
             return int(data)
+        return self.command("random").addCallback(gotRandom)
 
-        self.d = defer.Deferred().addCallback(_gotRandom)
-        self.sendLine("random, pliz?")
-        return self.d
+    # @defer.inlineCallbacks
+    # def plizRandom(self): 
+    #     returnValue(int((yield self.command("random"))))
 
-
-    def notifyMe(self): 
-
-        def _gotNotif(data):
-            assert data=='OK'
-            print "entering idle state"
+    # notification methods
+    # --------------------
+    def notifyMe(self,_): 
+        def _notifyMe(_):
             self.d = defer.Deferred().addCallback(self.gotNotification)
+            self.notifDeferred = defer.Deferred()
+        # self.timeout = reactor.callLater(29*60, self.notifyTimeout)
+        return self.command("notify").addCallback(_notifyMe)
 
-        self.sendLine("would you notify me?")
-        self.d = defer.Deferred().addCallback(_gotNotif)
-        return self.d
+    def stopNotify(self): 
+        def gotStopNotif(data):
+            pass
+        self.d = None
+        return self.command("stop_notify").addCallback(gotStopNotif)
 
     def gotNotification(self, notif):
+        self.ackNotif()
+        self.d = None
+        self.notifDeferred.callback(notif)
 
-        def _stopNotif(data):
-            assert data=='OK'
-            print "exiting idle state"
-            self.plizRandom()
+    @defer.inlineCallbacks
+    def notifyTimeout(self): 
+        yield self.stopNotify(None)
+        yield self.notifyMe(None)
 
-        self.sendLine("stop notifying me, OK?")
-        self.d = defer.Deferred().addCallback(_stopNotif)
-    
-factory = protocol.ClientFactory()
-factory.protocol = Client
-reactor.connectTCP("localhost", 6789, factory)
+#### End of the API
+#### Beginning of the user code
+
+def notificationLoop(conn):
+    # the notification loop, should be given a callback 
+    return conn.stopNotify(
+        ).addCallback( conn.
+        ).addCallback( conn.notifyMe)
+
+
+@defer.inlineCallbacks
+def gotConnection(conn):
+    print (yield conn.plizRandom(None))
+    for i in conn.notification():
+        print (yield conn.plizRandom(None)) 
+
+c = protocol.ClientCreator(reactor, Client)
+c.connectTCP("localhost", 6789).addCallback(gotConnection)
 reactor.run()
