@@ -28,7 +28,6 @@ class Client(basic.LineReceiver):
     def plizClassified(self,_): 
         return self.command("classified?")
 
-
 factory = protocol.ClientFactory()
 factory.protocol = Client
 reactor.connectTCP("localhost", 6789, factory)
