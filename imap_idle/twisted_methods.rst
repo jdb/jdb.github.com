@@ -1,7 +1,7 @@
 
 
-Working with the methods of the Twisted Project
-===============================================
+Getting the code upstream
+=========================
 
 - which repository
 

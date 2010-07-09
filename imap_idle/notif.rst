@@ -15,35 +15,41 @@ client notification mechanism* with Twisted:
    the serveur initiates notification that the client wait for and
    acknowledges.
 
+The overview shows how to express notifications in Twisted. The
+protocol section presents the four commands of the protocol. The next
+sections shows how the prototype evolves to satisfy the need.
+
 Overview
 --------
 
-In Twisted, in the case 1. 
+In Twisted, to exchange requests and replies with a server:. 
 
-- a client emits a request,
+#. a client emits a request,
 
-- it writes the command string in the transport socket, 
+#. it writes the command string in the transport socket, 
 
-- and takes care to stores the callback where the *lineReceived* will
-  be able to find it when the reply comes back,
+#. and takes care to stores the code processing the reply where the
+   *lineReceived* will be able to find it when the reply comes back,
 
-- when the replies comes back, the reactor handles it to the
-  *lineReceived* which is written to fire the callback with the data.
+#. when the replies comes back, the reactor pass it on to the
+   *lineReceived* which usually calls the callback chosen by the
+   developer with the data as argument.
 
-The callback is usually instantiated and stored in a deferred as an
-member attribute of the protocol instance when writing a command into
-the transport. The member attribute is empty between request/replies
-exchanges and reset to fire from a request and until the replies
-arrives from the server.
+The callback is stored in a deferred as an member attribute of the
+protocol instance. The deferred is re-instantiated whenever sending a
+new request into the transport. The member attribute is empty between
+request/replies exchanges and reset to fire from a request and until
+the replies arrives from the server.
 
 To expect notifications:
 
 #. the client requests to go into notification mode, sets the callback
 
-#. the server accepts, the callback is fired and here is the
-   difference with the traditional client/server exchange: **the
-   callback re-instantiates a deferred on the server reply** and
-   stores the callback processing the notification.
+#. the server replies, the callback is fired and here is the
+   difference with the traditional client/server exchange: 
+
+#. **the callback processing the reply from the server re-instantiates
+   a deferred** holding the callback processing the notification.
 
 #. at some point, the server sends a notification. The client receives
    the notification and might decide to expect other notification, or
@@ -53,8 +59,37 @@ To expect notifications:
    processed, it is up to the client to reinitiate the notification
    mode.
 
-What if?
---------
+Our prototype is built in several steps being a bit more useful and a
+bit more complex at each iteration:
+
+#. the client can send a request get a reply, 
+
+#. the client can ask notification from the server, receives and process a
+   notification, exit the notification mode and quit,
+
+#. the client can loop on the notifications until killed with a control-C,
+
+#. the client will exit the notification mode to get more information
+   from server
+
+#. there is no more need to derive a class and override a specific
+   method to process a notification. It is only a matter 
+
+#. as the server automatically timeout in notification mode, the
+   client exits the notification mode and re-enters it automatically a
+   few seconds before the timeout
+
+#. The server gets robust and behaves in case of problems
+
+
+Basic request and reply
+-----------------------
+
+
+
+
+Robustness and error handling
+-----------------------------
 
 - *The server sends stuff in the socket before client has emitted a
   requests?*
@@ -169,6 +204,14 @@ What if?
 - *What if the server sends a notification at the exact same time
   that the client sends a request?*
 
+
+.. 1. going into notification mode and exiting notification mode would be
+.. adapted as a context manager: but the __enter__ and __exit__ will
+.. return a deferred, the body of the with will be run as soon as the
+.. enter() returns while we want the body to run as soon as the
+.. deferred is fired... 
+
+.. 2. What about deferred that can be recalled?
 
 The client protocol
 -------------------
