@@ -3,9 +3,9 @@ A notification server in Twisted
 ================================
 
 Let's create a simple client and a simple server able to receive
-notification. It will be super simple client supporting s custom dumb
-protocol no HTTP nor IMAP. The goal is just to play with a *server to
-client notification mechanism* with Twisted: 
+notification. It will be super simple client supporting a custom line
+based protocol. The goal is just to play with a *server to client
+notification mechanism* with Twisted:
 
 #. the traditional situation for a client and server application is for
    the server to initiate requests and the server to generate
@@ -15,21 +15,23 @@ client notification mechanism* with Twisted:
    the serveur initiates notification that the client wait for and
    acknowledges.
 
-The overview shows how to express notifications in Twisted. The
-protocol section presents the four commands of the protocol. The next
-sections shows how the prototype evolves to satisfy the need.
+The overview shows how to express notifications in Twisted with a
+Protocol class and deferreds. The protocol section presents the four
+commands of the protocol. The following sections shows how the
+prototype evolves toward a complete and useful program.
 
 Overview
 --------
 
 In Twisted, to exchange requests and replies with a server:. 
 
-#. a client emits a request,
+#. a client emits a request 
+   
+   - by writing it in the command string in the transport socket,
 
-#. it writes the command string in the transport socket, 
-
-#. and takes care to stores the code processing the reply where the
-   *lineReceived* will be able to find it when the reply comes back,
+   - at the same time, it takes care to store the code processing the
+     reply where the *lineReceived* will be able to find it when the
+     reply comes back,
 
 #. when the replies comes back, the reactor pass it on to the
    *lineReceived* which usually calls the callback chosen by the
@@ -43,13 +45,14 @@ the replies arrives from the server.
 
 To expect notifications:
 
-#. the client requests to go into notification mode, sets the callback
+#. the client sends a requests to go into notification mode, sets a
+   callback
 
-#. the server replies, the callback is fired and here is the
-   difference with the traditional client/server exchange: 
+#. the server replies and accepts, the callback is fired and here is
+   the difference with the traditional client/server exchange:
 
 #. **the callback processing the reply from the server re-instantiates
-   a deferred** holding the callback processing the notification.
+   a deferred** holding a callback processing the notification.
 
 #. at some point, the server sends a notification. The client receives
    the notification and might decide to expect other notification, or
@@ -59,21 +62,52 @@ To expect notifications:
    processed, it is up to the client to reinitiate the notification
    mode.
 
+
+
+A simple line oriented protocol
+-------------------------------
+
+The protocol includes four commands:
+
+- ``random?``: the server should reply a random number
+
+- ``classified?``: the server should reply the recent unread classified ads
+
+- ``_notif_``: the server gets ready to send notifications about new
+  items being available (see below)
+
+- ``_stop_notif_``: the server stops sending notifications and get
+  back to replying to requests.
+
+A notification can either be : ``random`` or ``classified``. The
+server notifies the client of the availability of random numbers and
+classified ads. Then, it is up to the client to exit the notification
+mode to effectively download the random number or the classified ad.
+
+How will the protocol be typically used?
+
+There are two types of client: those interested in random numbers and
+those interested in classifieds ads. The client connects, retrieves
+the most recent items it is interested in and request the server to
+send notifications about newly available items. For each notification
+sent by the server, the client will 
+
+Prototype tests
+---------------
+
 Our prototype is built in several steps being a bit more useful and a
 bit more complex at each iteration:
 
 #. the client can send a request get a reply, 
 
-#. the client can ask notification from the server, receives and process a
-   notification, exit the notification mode and quit,
-
 #. the client can loop on the notifications until killed with a control-C,
 
 #. the client will exit the notification mode to get more information
-   from server
+   from server when new classified ads are available,
 
 #. there is no more need to derive a class and override a specific
-   method to process a notification. It is only a matter 
+   method to process a notification. It is only a matter of using the
+   low level API in a function external to the 
 
 #. as the server automatically timeout in notification mode, the
    client exits the notification mode and re-enters it automatically a
@@ -83,13 +117,14 @@ bit more complex at each iteration:
 
 
 Basic request and reply
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
-
+.. literalinclude:: notif_1.py
 
 
 Robustness and error handling
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 - *The server sends stuff in the socket before client has emitted a
   requests?*
@@ -213,24 +248,6 @@ Robustness and error handling
 
 .. 2. What about deferred that can be recalled?
 
-The client protocol
--------------------
-
-The client Protocol has commands for requesting:
-
-- random numbers, 
-
-- renting offers details,
-
-- changing state to listening for notification. 
-
-Let's design our mini protocol to be line oriented:
-  we will be able to
-
-the client Factory is not really useful in our example: the reactor
-requires the factory to be able to offer a protocol instance 
-
-Deferred
 
 
 
