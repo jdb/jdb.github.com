@@ -32,3 +32,16 @@ get merged upstream.
    imap_idle/twisted_imap
    imap_idle/interop
    imap_idle/twisted_methods
+
+
+.. toctree::
+   :hidden: 
+   
+   imap_idle/pycon-presentation/proposal
+   imap_idle/pycon-presentation/speaker_bio
+   imap_idle/pycon-presentation/speech
+   imap_idle/twisted_imap/_imap4client
+   imap_idle/twisted_imap/_imap4client_robust
+   imap_idle/twisted_imap/_imap4client_yield
+   imap_idle/twisted_imap/_imap4client_yield2
+   
