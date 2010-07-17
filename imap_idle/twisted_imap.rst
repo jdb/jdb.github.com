@@ -16,22 +16,24 @@ IMAP presentation in four keys points
 Twisted IMAP support
 --------------------
 
-See what is already possible with the existing API: 
+Here three examples deriving from the script contained in the official
+documentation, which can connect to an IMAP mailbox and retrieve the
+messages subjects:
 
-- :doc:`_imap4client`: a lightly edited version of the original
-  imap4client example. It features comments hinting on how to keep the
-  connection in plain text, without TLS, which is easier to debug with
-  wireshark. A bug fix: login in a TLS session not considered insecure
-  anymore. Script stop the reactor in the end
+- :doc:`twisted_imap/_imap4client`: similar to the original except
+  that it features comments hinting on how to keep the connection in
+  plain text, without TLS, which is easier to debug with wireshark. A
+  bug fix: login in a TLS session not considered insecure
+  anymore. Also, the script exits by stopping the reactor when the
+  subjects are printed.
 
-- :doc:`_imap4client_yield`: a rewrite of the previous script in a
-  simpler way using inline callbacks: much more basic and simpler to
-  read (the original is 4 times longer)
+- :doc:`twisted_imap/_imap4client_yield`: using inline callbacks: much
+  more basic and simpler to read (the original is 4 times longer)
 
-- :doc:`_imap4client_robust`: an update of :doc:`_imap4client_yield`
-  on par with the original examples. Still twice shorter: inline
-  callbacks are really helpfull if you are do not have to deal with
-  Python version before 2.5.
+- :doc:`twisted_imap/_imap4client_robust`: on par with the features of
+  the original example. Still twice shorter: inline callbacks really
+  help with readability, if you are do not have to deal with Python
+  version before 2.5.
 
 Main classes, main functions
 
@@ -59,8 +61,8 @@ The algorithm of our extension to Twisted
 So in the end, what is really in the patch
 ------------------------------------------
 
-- :doc:`_imap4client_yield2`: an update of :doc:`_imap4client_yield`
-  with the notify features
+- :doc:`twisted_imap/_imap4client_yield2`: an update of
+  :doc:`twisted_imap/_imap4client_yield` with the notify features
 
 
 I am not sure I see the state machines clearly: 
@@ -121,26 +123,4 @@ The chronological steps are:
    #. call the factory deferred with the result
 
 #. the function prints the title and stops the reactor
-
-Here is the client procotol:
-
-.. literalinclude:: twisted_exceptions.py
-   :pyobject: ConnectInbox
-
-
-Here is the associated factory:
-
-.. literalinclude:: twisted_exceptions.py
-   :pyobject: ConnectInbox
-
-Here is the "higher level" function:
-
-.. literalinclude:: twisted_exceptions.py
-   :pyobject: getTitles
-
-And here is how these objects are instantiated and called via the
-reactor:
-
-.. literalinclude:: twisted_exceptions.py
-   :start-after: __main__
 
