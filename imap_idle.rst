@@ -17,18 +17,18 @@ messages.
 
 This series illustrates the steps of the developments and integration
 of this extension into the Twisted Project. First, a prototype of the
-notification between a Twisted client and server, mechanism, which
-mimics IMAP's mechanisn, is set up. Then, this exchange is *ported* to
-IMAP patching the Twisted IMAP module. Then, the interoperability is
-tested with a local installation of Dovecot/Postfix on one hand, and
-on the other hand with the Gmail servers, over SSL. Finally, the steps
-with connecting with the Twisted community and methods, in order to
-merge our extension upstream, are presented.
+notification mechanism between a Twisted client and server is set
+up. Then, this mechanism is *ported* to IMAP, by extending the Twisted
+IMAP module. Then, this module interoperability is tested with a local
+installation of Dovecot/Postfix on one hand, and on the other hand
+with the Gmail servers, over SSL. Finally, the steps with connecting
+with the Twisted community and methods are presented, so that our code
+get merged upstream.
 
 .. toctree::
    :maxdepth: 1
    
-   imap_idle/notif
-   imap_idle/imap
+   imap_idle/prototype
+   imap_idle/twisted_imap
    imap_idle/interop
    imap_idle/twisted_methods

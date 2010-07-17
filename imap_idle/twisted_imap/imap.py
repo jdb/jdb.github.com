@@ -32,7 +32,7 @@ class ConnectInbox(imap4.IMAP4Client):
         """
     @defer.inlineCallbacks
     def fetchAllUIDs(self):
-        result = yield self.fetchUID(imap4.MessageSet(1, None), True)
+        result = (yield self.fetchUID(imap4.MessageSet(1, None), True))
         uids = [v['UID'] for v in result.values()]
         defer.returnValue(uids)
 

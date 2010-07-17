@@ -1,4 +1,23 @@
 
+Fraise aux meringues
+====================
+
+4 personnes
+
+ingredients
+-----------
+
+- 500 fraises,
+- 200 grammes de creme fraiche,
+- 2 meringues,
+
+etapes
+------
+
+1. morceler les meringues,
+1. couper les fraises en 4,
+1. melanger meringues, fraises et creme fraiche, et diviser en 4
+   coupelles
 
 Nougat
 ======
@@ -7,21 +26,16 @@ ingredients
 -----------
 
 - 3 blancs d'oeufs
-
 - 1 tasse de sucre
-
 - 1 tasse de miel
-
 - 1 demi tasse d'eau
-
 - vanille liquide ou en poudre
-
 - pistaches non salees et amandes
 
 etapes
 ------
 
-1. Dans un casserale, melange l'eau, le sucre, le miel,
+1. Dans un casserole, melange l'eau, le sucre, le miel,
 
 1. Fait bouillir pendant 5 minutes en remuant,
 
