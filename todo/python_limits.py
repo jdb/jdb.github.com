@@ -9,6 +9,10 @@ from twisted.python.failure import Failure
 # - context manager 
 # - exception
 
+# What happen if from a inlinecallbacks decorated function, you yield
+# something else than a deferred? (it seems that only the type
+# deferred being yielded matters, not the particular instance)
+
 class Notif(basic.LineReceiver):
     
     def lineReceived(self, data):
