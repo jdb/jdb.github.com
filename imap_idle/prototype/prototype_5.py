@@ -34,7 +34,7 @@ class Client(basic.LineReceiver):
         self.notif_d = None
         return self.command("_stop_notif_")
 
-    # Higher level user API
+    # user API
     def random(self):
         return self.command("random?"
                   ).addCallback(lambda x:int(x))
@@ -44,22 +44,6 @@ class Client(basic.LineReceiver):
 
     infos = {"random":("random",random),
              "classified":("classified", classified)}
-
-
-
-
-    @defer.inlineCallbacks
-    def withContext(self, enter, callback, exit):
-
-        yield self.stopNotif()
-        data = (yield getter(self))
-        self.notif()
-
-        defer.returnValue(data)
-
-
-
-        
     
     @defer.inlineCallbacks
     def receive(self, item):
@@ -72,11 +56,11 @@ class Client(basic.LineReceiver):
             if notif==pattern:
                 break
 
-        defer.returnValue(self.withPauseNotif(getter, self))
-
-
-
-
+        yield self.stopNotif()
+        data = (yield getter(self))
+        
+        self.notif()
+        defer.returnValue(data)
 
 @defer.inlineCallbacks
 def gotConnection(conn):
@@ -87,7 +71,6 @@ def gotConnection(conn):
     yield conn.notif()
     while True:
         print (yield conn.receive("random"))
-    self.stopNotif()
         
 c = protocol.ClientCreator(reactor, Client)
 c.connectTCP("localhost", 6789).addCallback(gotConnection)

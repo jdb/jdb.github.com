@@ -4,14 +4,7 @@ from twisted.protocols import basic
 
 class Client(basic.LineReceiver):
     
-    delimiter = '\n'
-
-    @defer.inlineCallbacks
-    def connectionMade(self):
-        print (yield self.plizRandom(None))
-        print (yield self.plizClassified(None))
-        reactor.stop()
-
+    # Internal
     def lineReceived(self, data):
         self.d.callback(data)
         
@@ -20,13 +13,22 @@ class Client(basic.LineReceiver):
         self.d = defer.Deferred()
         return self.d
 
-    def plizRandom(self,_): 
+    # public API
+    def random(self): 
         def gotRandom(number):
             return int(number)
         return self.command("random?").addCallback(gotRandom)
 
-    def plizClassified(self,_): 
+    def classified(self): 
         return self.command("classified?")
+
+    # User code, this is actually the main()
+    @defer.inlineCallbacks
+    def connectionMade(self):
+        print (yield self.random(None))
+        print (yield self.classified(None))
+        reactor.stop()
+
 
 factory = protocol.ClientFactory()
 factory.protocol = Client
