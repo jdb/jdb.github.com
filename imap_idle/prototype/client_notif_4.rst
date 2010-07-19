@@ -9,11 +9,11 @@ that actually does not buy much, it a higher level function which gets
 called when the connection is established, with the protocol instance
 as argument.
 
-.. literalinclude:: prototype_4.py
+.. literalinclude:: client_notif_4.py
 
 Here is the same script without API, where the protocole is exposed in
 raw form. This make it quite clear, what really is echanged on the
 wire, and what it happening with the protocol strings exchanged and the
 deferreds.
 
-.. literalinclude:: prototype_4raw.py
+.. literalinclude:: client_notif_4raw.py

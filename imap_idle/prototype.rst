@@ -2,6 +2,17 @@
 A notification client in Twisted
 ================================
 
+.. todo::
+
+   Review and complete. Each iteration is contained in a single file
+   and ends up as a single html page with the complete listing. It
+   would help readability if the prototype.html article would be a
+   single page, and only the code diffs were show. The Sphinx
+   ``literalinclude`` command is super handy for that, especially
+   with its *start-from*, *stop-at*, *lines* and *pyobject* argument 
+   
+
+
 Let's create a simple client and a simple server able to receive
 notification. It will be super simple client supporting a custom line
 based protocol, just to play with a *server to client notification
@@ -115,14 +126,14 @@ bit more complex at each iteration:
 
 .. toctree::
 
-   prototype/prototype_1
-   prototype/prototype_2
-   prototype/prototype_3
-   prototype/prototype_4
-   prototype/prototype_5
-   prototype/prototype_6
-   prototype/prototype_7
-
+   prototype/client_notif_1
+   prototype/client_notif_2
+   prototype/client_notif_3
+   prototype/client_notif_4
+   prototype/client_notif_5
+   prototype/client_notif_6
+   prototype/client_notif_7
+   prototype/client_notif_8
 
 
 

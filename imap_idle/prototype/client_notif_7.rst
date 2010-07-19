@@ -2,8 +2,14 @@
 Robust
 ------
 
-.. literalinclude:: prototype_7.py
+.. todo::
 
+   Mostly review and complete with new corner cases. Automating these
+   tests with trial would surely help.
+
+.. literalinclude:: client_notif_7.py
+
+- what if a command is sent during in notification mode?
 
 - *The server sends stuff in the socket before client has emitted a
   requests?*

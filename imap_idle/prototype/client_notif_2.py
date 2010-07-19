@@ -6,10 +6,7 @@ class Client(basic.LineReceiver):
     
     # Internal
     def lineReceived(self, data):
-        if data.startswith('notif: '):
-            self.d_notif.callback(data)
-        else:
-            self.d.callback(data)
+        self.d.callback(data)
         
     def command(self, cmd):
         self.sendLine(cmd)
@@ -25,17 +22,25 @@ class Client(basic.LineReceiver):
     def classified(self): 
         return self.command("classified?")
 
-    def notify(self,notifCallback):
-        def _cbNotify(response, notifCallback):
-            print "about the notification request, server said:", response
+    waiting_notif = False
+
+    def waitNotif(self):
+        def cbWaitNotif(data):
+            self.waitingNotif = False if data == 'OK' else True
+            self.d.callback(data)
             
-        self.d_notif = defer.Deferred().addCallback(notifCallback)
-        return self.command("notif").addCallback(_notifyMe, notifCallback)
+        self.notif_d = defer.Deferred()
+        self.waitingNotif =True
+        return self.notif_d
+
+    def notify(self, notifCallback):
+        def _cbNotify(data, notifCallback ):
+            notifCallback(data)
+        self.waiting
+        return self.command("notif").addCallback(_cbNotify, notifCallback)
 
     def stopNotify(self, _):
-        self.d_notif = None
-        self.sendLine("stop_notif")
-        return self.d
+        return self.command("stop_notif")
 
     # User code, this is actually the main()
     @defer.inlineCallbacks
@@ -43,11 +48,12 @@ class Client(basic.LineReceiver):
         print (yield self.random())
         print (yield self.classified())        
         print (yield self.notify(gotNotification))
+        gotNotification((yield self.waitNotif()))
+        gotNotification((yield self.waitNotif()))
+        gotNotification((yield self.waitNotif()))
 
-    def gotNotification(notif, conn):
+    def gotNotification(notif):
         print "a notif:", notif
-        self.d_notif = defer.Deferred().addCallback(gotNotification)
-        print "ready for a new notif" 
 
 factory = protocol.ClientFactory()
 factory.protocol = Client
