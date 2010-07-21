@@ -36,3 +36,29 @@ validation fonctions:
   is set to True, then line number 6 already has the number 4 (you
   can't know the position, the matrix is here for that ). 
 
+
+
+set third of 8=1000 to 1
+
+1000 | 1<<2
+1000 | 100
+   1100
+
+1100 is 12
+
+>>> 8 | 1<<3
+14
+
+set third of 15=1111 to 0
+
+-(-1111 | 1<<2 )
+-(-1111 | 100  )
+-( 0000 | 100  )
+     -0100
+      1011
+
+1011 is 11
+
+set 8th bit (bit number 7) out of a bitfield of length 9 to zero
+
+0000000111111111 is  

@@ -26,3 +26,4 @@ Shorter Python tips
    missing_method
    classmethod
    dup
+   bits
