@@ -2,17 +2,6 @@
 A notification client in Twisted
 ================================
 
-.. todo::
-
-   Review and complete. Each iteration is contained in a single file
-   and ends up as a single html page with the complete listing. It
-   would help readability if the prototype.html article would be a
-   single page, and only the code diffs were show. The Sphinx
-   ``literalinclude`` command is super handy for that, especially
-   with its *start-from*, *stop-at*, *lines* and *pyobject* argument 
-   
-
-
 Let's create a simple client and a simple server able to receive
 notification. It will be super simple client supporting a custom line
 based protocol, just to play with a *server to client notification
@@ -124,29 +113,24 @@ if sent by the server, ``C:`` if sent by the client)::
   C:  OK
   
 
-Prototype iterations
---------------------
+Iterations
+----------
 
 Our prototype is built in several steps being a bit more useful and a
 bit more complex at each iteration:
 
-.. toctree::
+#. :ref:`request_reply` 
+#. :ref:`notifs`
+#. :ref:`loop`
+#. :ref:`clientcreator`
+#. :ref:`higher`
+#. :ref:`timer`
+#. :ref:`desktop`
 
-   prototype/client_notif_1
-   prototype/client_notif_2
-   prototype/client_notif_3
-   prototype/client_notif_4
-   prototype/client_notif_5
-   prototype/client_notif_6
-   prototype/client_notif_7
-   prototype/client_notif_8
-
-
-
-
+.. _request_reply:
 
 The client can send a request get a reply
------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is one of the most basic implementation of a Twisted client:
 
@@ -158,7 +142,7 @@ This is one of the most basic implementation of a Twisted client:
   reply from the server is available. The reply gets passed to the
   callback set by the user,
 
-.. literalinclude:: prototype/client_notif_1.py
+.. literalinclude:: prototype/client_notif_1_request_reply.py
 
 To use this client: in a first console, launch the server which can
 simply be: ``nc -C -l 6789`` (the port is hardcoded in the
@@ -179,18 +163,25 @@ From the client::
    A cool duplex in the 11e
 
 
-If you want to use this code as an example, make sure to check the
-:doc:`robustified version <prototype/client_notif_7>`.
-
-For more details on *defer.inlineCallback* and the peculiar use of
-*yield*, see :doc:`../../concurrent/smartpython`. In brief, the
+If you want to use this code as an example, be aware that it features
+many bugs, be sure to check the :doc:`robustified version
+<robust>`. Also, for more details on *defer.inlineCallback* and the peculiar
+use of *yield*, see :doc:`../../concurrent/smartpython`. In brief, the
 association of the two makes it possible to turn a function returning
 a deferred which fires a result into a more conventional function
 which (*seemingly*) returns a result.
 
 
+.. toctree::
+   :hidden:
+
+   robust
+   
+
+.. _notifs:
+
 Notification mode and reception of two notifications
-----------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This iteration introduces three methods in our *Client* class
 protocol, only for supporting the events related to the ``notif``
@@ -201,17 +192,16 @@ protocol command:
   send notif' according to the :ref:`protocol definition  <protocol>`
 
 - *waitNotif*: re-installs a deferred, and returns a deferred used to
-   attach a callback processing the notification 
+  attach a callback processing the notification 
 
 - *stopNotify*: ends the notification mode, and switches the server
   back into the traditional client/server mode. stopNotifiy does not
   sends a protocol command.
 
 
-
 The changes made to connectionMade illustrates how to use the API
 
-.. literalinclude:: prototype/client_notif_2.py
+.. literalinclude:: prototype/client_notif_2_notifs.py
    :lines: 25-46
 
 An example session on the server::
@@ -240,20 +230,23 @@ From the client this looks like::
 
 .. there is a bug is notify are called without waitNotif: alreadycalledcallback
 
-the client loops and ends the notification mode to get the available new item
------------------------------------------------------------------------------
+.. _loop:
+
+The client loops and ends the notification mode to get the available new item
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A client watching for notification is expected to loop to act on the
 notifications. Also, whenever an interesting notification arrives, it
 is the signal that new data is available. The API is not modified,
 only the code executing when the connection is established is extended.
 
-.. literalinclude:: prototype/client_notif_3.py
+.. literalinclude:: prototype/client_notif_3_loop.py
    :lines: 37-50
 
+.. _clientcreator:
 
 The user code is contain in one function
-----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This iteration does not add new functionalities to the code, it
 refactors the code to cleanly separate a general API from a specific
@@ -261,33 +254,32 @@ client script. There is no more need to derive a class and override a
 specific method to process a notification. It is only a matter of
 using the API in one function. 
 
-.. literalinclude:: prototype/client_notif_4.py
+.. literalinclude:: prototype/client_notif_4_clientcreator.py
    :lines: 38-55
 
+.. _higher:
 
 Higher level API
-----------------
-
-A *receive* method is introduced in the *Client* protocol Class which
-allows the user of the API not to know a specificity of the protocol
-which is to switch modes between receiving the notifications and
-fetching the newly available items.
-
-Here is a higher level *receive* method which encapsulate the
-notification mode:
-
-.. literalinclude:: prototype/client_notif_5.py
-   :lines: 36-52
+~~~~~~~~~~~~~~~~
 
 For a user which only wants to receive the random number as fast as
-possible, the code is much more straightforward:
+possible, the API can be much more straightforward:
 
-
-.. literalinclude:: prototype/client_notif_5.py
+.. literalinclude:: prototype/client_notif_5_higher.py
    :lines: 56-63
 
-Defeating the autologout server timer
--------------------------------------
+A *receive* method is introduced in the *Client* protocol Class which
+hides the need which is specific to this protocol to switch modes
+between receiving the notifications and fetching the newly available
+items. *receive* method wraps the notification mode switch:
+
+.. literalinclude:: prototype/client_notif_5_higher.py
+   :lines: 36-52
+
+.. _timer:
+
+Defeating the *auto stop-notify* server timer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. todo:: 
 
@@ -295,197 +287,13 @@ Defeating the autologout server timer
    notif mode every 29 minutes. The Python code stub is to be written
    to support this, and the article might receive one or two explanation.
 
-.. literalinclude:: prototype/client_notif_6.py
+.. literalinclude:: prototype/client_notif_6_timer.py
+   :lines: 3-5
 
-Robust
-------
-
-.. todo::
-
-   Mostly review and complete with new corner cases. Automating these
-   tests with trial would surely help.
-
-.. literalinclude:: prototype/client_notif_7.py
-
-- what if a command is sent during in notification mode?
-
-- *The server sends stuff in the socket before client has emitted a
-  requests?*
-
-  The behavior is defined in the first lines of the client protocol::
-
-    class Client(basic.LineReceiver):
-        
-        d = None
-    
-        def lineReceived(self, data):
-            self.d.callback(data)
-            
-        def command(self, cmd):
-            self.sendLine(cmd)
-            self.d = defer.Deferred()
-            return self.d
-    
-  If data is received before a command has been emitted, the
-  lineReceived will call the callback method on whatever is stored in
-  the *d* attribute.
-
-  When the client starts, the attribute *d* meant to receive the
-  deferred triggered for the request replies is set to None. It is the
-  job of the *command* method to instantiate and store a Deferred in
-  this attribute because we only expect data after a command has been
-  emitted. So in our case, the callback method is called on *None*
-  which leads to a ``exceptions.AttributeError: 'NoneType' object has no
-  attribute 'callback'``::
-
-    def lineReceived(self, data):
-        assert self.d is not None, ("Unexpected data from the server, "
-                                    "no command emitted and not in "
-                                    "notification mode")
-        self.d.callback(data)
-
-  Since receiving data while not in notification mode or waiting for a
-  command is not allowed in our custom protocol, we can rightfully can
-  raise an exception in this case and crash the program. This is a
-  failfast strategy that will quickly spot bad behaving servers. But
-  some might also say is unnecessarily too strict. Why not just ignore
-  the unexpected data? ::
-
-    def lineReceived(self, data):
-        if self.d is None:
-	    return 
-        self.d.callback(data)
-
-- *The server having emitted a command receives two answers*? 
-
-  It could be because the server is crazy, or because a buggy network
-  and network stack have duplicated the packets. *lineReceived* will
-  call the callback method on the deferred a second time. It is the
-  same situation as with this example
-
-  >>> from twisted.internet import defer
-  >>> d = defer.Deferred().addCallback(lambda x:42)
-  >>> d.callback(None)
-  >>> d.callback(None)
-  Traceback (most recent call last): ...
-  twisted.internet.defer.AlreadyCalledError
-
-  A deferred is consumed when it is called, it can't be called
-  twice. We must again make sure that the already used deferred is
-  suppressed::
-
-    def lineReceived(self, data):
-        if self.d is None:
-	    return 
-        self.d.callback(data)
-	self.d = None
-
-  As *None* overwrite the used deferred, there is no way the deferred
-  will be called again... Or is it really so? It is completely
-  possible that the callback actually call lineReceived. At this
-  point, the instruction ``self.d = None`` has not yet been executed:
-  bing, subtle bug: an ``AlreadyCalledException`` is raised
-  again. *self.d* must be overwritten *before* the callback is fired,
-  and to be able to access the deferred to actually call the callback,
-  the deferred can be stored in a temporary variable::
-
-    def lineReceived(self, data):
-        if self.d is None:
-	    return 
-	d, self.d = self.d, None
-        d.callback(data)
-
-- *What if the client sends multiple messages in a burst without
-  waiting for the response to the first request to be back first?*
-
-  ???
-
-  it is easy to crash the client with an assert on the deferred
-  attribute::
-
-    def command(self, cmd):
-        assert self.d is None
-        self.sendLine(cmd)
-        self.d = defer.Deferred()
-        return self.d
-
-  Maybe standard similar protocol, explicitly forbids this, and
-  expects commands to be spooled, the next command being written only
-  when the first reply is back.
-
-  Another solution is to enumerate the requests and expect the request
-  number in the replies. In the latter case, the Twisted client could
-  maintain a dictionary of deferreds as a member of the protocol
-  instead of a keeping track of a single deferred. The key would be
-  the request number (the request id).
-
-- *What if the server sends a notification at the exact same time
-  that the client sends a request?*
-
-
-.. 1. going into notification mode and exiting notification mode would be
-.. adapted as a context manager: but the __enter__ and __exit__ will
-.. return a deferred, the body of the with will be run as soon as the
-.. enter() returns while we want the body to run as soon as the
-.. deferred is fired... 
-
-.. 2. What about deferred that can be recalled?
-
-
-- What if the server sends a notification right before receiving a
-  request from the client: won't the client be mislead and parse the
-  notification for the reply?  
-
-  In our context, this would be ``_stop_notify_`` being sent when a
-  notification is on already on the wire. There are at least two
-  solutions: 
-
-  - The data received by the client must contain enough information to
-    distinguish a reply from a notification, regardless of the state
-    of the protocol. In our case, the notification data is prefixed by
-    ``notif:``.  Conversely replies should never use this prefix. The
-    client protocol instance features member attributes: the reply
-    deferred and the notification deferred. ``lineReceived`` fires the
-    correct callback by observing the data (checking foe the
-    notification prefix)
-
-- What if requests are sent in batch, instead of waiting for the first
-  reply to the first command request before sending the second
-  request? 
-
-  In our case, the notif(), stopNotif() commands can be sent in a
-  quick sequence when two notifications are quickly created. Looking
-  at the code, it is clear that a new deferred will be created and
-  will suppress the previous one before it is fired. When to replies
-  come back, the first reply might be passed to the wrong callback,
-  and it is certain that the second exeuction of the same callback
-  will result in an AlreadyCalled exception.
-
-  The solution is for the protocol to be extended sot that replies can
-  include an unique id of the request, to be able to send requests in
-  batch. The protocol instance would not keep one deferred got.
-
-  A lighter solution is, instead of suppressing the existing deferred
-  with a new one, chaining them: the requests will be queued.
-
-
-- What is the server receives a request to send notifications, then do
-  not reply as soon as possible, then replies a notif, and only then,
-  sends the reply to the request?*
-
-
-# is it possible in Twisted Python, to do a generator of network
-# requests: with yield it seems a bit compromise since the value will
-# not be available as argument of the function
-
-# I wish I could write: 
-# pattern, getter = conn.items["random"]
-# for notif in conn.notifs(pattern):
-#     with conn.pause_notifs():
-#         print (yield getter())
+.. _desktop:
 
 Integration with the nice deskptop notification system
-------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. todo::
 
@@ -495,3 +303,14 @@ Integration with the nice deskptop notification system
 
 
 1+1 == 2
+
+.. literalinclude:: prototype/client_notif_7_desktop.py
+   :lines: 3-5
+
+In the end, the full source of the notiication client can be read
+:doc:`here<prototype/full>`.
+
+.. toctree::
+   :hidden:
+
+   prototype/full

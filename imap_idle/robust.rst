@@ -1,4 +1,6 @@
 
+.. _robust:
+
 Robust
 ------
 
@@ -7,7 +9,7 @@ Robust
    Mostly review and complete with new corner cases. Automating these
    tests with trial would surely help.
 
-.. literalinclude:: client_notif_7.py
+.. literalinclude:: prototype/client_notif_7.py
 
 - what if a command is sent during in notification mode?
 
@@ -185,3 +187,8 @@ Robust
 # for notif in conn.notifs(pattern):
 #     with conn.pause_notifs():
 #         print (yield getter())
+# maybe possible with corotwine
+
+
+Buffering notifications
+-----------------------

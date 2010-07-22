@@ -11,8 +11,11 @@ class IMAP4ClientWithIDLE(imap4.IMAP4Client):
     command. Code meant to be merge to in twisted.mail.imap4.IMAP4Client
 
     """
+    
+    # TODO: virer le callback pour lapremiere notif
+    # regarder les caps
 
-    def idle(self, cbNotif, *args):
+    def idle(self, ):
         """
         Request the notifications of new mails
 
