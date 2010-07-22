@@ -25,8 +25,8 @@ class Client(basic.LineReceiver):
     # User code, this is actually the main()
     @defer.inlineCallbacks
     def connectionMade(self):
-        print (yield self.random(None))
-        print (yield self.classified(None))
+        print (yield self.random())
+        print (yield self.classified())
         reactor.stop()
 
 

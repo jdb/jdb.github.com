@@ -48,19 +48,30 @@ How does a command gets sent?
 Let's take the example of the status method
 
 #. a Command object is instantiated with: 
+
    - the *STATUS* string as the command,
+
    - the command arguments,
+
    - the continuation function and its arguments,
+
    - the expected response (is unused at this time)
 
 #. *sendCommand* 
+
    - takes this Command instance as an argument, 
+
    - stores a deferred in the cmd,
+
    - if there is a reply expected for a running command: queue the
      command and returns the command deferred,
+
    - else :
+
      - make a tag number which identifies the request, 
+
      - stores the command in the tags member dictionary
+
      - send the request and returns the deferred
 
 #. the *__cbStatus* callback which parses the reply string into a dictionary
@@ -73,8 +84,10 @@ How does a network reply gets processed?
 #. *lineReceived* is meant to distinguish between the lines and the
    literal strings. The case of literal strings is of minor importance
    in our context: in case of a line, it is split into:
+
    - the tag which can be either ``*``, ``+`` or an IMAP tag
      according to the RFC 3501,
+
    - and the rest which comprises of the response name and arguments.
 
    The tag and rest are passed to:
@@ -92,7 +105,7 @@ How does a network reply gets processed?
    - if the response is **untagged**
    
      - if the client is **not waiting** for an answer the *_extraInfo*
-     method is evaluated with the tag and rest as arguments.
+       method is evaluated with the tag and rest as arguments.
 
      - if the client is **waiting**, the *waiting* member attribute
        contains the tag number. Using the *tags* dictionary, which

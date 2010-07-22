@@ -22,38 +22,28 @@ class Client(basic.LineReceiver):
     def classified(self): 
         return self.command("classified?")
 
-    waiting_notif = False
+    def notify(self):
+        return self.command("notif")
 
     def waitNotif(self):
-        def cbWaitNotif(data):
-            self.waitingNotif = False if data == 'OK' else True
-            self.d.callback(data)
-            
-        self.notif_d = defer.Deferred()
-        self.waitingNotif =True
-        return self.notif_d
+        self.d = defer.Deferred()
+        return self.d
 
-    def notify(self, notifCallback):
-        def _cbNotify(data, notifCallback ):
-            notifCallback(data)
-        self.waiting
-        return self.command("notif").addCallback(_cbNotify, notifCallback)
-
-    def stopNotify(self, _):
-        return self.command("stop_notif")
+    def stopNotify(self):
+        self.sendLine("stop_notif")
+        self.d = defer.Deferred()
+        return self.d
 
     # User code, this is actually the main()
     @defer.inlineCallbacks
-    def gotConnection(self):
+    def connectionMade(self):
         print (yield self.random())
-        print (yield self.classified())        
-        print (yield self.notify(gotNotification))
-        gotNotification((yield self.waitNotif()))
-        gotNotification((yield self.waitNotif()))
-        gotNotification((yield self.waitNotif()))
-
-    def gotNotification(notif):
-        print "a notif:", notif
+        print (yield self.classified())
+        print (yield self.notify())
+        print "a notif: '%s'" % (yield self.waitNotif())
+        print "a second notif: '%s'" % (yield self.waitNotif())
+        print (yield self.stopNotify())
+        reactor.stop()
 
 factory = protocol.ClientFactory()
 factory.protocol = Client
