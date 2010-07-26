@@ -12,8 +12,7 @@ class Client(basic.LineReceiver):
                 self.randomAvailable()
             elif command == 'classified' and hasattr(
                 self, 'classifiedAvailable'):
-                self.randomAvailable()
-
+                self.classifiedAvailable()
         else:
             self.d.callback(data)
         
@@ -38,29 +37,26 @@ class Client(basic.LineReceiver):
         assert response == 'OK'
 
     def stopNotify(self):
-        return self.command("stop_notif").addCallback(self.cbNotify)
-
-class HigherLevelClient(Client):
-    @defer.inlineCallbacks
-    def connectionMade(self):
-        yield self.notify()
-
-    @defer.inlineCallbacks
-    def randomAvailable(self): 
-        if not hasattr(self, 'randomReceived'):
-            return
-
-        yield self.stopNotify()
-        self.randomReceived((yield self.random()))
-        yield self.notify()
+        return self.command("notif").addCallback(self.cbNotify)
 
 # End of the official upstream API
 
 # Client script using the API
-class MyClient(HigherLevelClient):
-    def randomReceived(self, random): 
-        print "Here is a random number", random
-        
+class MyClient(Client):
+
+    @defer.inlineCallbacks
+    def connectionMade(self):
+        print (yield self.random())
+        print (yield self.classified())
+
+        yield self.notify()
+
+    @defer.inlineCallbacks
+    def randomAvailable(self): 
+        yield self.stopNotify()
+        print (yield self.random())
+        yield self.notify()
+
 factory = protocol.ClientFactory()
 factory.protocol = MyClient
 reactor.connectTCP("localhost", 6789, factory)

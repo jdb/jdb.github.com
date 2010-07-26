@@ -1,74 +1,75 @@
 
 from twisted.internet import reactor, protocol, defer
-from twisted.protocols import basic
+from twisted.protocols import basic, policies
 
-class Client(basic.LineReceiver):
+class Client(basic.LineReceiver, policies.TimeoutMixin):
     
-    delimiter = '\n'
-    d = None
-
-    # callback executed by Twisted
-    # ----------------------------
+    # Internal
     def lineReceived(self, data):
-        if self.d is None:    # if self.d does not hold a deferred,
-            return            # no command has been sent, bail out:
-                              # just ignore unexpected packets
-        d, self.d = self.d, None
-        d.callback(data)
+        if data.startswith('notif:'):
+            prefix, command = data.split()
+            if command == 'random' and hasattr(self, 'randomAvailable'):
+                self.randomAvailable()
+            elif command == 'classified' and hasattr(
+                self, 'classifiedAvailable'):
+                self.randomAvailable()
+        else:
+            self.d.callback(data)
         
-    # internal method
-    # ---------------
     def command(self, cmd):
-        assert self.d is None
         self.sendLine(cmd)
         self.d = defer.Deferred()
         return self.d
 
+    @defer.inlineCallbacks
+    def timeoutConnection(self):
+        saved = self.d
+        yield self.stopNotify()
+        yield self.notify()
+        self.d = saved
+
     # public API
-    # ----------
-    def plizRandom(self,_): 
-        def gotRandom(data):
-            return int(data)
-        return self.command("random").addCallback(gotRandom)
+    def random(self): 
+        def gotRandom(number):
+            return int(number)
+        return self.command("random?").addCallback(gotRandom)
 
-    # @defer.inlineCallbacks   # a variant using the inlineCallbacks
-    # def plizRandom(self): 
-    #     returnValue(int((yield self.command("random"))))
+    def classified(self): 
+        return self.command("classified?")
 
-    # notification methods
-    # --------------------
-    def notifyMe(self,_): 
-        def _notifyMe(_):
-            self.d = defer.Deferred().addCallback(self.gotNotification)
-            print "server accepted the notification mode"
-            
-        # self.timeout = reactor.callLater(29*60, self.notifyTimeout)
-        print "Yoooooo, about to ask the notification"
-        return self.command("notify").addCallback(_notifyMe)
+    def notify(self):
+        self.setTimeout(29)
+        return self.command("notif").addCallback(self.cbNotify)
 
-    def stopNotify(self, _): 
-        self.d = None
-        return self.command("stop_notify")
+    def cbNotify(self, response):
+        assert response == 'OK'
 
-    def gotNotification(self, notif):
-        print notif
-        reactor.stop()
+    def stopNotify(self):
+        self.setTimeout(None)
+        return self.command("stop_notif").addCallback(self.cbNotify)
+
+class HigherLevelClient(Client):
+    @defer.inlineCallbacks
+    def connectionMade(self):
+        yield self.notify()
 
     @defer.inlineCallbacks
-    def notifyTimeout(self): 
-        yield self.stopNotify(None)
-        yield self.notifyMe(None)
+    def randomAvailable(self): 
+        if not hasattr(self, 'randomReceived'):
+            return
 
-#### End of the API
-#### Beginning of the user code
+        yield self.stopNotify()
+        self.randomReceived((yield self.random()))
+        yield self.notify()
 
-@defer.inlineCallbacks
-def gotConnection(conn):
-    print (yield conn.plizRandom(None))
-    while True:
-        yield conn.notifyMe(None)
+# End of the official upstream API
 
-
-c = protocol.ClientCreator(reactor, Client)
-c.connectTCP("localhost", 6789).addCallback(gotConnection)
+# Client script using the API
+class MyClient(HigherLevelClient):
+    def randomReceived(self, random): 
+        print "Here is a random number", random
+        
+factory = protocol.ClientFactory()
+factory.protocol = MyClient
+reactor.connectTCP("localhost", 6789, factory)
 reactor.run()
