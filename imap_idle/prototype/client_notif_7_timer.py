@@ -5,6 +5,8 @@ from twisted.protocols import basic, policies
 class Client(basic.LineReceiver, policies.TimeoutMixin):
     
     # Internal
+    d = None
+
     def lineReceived(self, data):
         if data.startswith('notif:'):
             prefix, command = data.split()
@@ -12,11 +14,15 @@ class Client(basic.LineReceiver, policies.TimeoutMixin):
                 self.randomAvailable()
             elif command == 'classified' and hasattr(
                 self, 'classifiedAvailable'):
-                self.randomAvailable()
+                self.classifiedAvailable()
         else:
-            self.d.callback(data)
+            if self.d is None:
+                return 
+            d, self.d = self.d, None
+            d.callback(data)
         
     def command(self, cmd):
+        assert self.d is None
         self.sendLine(cmd)
         self.d = defer.Deferred()
         return self.d
@@ -61,24 +67,13 @@ class HigherLevelClient(Client):
         yield self.stopNotify()
         self.randomReceived((yield self.random()))
         yield self.notify()
-
-
 # End of the official upstream API
 
-import pynotify
-pynotify.init( "Latest random numbers" )
 
 # Client script using the API
 class MyClient(HigherLevelClient):
     def randomReceived(self, random): 
-        print random
-        n = pynotify.Notification(
-            "New random number", 
-            str(random), 
-            "dialog-warning")
-        n.set_urgency(pynotify.URGENCY_NORMAL)
-        n.show()
-
+        print "Here is a random number", random
         
 factory = protocol.ClientFactory()
 factory.protocol = MyClient

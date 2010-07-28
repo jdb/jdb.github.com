@@ -4,17 +4,28 @@ from random import randint
 
 class NotifyProtocol(basic.LineReceiver):
     
-    delimiter = '\n'
+    notifMode = False
 
     def lineReceived(self, line):
-        if line == "random":
+        print line
+        if line == "random?":
             self.sendLine(str(randint(0, 1000)))
-        elif line == "notify":
+        if line == "classified?":
+            self.sendLine("Flat to rent in the %se" % str(randint(1, 20)))
+        elif line == "notif":
             self.sendLine("OK")
-        elif line == "stop_notify":
+            self.notifMode = reactor.callLater(randint(1,5),self.notifs)
+        elif line == "stop_notif":
+            self.notifMode.cancel()
+            self.notifMode = False
             self.sendLine("OK")
+
+    def notifs(self):
+        print "send a notif"
+        self.sendLine("notif: random")
+        self.notifMode = reactor.callLater(randint(1,5), self.notifs)
 
 f = protocol.ServerFactory()
 f.protocol = NotifyProtocol
-reactor.listenTCP(56789, f)
+reactor.listenTCP(6789, f)
 reactor.run()
