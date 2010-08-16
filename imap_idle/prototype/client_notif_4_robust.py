@@ -8,8 +8,8 @@ class Client(basic.LineReceiver):
 
     def lineReceived(self, data):
         if self.d is None:
-	    return 
-	d, self.d = self.d, None
+            return 
+        d, self.d = self.d, None
         d.callback(data)
         
     def command(self, cmd):

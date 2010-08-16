@@ -11,7 +11,7 @@ extensions = ['sphinx.ext.autosummary',
               'sphinx.ext.doctest', 
               'sphinx.ext.autodoc']
 
-todo_include_todos=True
+# todo_include_todos=True
 
 intersphinx_mapping = {'http://docs.python.org/dev': '_static/python-inv.txt'}
 

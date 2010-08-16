@@ -4,7 +4,6 @@ from twisted.protocols import basic
 
 class Client(basic.LineReceiver):
     
-    # Internal
     def lineReceived(self, data):
         self.d.callback(data)
         

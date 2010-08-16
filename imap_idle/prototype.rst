@@ -6,13 +6,13 @@ Let's create a simple client and a simple server able to receive
 notifications. It will be a simple client supporting a custom line
 based protocol, just to play with a **server to client notification
 mechanism** in Twisted. While the traditional situation is for a client
-to initiate requests to the server which generates responses,
+to initiate commands to the server which generates responses,
 notifications actually *invert* the role of client and server as the
 server initiates notification that the client wait for. With Twisted's
-abstractions, here is how to implement request/responses between a
+abstractions, here is how to implement command/responses between a
 client and a server:
 
-#. The client protocol instance format the correct request string and
+#. The client protocol instance format the correct command string and
    writes it in the *transport* attribute of the instance's factory.
    
    At the same time, it takes care to store the code processing the
@@ -22,19 +22,19 @@ client and a server:
 
    The callback is stored in a deferred, which is usually a member
    attribute of the protocol instance. The deferred is re-instantiated
-   whenever sending a new request into the transport.
+   whenever sending a new command into the transport.
 
 #. when the response comes back, the Twisted reactor pass it on to the
    *lineReceived* which usually calls the callback chosen by the
    developer with the received data as argument.
 
    The deferred is consumed when the response gets available. The member
-   attribute containing the deferred is empty between request/response
+   attribute containing the deferred is empty between command/response
    exchanges.
 
 Now, let's try this first approach to process notifications:
 
-#. the client sends a request for the server to go into notification
+#. the client sends a command for the server to go into notification
    mode, and sets a callback in a deferred as usual,
 
 #. the server response and accepts, the callback is fired and here is
@@ -45,7 +45,7 @@ Now, let's try this first approach to process notifications:
 
 #. at some point, the server sends a notification. The client receives
    the notification and might decide to expect other notifications, or
-   turn to "normal" mode to actively request the server.
+   turn to "normal" mode to actively command the server.
 
    Back to normal mode, when the notification has been actively
    processed, it is up to the client to reinitiate the notification
@@ -72,7 +72,7 @@ The protocol includes four commands:
 
 - ``stop_notif``: the server stops sending notifications. For
   ``notif`` and ``stop_notif``, the server replies ``OK`` to accept
-  the request.
+  the command.
 
 A notification can either be : ``notif: random`` or ``notif:
 classified`` and is used by the server to notify the client of the
@@ -112,7 +112,7 @@ Iterations
 Our prototype is built in several steps being a bit more useful and a
 bit more complex at each iteration:
 
-#. :ref:`request_reply` 
+#. :ref:`command_response` 
 #. :ref:`notifs`
 #. :ref:`loop`
 #. :ref:`robust`
@@ -121,27 +121,27 @@ bit more complex at each iteration:
 #. :ref:`timer`
 #. :ref:`desktop`
 
-.. _request_reply:
+.. _command_response:
 
-The client can send a request and get a response
+The client can send a command and get a response
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is one of the most basic implementation of a Twisted client:
 
 - the client API is based on the *command* internal method which
-  formats the network request and returns a Deferred, to which the
+  formats the network command and returns a Deferred, to which the
   user can attach the code processing the result,
 
 - *lineReceived* is a command called by Twisted when a a
   response from the server is available. The response gets passed to the
   callback set by the user,
 
-.. literalinclude:: prototype/client_notif_1_request_reply.py
+.. literalinclude:: prototype/client_notif_1_command_response.py
 
 To use this client: in a first console, launch the server which can
 simply be: ``nc -C -l 6789`` (the port is hardcoded in the
 client). Then launch the client in another console. You can then
-reply, by hand to the client requests on the server console. Here is
+reply, by hand to the client commands on the server console. Here is
 an example session from the server::
 
    $ nc -C -l 6789
@@ -215,10 +215,10 @@ At this point, the client crashes on many cases:
    the client,
 
 #. when a crazy client sends multiple messages in a burst without
-   waiting for the response to the first request to be returned first?
+   waiting for the response to the first command to be returned first?
 
 #. when the server sends a notification at the exact same time that
-   the client sends a request to stop the notification?
+   the client sends a command to stop the notification?
 
 Cases 1. and 2. are different from case 3. The latter will happen one
 day even with perfectly correct clients and servers, it is a bug. For
@@ -241,13 +241,13 @@ To make sure the client waits for the completion of a command before
 emitting a subsequent command, the *command()* can be enhanced with
 the following (extreme) measure: the client stops with an exception is
 a command is called when a response is being expected, the user of the
-API is warned! Another solution could be to spool the requests in a
+API is warned! Another solution could be to spool the commands in a
 queue...
 
 .. literalinclude:: prototype/client_notif_4_robust.py
    :lines: 15-19
 
-.. Problem of the day: make a generator of network requests/replies, I
+.. Problem of the day: make a generator of network commands/responses, I
 .. wish I could write: 
 
      .. for notif in conn.notifs('random'):
@@ -267,7 +267,7 @@ The advantages of using asynchronous APIs
 There are two problems with the previous code:
 
 #. using this seemingly blocking code, it is difficult to model a
-   request which results in multiple different events:
+   command which results in multiple different events:
 
    - the **notify** method results in an ``OK`` response and in
      notifications. For each notification, the *waitNotif* method must
@@ -295,7 +295,7 @@ a second approach solves both problems by taking advantage of the
 aynchronous nature of the Twisted framework: the *lineReceived* method
 of the *Client* class dispatches:
 
-- on hand hand, the responses to requests to callbacks registered in
+- on hand hand, the responses to commands to callbacks registered in
   the command callback,
 
 - on the other hand, the notifications are parsed and sent to the
