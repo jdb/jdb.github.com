@@ -14,6 +14,7 @@ Articles
    pty
    concurrent
    dependencies
+   imap_idle
 
 Shorter Python tips
 
@@ -25,3 +26,4 @@ Shorter Python tips
    missing_method
    classmethod
    dup
+   bits
