@@ -2,7 +2,7 @@
 import StringIO
 import array
 
-class Chessboard(object):
+class Sudoku(object):
 
     def __init__(self, data):
 
@@ -26,12 +26,13 @@ class Chessboard(object):
                             self.empty(col,row)
                 self.candidates.append(candidate)
 
-        ### Initialisation of the data structure
+        ### Initialisation of the data structures
         newarray = lambda: array.array('i',[0] * 9)
 
-        self.lines   = newarray()  # lines, columns and 
+        self.lines   = newarray()  # Lines, columns and
         self.columns = newarray()  # square are bitfields of length 9
-        self.squares = newarray()
+        self.squares = newarray()  # When bit 3 is set in lines[5], 3
+                                   # is present in the fifth line.
 
         self.matrix  = [newarray() for i in range(9)]  # a 9x9 matrix of
                                                        # of ints between 
@@ -43,10 +44,11 @@ class Chessboard(object):
                     self.set(i, j, int(data[k]))
                 k+=1
 
-    # roy buchanan, jj kale
+    # Bitfield manipulation:
     get  = lambda self, val, index: val & 1 << index - 1
     one  = lambda self, val, index: val | 1 << index - 1    
     zero = lambda self, val, index: val & (2**9 - 1) & (-1 << index - 1) - 1
+    # roy buchanan, jj kale
 
     def check(self, i, j, val):
         """
@@ -141,8 +143,8 @@ if __name__=="__main__":
           '030208000'
           '405700200')
 
-    chessboard = Chessboard(data)
+    sudoku = Sudoku(data)
 
-    print chessboard
-    for solution in chessboard.solve():
-        print chessboard
+    print sudoku
+    for solution in sudoku.solve():
+        print sudoku
