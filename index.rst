@@ -15,6 +15,7 @@ Articles
    concurrent
    dependencies
    imap_idle
+   sudoku
 
 Shorter Python tips
 

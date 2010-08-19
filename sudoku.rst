@@ -3,62 +3,77 @@
 A sudoku solver
 ===============
 
-
-Here is an algorithm:
-
-#. create a new chessboard
-
-#. add the existing data
-
-#. loop 
-   
-   #. if there are no empty slots, yield the chessboard which is a
-      solution, else
-
-   #. take an empty slot and compute the candidates
-
-   #. for each candidate
-
-      #. put the candidate in the empty slot and yield loop
-
-The chessboard is composed of a matrix of positions of 9x9 as well as
-27 sets (9 line sets, 9 columns sets, 9 squares), and several
-validation fonctions:
-
-- in matrix[i][j] there is either None which means empty or a digit
-  between 1 and 9
-
-- to find the candidates for a given slot i,j, filter the the list 1
-  to 9 on the absence in all  line[i], column[j] and square[10*i+j]
-  
-  It is completely possible to represents each of the 27 sets as
-  bitfield of length(9): if bit number 4 in the bitfield/set line[6]
-  is set to True, then line number 6 already has the number 4 (you
-  can't know the position, the matrix is here for that ). 
+Compared to a sudoku solved by a human, the algorithm presented below
+operates in a different way. A human brain usually scans the sudoku
+board in a seemingly random way and step by step *deduces* the right
+integer in the slots. On the other hand, the automated algorithm below
+start from the top left slot, stack up assumptions: such integer in
+such slot, all the way to the bottom right slot. The algorithm does
+not do deduction but remembers the levels of assumptions which is
+something hard to do for the human brain. 
 
 
+The Sudoku class
+----------------
 
-set third of 8=1000 to 1
+.. autodoc, autoclass
 
-1000 | 1<<2
-1000 | 100
-   1100
+The backtrack algorithm
+-----------------------
 
-1100 is 12
+It is interesting to note that the backtracking algorithm really is
+independant from the sudoku rules. The algorithm requires a vector of
+generators, and blindly triggers them in a standard way, whether the
+generators are solving a sudoku, the eight queens or the knight
+problem. When the algorithm yields, the data structure shared between
+the generators has cooked a solution .
 
->>> 8 | 1<<3
-14
+It goes like this: generator i is called, if it yields, then an
+assumption could be made, the generator i+1 is called, on and on until
+the last generator of the vector is called and does not yield. When a
+generator raises an exception, there is a contradiction and the
+algorithm should backtrack: which means unstack the latest assumption
+and call the previous generator.
 
-set third of 15=1111 to 0
+.. literalinclude:: sudoku.py
+   :pyobject: conjoin
 
--(-1111 | 1<<2 )
--(-1111 | 100  )
--( 0000 | 100  )
-     -0100
-      1011
 
-1011 is 11
+The generators vector
+---------------------
 
-set 8th bit (bit number 7) out of a bitfield of length 9 to zero
+if it raises an exception the as many generators as there are slots on
+the sudoku board. Each generator is specific to a slot, it actually
+*stores* the coordinates of the slot, like a closure. When created the
+generator computes the list of candidate integers for the slot, and
+will pick one candidate
 
-0000000111111111 is  
+Only the function that provides the candidates for a slot
+implements the sudoku rules: the same integer can not twice on the
+same column, on the same line and on the same square. 
+
+.. literalinclude:: sudoku.py
+   :pyobject: Sudoku._make_assumption_generators
+
+
+The bitfield optimization
+-------------------------
+
+The sudoku rules that ... : the data structure which first comes to
+mind should be the set. Here is an optimization for created a set of
+integers from 1 to 9: uses bitfield.
+
+.. literalinclude:: sudoku.py
+   :lines: 55-67
+
+.. literalinclude:: sudoku.py
+   :pyobject: Sudoku.set
+
+.. literalinclude:: sudoku.py
+   :pyobject: Sudoku.free
+
+
+.. It is possible to do without if we keep a vector of
+.. emptiness of the slots and if self.free takes the val to
+.. suppress as an input, and if the conjoin keeps track of the
+.. candidates
