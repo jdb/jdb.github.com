@@ -37,13 +37,9 @@ class Sudoku(object):
             for j in range(9):
                 def assumption_generator(col=i,row=j):
                     if self.matrix[col][row] != 0:
-                        yield self.matrix[col][row]
+                        yield
                     else:
-                        candidates = filter(
-                            lambda val:self.check(col, row, val), 
-                            range(1,10))
-
-                        for candidate in candidates:
+                        for candidate in self.candidates(col, row):
                             self.set(col, row, candidate)
                             yield
                             self.free(col, row)
@@ -52,19 +48,16 @@ class Sudoku(object):
 
     one  = lambda self, val, index: val | 1 << index - 1    
     zero = lambda self, val, index: val & (2**9 - 1) & (-1 << index - 1) - 1
-    get  = lambda self, val, index: val & 1 << index - 1
+    get  = lambda self, val, index: (val >>  index - 1) & 1
     # Bitfield manipulation...
 
-    def check(self, i, j, val):
-        """
-        Checks if val in position i,j complies with the sudoku rules:
-        the value is present neither on the line, on the column and on
-        the square.
-        """
-        return all( not self.get(bf, val) for bf in (
-                self.lines[i], 
-                self.columns[j], 
-                self.squares[(j/3)*3+i/3]))
+    def candidates(self, col, row):
+        return filter(
+            lambda val: all( not self.get(bf, val) for bf in (
+                    self.lines[col], 
+                    self.columns[row], 
+                    self.squares[(row/3)*3+col/3])),
+            range(1,10))
 
     # roy buchanan, jj kale
     def set(self,i,j,val):
