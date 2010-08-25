@@ -3,8 +3,7 @@ from twisted.internet import reactor, protocol, defer
 from twisted.protocols import basic
 
 class Client(basic.LineReceiver):
-    
-    # Internal
+
     d = None
 
     def lineReceived(self, data):
@@ -12,7 +11,7 @@ class Client(basic.LineReceiver):
             prefix, command = data.split()
             if command == 'random' and hasattr(self, 'randomAvailable'):
                 self.randomAvailable()
-            elif command == 'classified' and hasattr(
+            elif command == 'classified' and hasattr( 
                 self, 'classifiedAvailable'):
                 self.classifiedAvailable()
         else:

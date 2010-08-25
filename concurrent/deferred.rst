@@ -14,53 +14,26 @@ name. Something like::
 
    class MyClient(HTTPClient): 
        gotHtml(html):
-           "here my specific client code parsing the html"
+           "here my specific custom client code parsing the html"
 
 Twisted indeed provides similar pattern, but Twisted also introduces a
-powerful abstraction to represent an event and its pending action: the
-:class:`Deferred` is an object which can holds a function. The code
-creating a request is expected to return a result, which is
-unavailable at this point, so instead, it returns a deferred, for
-which the requesting code expect the user to be filled it with a function
-to process the results. The requester object which is usually an
-instance of child class of :class:`Protocol` also keeps a reference to
-this deferred and should call the callback, as soon as it is
-notified by the reactor that the data is received. The Twisted
-documentation calls it a "promise of a result", here_ and there_. 
+powerful abstraction to represent an asynchronous function call: an
+event and its pending action. The :class:`Deferred` is an object which
+can holds a function. The code creating a request is expected to
+return a result, which is unavailable at that point, so instead, it
+returns a deferred, for which the requesting code expect the user to
+be filled it with a function to process the results. The requester
+object which is usually an instance of child class of
+:class:`Protocol` also keeps a reference to this deferred and should
+call the callback, as soon as it is notified by the reactor that the
+data is received. The Twisted documentation calls it a "promise of a
+result", here_ and there_.
 
 .. _here: http://twistedmatrix.com/documents/current/core/howto/defer.html
 
 .. _there: http://twistedmatrix.com/documents/current/core/howto/gendefer.html
 
-.. _Spoiler: 
-
-Here are a hundred Twisted concurrent pending increments on a global
-variable, using deferreds:
-
->>> from time import time as now
->>> from twisted.internet.defer import Deferred
->>>
->>> def request():
-...     return Deferred()
->>>
->>> counter, start = 0, now()
->>> deferreds = [request().addCallback(incr) for i in xrange(100)] 
->>>
->>> # There is a hundred concurrent pending actions at this point ...
->>>
->>> # ... fire NOW !
->>> for d in deferreds:
-...     d.callback(None)
-...
->>> elapsed = now() - start 
->>> 2 * elapsed < no_lock
-True
->>> counter
-100000
-
-This code runs even twice faster as the code running 100 threads
-without locks, and is has the noticeable advantages of being
-correct. Here are three great things about the Deferred:
+Here are three great things about the Deferred:
 
 - avoid the requirement to subclass anything to write a callback. No
   need for the object oriented programming to kick in, good old
@@ -71,7 +44,7 @@ correct. Here are three great things about the Deferred:
   writing of new requesting API. The requester calls the method
   :meth:`callback` on a deferred, when the data is
   received. It is up to the user to store the callable it seems
-  adapted, in the Deferred return by asynchronous function.
+  adapted, in the Deferred returned by asynchronous function.
 
   It is up to the job of the protocol implementer to create a
   deferred, keep it as a attribute of the protocol instance and
@@ -80,8 +53,8 @@ correct. Here are three great things about the Deferred:
 
 - the event represented by the deferred, and the pending action it
   fires can be manipulated: stored, listed, passed around, chained or
-  cancelled. Take a list of events, it is not difficult to set a
-  callback when the first event, or all events have happened.
+  cancelled. Take a list of events for example: it is straightforward to
+  set a callback when the all events, or the first event have happened.
 
 Synchronisation
 ---------------

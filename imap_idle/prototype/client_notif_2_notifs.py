@@ -4,7 +4,6 @@ from twisted.protocols import basic
 
 class Client(basic.LineReceiver):
     
-    # Internal
     def lineReceived(self, data):
         self.d.callback(data)
         
@@ -30,9 +29,7 @@ class Client(basic.LineReceiver):
         return self.d
 
     def stopNotify(self):
-        self.sendLine("stop_notif")
-        self.d = defer.Deferred()
-        return self.d
+        return self.command("stop_notif").addCallback(self.cbNotify)
 
     # User code, this is actually the main()
     @defer.inlineCallbacks
@@ -44,6 +41,7 @@ class Client(basic.LineReceiver):
         print "a second notif: '%s'" % (yield self.waitNotif())
         print (yield self.stopNotify())
         reactor.stop()
+
 
 factory = protocol.ClientFactory()
 factory.protocol = Client

@@ -10,7 +10,8 @@ def getpage_callback(html):
     print fromstring(html).xpath( '/html/head/title' )[0].text
 
 # 30 pending asynchronous network calls, and attachment of the callback
-[ getPage(url).addCallback(getpage_callback) for i in range(30) ]
+for i in range(30):
+    getPage(url).addCallback(getpage_callback)
 
 
 reactor.run()     # open the network connections, and fires the callbacks

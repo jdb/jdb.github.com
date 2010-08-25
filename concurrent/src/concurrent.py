@@ -9,12 +9,12 @@ planets = ["http://planet.debian.net",
            "http://planet.gnome.org",
            "http://gstreamer.freedesktop.org/planet/"]
 
+dig = lambda html,pattern: fromstring(html).xpath(pattern)[0]
+
 @inlineCallbacks
 def first_title(url):
 
-    dig = lambda html,pattern: fromstring(html).xpath(pattern)[0]
-
-    article = dig( (yield getPage(url)), '//h3/a/@href')
+    article = dig( (yield getPage(url)),      '//h3/a/@href')
     title =   dig( (yield getPage(article)), '/html/head/title').text
 
     print "first article on %s : \n%s\n%s\n\n" % (url, article, title)

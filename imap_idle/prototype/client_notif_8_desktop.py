@@ -3,8 +3,7 @@ from twisted.internet import reactor, protocol, defer
 from twisted.protocols import basic, policies
 
 class Client(basic.LineReceiver, policies.TimeoutMixin):
-    
-    # Internal
+
     d = None
 
     def lineReceived(self, data):
@@ -68,6 +67,8 @@ class HigherLevelClient(Client):
         self.randomReceived((yield self.random()))
         yield self.notify()
 # End of the official upstream API
+
+# Client script using the API
 
 import pynotify
 pynotify.init( "Latest random numbers" )

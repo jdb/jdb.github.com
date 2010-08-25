@@ -5,8 +5,8 @@ from urllib2 import urlopen
 url = 'http://twistedmatrix.com' 
 
 def title(url):
-    print parse(urlopen(url)).xpath('/html/head/title')[0].text
+    html = urlopen(url)
+    print parse(html).xpath('/html/head/title')[0].text
 
-# let's download the page 30 times
 for i in range(30): 
     title(url) 

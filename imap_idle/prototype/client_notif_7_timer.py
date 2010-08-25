@@ -3,8 +3,7 @@ from twisted.internet import reactor, protocol, defer
 from twisted.protocols import basic, policies
 
 class Client(basic.LineReceiver, policies.TimeoutMixin):
-    
-    # Internal
+
     d = None
 
     def lineReceived(self, data):

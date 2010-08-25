@@ -29,9 +29,7 @@ class Client(basic.LineReceiver):
         return self.d
 
     def stopNotify(self):
-        self.sendLine("stop_notif")
-        self.d = defer.Deferred()
-        return self.d
+        return self.command("stop_notif").addCallback(self.cbNotify)
 
     # User code, this is actually the main()
     @defer.inlineCallbacks

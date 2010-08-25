@@ -3,8 +3,7 @@ from twisted.internet import reactor, protocol, defer
 from twisted.protocols import basic
 
 class Client(basic.LineReceiver):
-    
-    # Internal
+
     d = None
 
     def lineReceived(self, data):
@@ -13,7 +12,7 @@ class Client(basic.LineReceiver):
             if command == 'random' and hasattr(self, 'randomAvailable'):
                 self.randomAvailable()
             elif command == 'classified' and hasattr(
-                                           self, 'classifiedAvailable'):
+                self, 'classifiedAvailable'):
                 self.classifiedAvailable()
         else:
             if self.d is None:
@@ -43,9 +42,9 @@ class Client(basic.LineReceiver):
         assert response == 'OK'
 
     def stopNotify(self):
-        return self.command("notif").addCallback(self.cbNotify)
-
+        return self.command("stop_notif").addCallback(self.cbNotify)
 # End of the official upstream API
+
 
 # Client script using the API
 class MyClient(Client):

@@ -27,8 +27,8 @@ Also, Twisted has methods for implementing features which are often
 required by sophisticated software projects. For instance, Twisted can
 map a tree of ressources behind URLs, can authentify users against
 flexible backends, or can safely distribute objects on a network
-enabling remote procedure calls and load balancing, etc (Twisted has_
-many_ modules_ available).
+enabling remote procedure calls and load balancing. Twisted has_
+many_ modules_ available.
 
 .. _modules: https://launchpad.net/tx
 
@@ -39,17 +39,8 @@ many_ modules_ available).
 
 This article introduces the problem of network concurrency, and
 compares Twisted's model to the sequential model through the example
-of web pages download. This article points to other articles along the
-lines which they present with more depth the concepts only mentioned
-here. They are listed here for memo:
+of web pages download. 
 
-.. toctree::
-   :maxdepth: 1
-
-   Comparison with threads and sockets <concurrent/preemptive>
-   Twisted's core objects : the reactor and the Protocols <concurrent/reactor>
-   Twisted's abstraction for pending results: the Deferred <concurrent/deferred>
-   concurrent/smartpython
 
 Retrieving the title of a list of blog articles
 ===============================================
@@ -57,8 +48,8 @@ Retrieving the title of a list of blog articles
 Network concurrency is a key concept particularly for performance:
 take a simple problem such as retrieving, for each blog of a list of
 blogs, the title of the web page of the first article of the
-blog. This first problem is actually the core job of a Web scraper or
-a crawler. This means::
+blog. This first problem is actually the core job of a Web a
+crawler. This means::
 
     for each blog url 
         retrieve the list of articles 
@@ -83,7 +74,7 @@ three handy functions :
 And here is the script which brings all this together (and includes a
 design problem):
 
-.. include:: concurrent/sequential.py
+.. include:: concurrent/src/sequential.py
    :literal:
 
 Concurrency vs sequential processing
@@ -101,37 +92,37 @@ obvious that these downloads should be executed in parallel, or,
 *concurrently*, and this is the raison d'être of the Twisted Python
 framework. :doc:`Processes and threads <concurrent/preemptive>` are
 well-known primitives for programming concurrently but Twisted does
-without (not even behind your back), because it is not adapted for
-scalable network programming. This frees the developer from using
+without (not even behind your back), because they are not really
+helpful against network latency. This frees the developer from using
 locks, recursive locks, or mutexes. The solution presented at the end
 of the article does not have more lines of code, does not take much
 longer for *n* downloads than it takes for one download (ie *constant
 complexity*) and is actually three times faster.
 	
+This example is obvious but most network libraries blocks when doing a
+network request. This is the core idea: **Twisted functions which make
+a network call do not block the application while the response is not
+yet available**. Network functions are split: first the request is
+sent, then the *callback* code receives and manipulates the received
+data. **In the period of time between the return of the requesting
+function and the execution of the callback, the** :class:`reactor`,
+**(Twisted's event loop) can run other processing**. This is the basic
+idea which makes non blocking code fast.
+
 A frequently heard reaction at this point is "Python is a slow
 language to start with, **a fast language** is the answer to
 performance". Notwithstanding the many existing techniques to make
 Python code compile and run on multiple processors, the speed of the
-language is not the point. In many case, even a C compiler can not fix
-a bad design. For example, take the download of an install CD, there
-is an insignificant gain in performance in a download client written
-in C over an implementation in Python, because 1. both implementations
-are very likely to end up leaving the network and disk stuff to the
-kernel and most importantly because 2. this job is inherently bound by
-the network bandwidth, not by CPU computations, where C shines. Both
-in C and in Python, in the context of multiple downloads, performance
-depends on concurrent connections. 
+language is not the point. For example, take the download of an
+install CD, there is an insignificant gain in performance in a
+download client written in C over an implementation in Python,
+because 1. both implementations are very likely to end up leaving the
+network and disk stuff to the same kernel IO primitives and most
+importantly because 2. this job is inherently bound by the network
+bandwidth, not by CPU computations, where C shines. Both in C and in
+Python, in the context of multiple downloads, performance depends more on
+working concurrently.
 
-This example is obvious but most network libraries blocks when doing a
-network request. This is the core idea: **Twisted functions which make
-a network call do not block the application while the response is not
-yet available**. Network functions are split: first the request is sent,
-then the *callback* code receives and manipulates the received
-data. **In the period of time between the return of the requesting
-function and the execution of the callback, the** :class:`reactor`,
-**(Twisted's event loop) can run other processing**. This is
-the basic idea which makes asynchronous code faster than blocking
-code.
 
 A concurrent solution
 =====================
@@ -139,7 +130,7 @@ A concurrent solution
 Here is a concurrent solution to the blog problem. It is three times
 faster than the sequential approach:
 
-.. include:: concurrent/concurrent_dontstop.py
+.. include:: concurrent/src/concurrent_dontstop.py
    :literal:
 
 The Twisted equivalent of :func:`urlopen` is called
@@ -149,20 +140,23 @@ are asynchronous as well: even the DNS request turning the url
 argument into an IP address will not block the application and let
 other processing occurs.
 
-*The page* :doc:`concurrent/smartpython` *explains the Python yield
-keyword and decorator syntax in the context of Twisted. The page*
-:doc:`concurrent/reactor` *gives a precise overview of how Twisted
-works at the operating system system.*
+If you want to continue with this serie of articles: 
 
-Want to learn more? The project documentation_ presents many code
-examples and reference articles. Would you use the Twisted framework
-for your core business development? Hmm, difficult question: maybe you
-can check at the development methods_ to get the beginning of an
-answer.
+.. toctree::
+   :maxdepth: 1
+
+   Comparison with the threads and sockets model <concurrent/preemptive>
+   Twisted's core objects : the reactor and the Protocols <concurrent/reactor>
+   Twisted's abstraction for pending results: the Deferred <concurrent/deferred>
+   concurrent/smartpython
+
+The project documentation_ presents many more code examples and reference
+articles.
 
 .. _documentation: http://twistedmatrix.com/documents/current/core/howto/index.html
 
-.. _methods: http://twistedmatrix.com/trac/wiki/ContributingToTwistedLabs
+
+
 
 *15 May 2010*
 

@@ -11,7 +11,6 @@ The *yield* keyword simplifies Twisted code
 
 ... once you understand what this crazy keyword does
 
-
 :keyword:`yield` is a powerful Python keyword that Twisted uses to
 simplify the boilerplate of deferred and callback manipulation.  Also,
 the technical constraint, in Twisted, to manipulate the result of a
@@ -31,7 +30,7 @@ the :func:`title` scraping function::
 Another *traditional* version, where the callback is defined before
 the request. It is easier to read from the bottom::
 
-  def getpage_callback( html )
+  def getpage_callback(html):
       print parse(html).xpath( ... )      
 
   getPage(url).addCallback(getpage_callback)
@@ -51,18 +50,17 @@ with the :func:`inlineCallbacks` decorator, it will return a deferred,
 the :obj:`reactor` will trigger the call to the :func:`send` method on
 the generator, with the requested HTML page as the argument.
 
-But let's proceed step by step: first the *yield* keyword, then the
-decorator syntax.
-
+If the previous paragraph was not cristal clear, let's proceed step by
+step: first the *yield* keyword, then the decorator syntax.
 
 the *yield* Python keyword
 --------------------------
 
-For a function, *yielding* means *volontarily suspending itself*. When
-the function is called again, it is resumed where it was
-suspended. The arguments of *yield* are returned to the caller of the
-function as if the *return* keyword had been used. If you
-already know *yield*, just skip to the next section.
+For a function, *yielding* means *volontarily pausing itself to let
+other processing occur*. When the function is called again, it is
+resumed where it was suspended. The arguments of *yield* are returned
+to the caller of the function as if the *return* keyword had been
+used. If you already know *yield*, just skip to the next section.
 
 The following examples only include code from the core Python
 language, there is no Twistery involved:
@@ -90,12 +88,10 @@ Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 StopIteration
 
-Generators object raises a :*StopIteration* exception to
-signal when it has reached the end of the last code section, and that
-it is no use calling it again.
-
-*yield* is really powerful: for instance, here is a *lazy*
-implementation of the fibonacci suite. 
+Generators object raises a *StopIteration* exception to simply signal
+when it has reached the end of the last code section, and that it is
+no use calling it again. *yield* is really powerful: for instance,
+here is a *lazy* implementation of the fibonacci suite.
 
 >>> def fib(max=1000000):
 ...     a,b=1,0	
@@ -108,13 +104,9 @@ is never completely computed in one shot and never fully stored in
 memory: the next element is computed **on demand**, when the
 *next()* method is called:
 
->>> gen=fib(2)
+>>> gen=fib()
 >>> gen.next(), gen.next()
 (0, 1)
->>> gen.next()
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-StopIteration
 
 Generators are integrated with the *for* keyword which
 dutifully call the *next()* method on and on, until the
@@ -209,5 +201,6 @@ Here is the argument: 5
 10
 
 Now that the *yield* keyword and the decorator syntax are clearer,
-understanding the integration of yield with the Twisted reactor should
-be easier to apprehend.
+understanding the integration of yield with the Twisted reactor,
+presented in the beginning of the article, should be easier to
+apprehend.
