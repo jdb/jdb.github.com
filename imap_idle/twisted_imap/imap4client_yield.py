@@ -1,47 +1,68 @@
+# imap4client_yield.py
 from getpass import getpass
 from os import environ
 from twisted.mail import imap4 
 from twisted.internet import reactor, protocol, defer
 import email
 
-def GetMailboxConnection(user, password, mailbox="inbox"):
 
-    f = protocol.ClientFactory()
-    f.user     = user
-    f.password = password
-    f.mailbox  = mailbox 
+def parse(html, mailFrom):
+    return parse(html).xpath(
+        {'alerteimmo@seloger.com':, '/html/body/head/ad' 
+         'noreply@pap.fr':'/html/body/head/ad'}[from])
 
-    class ConnectInbox(imap4.IMAP4Client):
-        @defer.inlineCallbacks
-        def serverGreeting(self, caps):
+import pynotify
+pynotify.init( "Classified ads" )
 
-            del caps['STARTTLS'] # This is insecure, this is for debug
-                                 # purpose: the password is sent in
-                                 # plain text. Comment it in real use!
+def nice_notification(text):
+    n = pynotify.Notification(
+            "New Classified ads", 
+            text, 
+            "dialog-warning")
+    n.set_urgency(pynotify.URGENCY_NORMAL)
+    n.show()
 
-            yield self.login(self.factory.user, self.factory.password)
-            yield self.examine(self.factory.mailbox)
-            self.factory.deferred.callback(self)
-
-    f.protocol = ConnectInbox
-    reactor.connectTCP('localhost', 143, f)
-    # reactor.connectSSL('localhost', 143, f, ssl.ClientContextFactory())
-
-    f.deferred = defer.Deferred()
-    return f.deferred
+class ConnectInbox(imap4.IMAP4Client):
+    @defer.inlineCallbacks
+    def serverGreeting(self, caps):
+        yield self.login(self.factory.user, self.factory.password)
+        yield self.examine(self.factory.mailbox)
+        self.factory.deferred.callback(self)
         
 @defer.inlineCallbacks
-def getSubjects(conn):
+def getNewClassifiedAds(conn):
+    pattern = 'UNSEEN (OR (FROM alerteimmo@seloger.com) (noreply@pap.fr))'
+    
+    messageSet = imap4.MessageSet()
+    for i in (yield conn.search(pattern)):
+        messageSet.add(i)
 
-    messages = ( yield conn.fetchSpecific('1:*', 
-                                          headerType = 'HEADER.FIELDS',
-                                          headerArgs = ['SUBJECT']))
-    for num, msg in messages.items():
-        print num, msg[0][2]
+    messages = ( yield conn.fetchSpecific(
+            messageSet, 
+            headerType = 'HEADER.FIELDS', 'BODY'
+            headerArgs = ['FROM']))
 
-if __name__=="__main__":
+    yield conn.setFlags(messageSet, 'Seen')
 
-    GetMailboxConnection(environ['USER'], getpass()
-           ).addCallback(getSubjects)
+    for num, ads in messages:
+        nice_notification(parse(ads[0][2], ads[0][3]))
 
-    reactor.run()
+
+def GetMailboxConnection(user, password, mailbox="inbox", host='localhost'):
+
+    f = protocol.ClientFactory()
+    f.protocol = ConnectInbox
+
+    f.user, f.password = user, password
+    f.mailbox, f.host  = mailbox, host
+
+    f.deferred = defer.Deferred()
+    reactor.connectTCP('localhost', 143, f)
+
+    return f.deferred
+
+
+( GetMailboxConnection(environ['USER'], getpass())
+  .addCallback(getNewClassifiedAds) )
+
+reactor.run()

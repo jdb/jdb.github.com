@@ -15,100 +15,75 @@ class IMAP4ClientWithIDLE(imap4.IMAP4Client):
     # TODO: virer le callback pour lapremiere notif
     # regarder les caps
 
-    def idle(self, ):
-        """
-        Request the notifications of new mails
+    self.idling = None
 
-        This command is allowed in the Authenticated and Selected states.
-
-        @rtype C{Deferred} @return: A deferred whose callback is
-        invoked when the notification mode has been correctly set. 
-        """
-
-        self.response_AUTH = self._idleHandler
-
-        cmd  = 'IDLE'
-        args = None
-        resp = ('EXISTS', 'EXPUNGE')
-        return self.sendCommand(Command(cmd, args, wantResponse=resp))
-
-    def notif(self):
-        """Returns a deferred triggered when the next notification arrives. 
-
-        Returns immediately a deferred triggering the buffered
-        notifications if any, or returns a deferred triggered on the
-        reception of the next notification.
-        """
-        if len(self._lastCmd.lines) != 0:
-            lines, self._lastCmd.lines = self._lastCmd.lines[:], None
-            return defer.succeed(lines)
+    def _defaultHandler(self, tag, rest):
+        if tag == '*' or tag == '+':
+            if not self.waiting or self.idling:
+                self._extraInfo([parseNestedParens(rest)])
+            else:
+                cmd = self.tags[self.waiting]
+                if tag == '+':
+                    cmd.continuation(rest)
+                else:
+                    cmd.lines.append(rest)
         else:
-            self._lastCmd.defer = defer.Deferred()
-            return self._lastCmd.defer
+            try:
+                cmd = self.tags[tag]
+            except KeyError:
+                # XXX - This is rude.
+                self.transport.loseConnection()
+                raise IllegalServerResponse(tag + ' ' + rest)
+            else:
+                status, line = rest.split(None, 1)
+                if status == 'OK':
+                    # Give them this last line, too
+                    cmd.finish(rest, self._extraInfo)
+                else:
+                    cmd.defer.errback(IMAP4Exception(line))
+                del self.tags[tag]
+                self.waiting = None
+                self._flushQueue()
+
+
+    def idle(self, ):
+
+        self.idling = True
+
+        resp = ('EXISTS', 'EXPUNGE')
+        noop = lambda _: None
+        cmd = Command('IDLE', None, wantResponse=resp, continuation=noop)
+        return ( self.sendCommand(cmd)
+                 .addCallback(self._cbIdle) )
+
+    def _cbIdle(self, (lines, last)):
+        self.idling = None
 
     def done(self):
-        """
-        Sends the done continuation data and returns a deferred
-        triggered on the completion of the notification mode.
-
-        Makes sure to use the existing tagged command.
-        """
         self.sendLine('DONE')
-        self._lastCmd.defer = defer.Deferred()
         return self._lastCmd.defer
 
-    def _idleHandler(self, tag, rest):
-        """
-        Process line received one by one: buffers the notification if
-        no deferred is in place to process them, else empty the buffer
-        and execute the callback with the buffer content and the
-        latest notification.
 
-        Makes sure to use the existing tagged command.
-        """
-        if tag == '*' or tag == '+':
-            if hasattr(self._lastCmd.defer,'callback'):
-                lines = self._lastCmd.lines + rest
-                self._lastCmd.lines = None
-                self._lastCmd.defer.callback(lines)
-            else:
-                self._lastCmd.lines.append(rest)
-        else:
-            self.response_AUTH = self._defaultHandler
-            self.response_AUTH(tag, rest)
+class ConnectInbox(imap4.IMAP4ClientWithNotif):
+    @defer.inlineCallbacks
+    def serverGreeting(self, caps):
+
+        yield self.login(self.factory.user, self.factory.password)
+        yield self.examine(self.factory.mailbox)
+        self.idle()         
 
 
-def GetMailboxConnection(user=environ['USER'], mailbox="inbox"):
-    """
-    Returns a deferred triggered when an IMAP connection has been set,
-    when the user has been logged in and when the mailbox has been
-    selected.
-
-    The callback is called with the protocole instance on which the
-    IMAP commands are available.
-
-    Similar in spirit to the getPage web client.  Might be a candidate
-    for merging in twisted.mail if there is a will to provide users of
-    the API with higher level functions. 
-    """
+def GetMailboxConnection(user=environ['USER'], mailbox="inbox", host='localhost'):
 
     f = protocol.ClientFactory()
     f.user     = user
     f.password = getpass()
     f.mailbox  = mailbox 
+    f.host     = host
 
-    class ConnectInbox(imap4.IMAP4ClientWithNotif):
-        @defer.inlineCallbacks
-        def serverGreeting(self, caps):
-
-            del caps['STARTTLS'] # This is insecure, this is for debug purpose
-                                 # password is sent in plain text. Comment it!
-            yield self.login(self.factory.user, self.factory.password)
-            yield self.examine(self.factory.mailbox)
-            self.factory.deferred.callback(self)
 
     f.protocol = ConnectInbox
-    reactor.connectTCP('localhost', 143, f)
+    reactor.connectTCP(host, 143, f)
     # reactor.connectSSL('localhost', 143, f, ssl.ClientContextFactory())
 
     f.deferred = defer.Deferred()
@@ -117,37 +92,54 @@ def GetMailboxConnection(user=environ['USER'], mailbox="inbox"):
 
 # User code
 @defer.inlineCallbacks
-def getSubjects(conn):
+def getNewApparts(conn):
 
     messages = ( yield conn.fetchSpecific('1:*', 
                                           headerType = 'HEADER.FIELDS',
                                           headerArgs = ['SUBJECT']))
-    for num, msg in messages.items():
-        print num, msg[0][2]
-        
-    return conn
 
-# Using the notification API.
-@defer.inlineCallbacks
-def receiveNewMails(conn, mailFrom):
+    new_apparts = [ num for num, msg in messages.items() 
+                    if msg[0][2] == 'PAP' or msg[0][2] == 'seloger.com' ]
+
+    msgSet = MessageSet()
+    for num in new_apparts:
+        msgSet.add(num)
+
     
-    while True:
+    messages = ( yield conn.fetchSpecific(msgSet,  
+                                          headerType = 'HEADER.FIELDS',
+                                          headerArgs = ['SUBJECT']))
 
-        yield conn.idle()
-        count, response = (yield conn.notif())
-        while response != 'EXISTS':
-            count, response = (yield conn.notif())
-
-        yield conn.done()
-        getSubjects(conn) # here, the idea is to display them it to the
-                          # desktop notification system
+    # Needs the body and the function that parses PAP and seloger.com
             
-if __name__ == "__main__":
+    notify(messages)
+        
+    def newMessages(self, exists, recent):
+        
+        conn
 
-    # configure a search pattern
+    defer.returnValue(conn)
 
-    GetMailboxConnection(
-        ).addCallback(getSubjects)
-        ).addCallback(receiveNotifs, "alice@alice")
+# J'ai besoin d'une fonction qui prend une connexion en entree et
+# check les unread mail pour voir si il n'y a pas de nouveaux mails de pap et se loger
+# si oui, alors il 
 
-    reactor.run()
+
+# J'ai besoin d'une autre fonction qui prend une connexion en Idle et quand 
+
+
+def getReceivedNewAppartsOnIdle(conn):
+    yield conn.done()
+    yield getNewClassifiedAds(conn)
+    yield conn.idle()
+    
+
+@defer.inlineCallbacks
+def getReceivedNewApparts(conn):
+    pass
+            
+( GetMailboxConnection(newMessages = getReceivedNewAppartsOnIdle)
+  .addCallback(getNewClassifiedAds)
+  .addCallback(lambda conn:conn.idle()))
+
+reactor.run()

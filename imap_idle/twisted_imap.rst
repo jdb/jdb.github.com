@@ -90,31 +90,37 @@ fetched from the client.
 
    Between the *idle* command and the ``done`` data, the client might
    receive notifications in the form of untagged responses, especially
-   the EXPUNGE and NEW responses.
+   the EXPUNGE and NEW responscustomes.
    
 Twisted's extension to support the idle command
 -----------------------------------------------
 
 Here is a :doc:`script <twisted_imap/imap4client_yield>` which shows
 how Twisted supports interacting with an IMAP server: it logs in to a
-account and retrieves the subjects of the mails in the inbox mailbox
-[#]_.
+account with the ``getMailboxConnection`` which returns a deferred, as
+every Twisted function does, and to which is attached the ``getSubjects``
+callback which retrieves the subjects of the mails in the inbox mailbox [#]_.
+
+.. literalinclude:: twisted_imap/imap4client_yield.py
+   :lines: 64-65
 
 The ``getMailboxConnection`` function is the first step of the script,
 it can be called with a destination (server name, port and mailbox
 name), and returns a deferred which fires an *IMAP connection*
-instance, when the connection is ready:
+instance, when the connection is ready. This a higher level function
+built on the standard IMAP client which could possibly added to the
+Twisted module:
 
 .. literalinclude:: twisted_imap/imap4client_yield.py
    :pyobject:  GetMailboxConnection
 
-The user has to attach a callback to this deferred, operating on the
+The user has to attach a custom callback to this deferred, operating on the
 mailbox via the methods of the IMAP connection instance. In this
 script, the ``getSubjects`` function sends the *fetch* command to
 retrieve the subjects of every mail in the inbox:
 
 .. literalinclude:: twisted_imap/imap4client_yield.py
-   :pyobject:  getSubjects
+   :pyobject:  getNewClassifiedAds
 
 The next section explains exactly how Twisted handles the operation of
 sending the *fetch* command, and the subsequent section get into the
@@ -125,19 +131,19 @@ the *IDLE* patch.
 How does a command gets sent?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. a **Command** object is instantiated with: 
+#. the fetch method instantiates a **Command** object with: 
 
-   - the *FETCH* string as the command,
+   - the *FETCH* string as the command attribute,
 
-   - the command arguments,
+   - the command arguments (header or parts specifications, etc),
 
    - the continuation function and its arguments,
 
    - the expected response (is unused at this time)
 
-#. **sendCommand** 
+   and pass it on to the
 
-   - takes this Command instance as an argument, 
+#. **sendCommand** 
 
    - instantiates a deferred stored in the command instance,
 
@@ -150,8 +156,14 @@ How does a command gets sent?
 
      - stores the command in the tags member dictionary,
 
+     - set the *waiting* instance attribute to True to signify that
+       this protocol instance is waiting for an responses,
+
      - call the format method of the *Command* instance to produce the
        correct request string,
+
+     - writes the request string to the transport attribute (to the
+       TCP socket actually),
 
      - returns the deferred
 
@@ -178,7 +190,7 @@ How does a network reply gets processed?
    *UNAUTH*, *AUTH* (the IMAP state *selected* and *logout* are
    comprised into the *AUTH* Twisted state).
 
-#. The **response_AUTH** handler hands the *tag* and *data* to:
+#. The **response_AUTH** handler directly hands the *tag* and *data* to:
 
 #. the **_defaultHandler** has several cases:
 
