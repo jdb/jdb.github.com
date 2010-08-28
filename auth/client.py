@@ -6,10 +6,10 @@ from twisted.internet.protocol import Protocol
 from twisted.internet.ssl import ClientContextFactory
 from twisted.web.iweb import IBodyProducer
 
-class BodyProducer(object):
+class CredsBodyProducer(object):
 
     def __init__(self):
-        self.body = 'Username=RobWilco&Password=BoojLu6Kal'
+        self.body = 'Username=RobWilco&Password=BoojLu6Kal' % password
         self.length = len(self.body)
 
     def startProducing(self, consumer):
@@ -41,17 +41,22 @@ def main():
     agent = Agent(reactor) #, ClientContextFactory())
 
     login_response = ( yield agent.request(
-            'GET', 'https://lwn.net', None, BodyProducer()))
+            'HEAD', 'https://lwn.net/login', 
+            None, 
+            CredsBodyProducer()))
 
-    print login_response.headers
+    cookie = login_response.headers['Set-cookie']
+    print cookie
 
-    # cookie = login_response.headers['Set-cookie']
+    protected_article = ( yield agent.request(
+            'GET', 'http://lwn.net/Articles/402512', 
+            Headers({'Cookie':cookie}),
+            None ))
 
-    # login_response = ( yield agent.request(
-    #         'GET', 'https://lwn.net/login', None, BodyProducer()))
+    print protected_article.status
 
     # p = printer(defer.Deferred())
-    # print response.deliverBody(p)
+    # print protected_article.deliverBody(p)
     # yield p.d
 
     reactor.stop()
