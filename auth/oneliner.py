@@ -7,7 +7,10 @@ from getpass import getpass
 ### Password based
 # pm = request.HTTPPasswordMgr()
 # pm.add_password(None,'https://lwn.net/login',user='RobWilco', passwd=getpass())
+
 # opener = request.build_opener(request.HTTPBasicAuthHandler(pm))   
+# opener = request.build_opener(request.HTTPDigestAuthHandler(pm))
+
 
 
 ### Cookie based
