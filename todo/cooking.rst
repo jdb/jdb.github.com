@@ -158,3 +158,21 @@ Gauffres traditionnels
 1. oeufs entier
 
 1. delayer avec le lait
+
+crepes
+======
+
+- 250 g de farine
+
+- 1 pincee de sel
+
+- 4 oeufs 
+
+- 1/4L de lait
+
+- sucre vanille
+
+- fleur d'oranger
+
+- demi verre de rhum
+
