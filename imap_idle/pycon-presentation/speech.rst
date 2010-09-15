@@ -161,9 +161,12 @@ reconcilie ces deux affirmations qui semble contradictoire. En dehors
 du contexte de Twisted, le reacteur est un modele de conception que
 l'on retrouve dans d'autres projet comme Node.js en javascript, comme
 EventMachine en Ruby. Ce modele de conception a ete nommee ainsi non
-pour faire reference a un moteur comme celui d'un avion mais bien
-parce qu'il reagit aux evenements, dans notre contexte, surtout des
-evenements reseau.
+pour faire reference a un moteur a reaction mais bien parce qu'il
+reagit aux evenements (to react en anglais), dans notre contexte,
+surtout des evenements reseau.
+
+Ce mécanisme est a comparer a n threads ayant initiée puis surveillant
+son propre thread.
 
 Si l'on reprend l'exemple des articles de blogs, l'execution se passe
 de la maniere suivante: la fonction getPage est execute quatre fois,
