@@ -4,19 +4,18 @@ from twisted.protocols import basic
 
 class Client(basic.LineReceiver):
 
-    d = None
-
     def lineReceived(self, data):
-        if self.d is None:
-            return 
-        d, self.d = self.d, None
-        d.callback(data)
-
-
-
+        if data.startswith('notif:'):
+            prefix, command = data.split()
+            if command == 'random' and hasattr(self, 'randomAvailable'):
+                self.randomAvailable()
+            elif command == 'classified' and hasattr(
+                self, 'classifiedAvailable'):
+                self.classifiedAvailable()
+        else:
+            d.callback(data)
         
     def command(self, cmd):
-        assert self.d is None
         self.sendLine(cmd)
         self.d = defer.Deferred()
         return self.d
@@ -31,31 +30,33 @@ class Client(basic.LineReceiver):
         return self.command("classified?")
 
     def notify(self):
-        return self.command("notif")
-
-    def waitNotif(self):
-        self.d = defer.Deferred()
-        return self.d
+        return self.command("notif").addCallback(self.cbNotify)
 
     def stopNotify(self):
         return self.command("stop_notif").addCallback(self.cbNotify)
 
-    # User code, this is actually the main()
+    def cbNotify(self, response):
+        assert response == 'OK'
+# End of the official upstream API
+
+
+# Client script using the API
+class MyClient(Client):
+
     @defer.inlineCallbacks
     def connectionMade(self):
         print (yield self.random())
         print (yield self.classified())
 
-        while True:
-            print (yield self.notify())
-            notif = (yield self.waitNotif())
-            while notif!='notif: random':
-                print "not interested, will wait for the next notification"
-                notif = (yield self.waitNotif())
-            yield self.stopNotify()
-            print (yield self.random())
+        self.notify()
+
+    @defer.inlineCallbacks
+    def randomAvailable(self): 
+        yield self.stopNotify()
+        print (yield self.random())
+        self.notify()
 
 factory = protocol.ClientFactory()
-factory.protocol = Client
+factory.protocol = MyClient
 reactor.connectTCP("localhost", 6789, factory)
 reactor.run()

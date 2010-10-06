@@ -37,12 +37,18 @@ class Client(basic.LineReceiver):
         print (yield self.random())
         print (yield self.classified())
         print (yield self.notify())
-        print "a notif: '%s'" % (yield self.waitNotif())
-        print "a second notif: '%s'" % (yield self.waitNotif())
-        print (yield self.stopNotify())
-        reactor.stop()
 
+        while True:
+            notif = (yield self.waitNotif())
 
+            if notif=='notif: random':
+                yield self.stopNotify()
+                print (yield self.random())
+                yield self.notify()
+
+            else:
+                print "not interested, will wait for the next notif"
+                
 factory = protocol.ClientFactory()
 factory.protocol = Client
 reactor.connectTCP("localhost", 6789, factory)

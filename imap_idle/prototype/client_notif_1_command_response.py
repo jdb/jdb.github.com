@@ -3,16 +3,16 @@ from twisted.internet import reactor, protocol, defer
 from twisted.protocols import basic
 
 class Client(basic.LineReceiver):
-    
+            
     def lineReceived(self, data):
         self.d.callback(data)
-        
+
     def command(self, cmd):
         self.sendLine(cmd)
         self.d = defer.Deferred()
         return self.d
 
-    # public API
+    # Public API
     def random(self): 
         def gotRandom(number):
             return int(number)
@@ -33,3 +33,4 @@ factory = protocol.ClientFactory()
 factory.protocol = Client
 reactor.connectTCP("localhost", 6789, factory)
 reactor.run()
+fadfasf

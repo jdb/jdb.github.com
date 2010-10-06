@@ -12,7 +12,7 @@ class Client(basic.LineReceiver, policies.TimeoutMixin):
             if command == 'random' and hasattr(self, 'randomAvailable'):
                 self.randomAvailable()
             elif command == 'classified' and hasattr(
-                self, 'classifiedAvailable'):
+                                           self, 'classifiedAvailable'):
                 self.classifiedAvailable()
         else:
             if self.d is None:
@@ -53,14 +53,14 @@ class Client(basic.LineReceiver, policies.TimeoutMixin):
         self.setTimeout(None)
         return self.command("stop_notif").addCallback(self.cbNotify)
 
-class HigherLevelClient(Client):
+class NotifClient(Client):
     @defer.inlineCallbacks
     def connectionMade(self):
         yield self.notify()
 
     @defer.inlineCallbacks
     def randomAvailable(self): 
-        if not hasattr(self, 'randomReceived'):
+        if not hasattr(self, "randomReceived"):
             return
 
         yield self.stopNotify()
@@ -73,7 +73,7 @@ class HigherLevelClient(Client):
 import pynotify
 pynotify.init( "Latest random numbers" )
 
-class MyClient(HigherLevelClient):
+class MyClient(NotifClient):
     def randomReceived(self, random): 
         n = pynotify.Notification(
             "New random number", 
