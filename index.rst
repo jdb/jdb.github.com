@@ -16,6 +16,7 @@ Articles
    dependencies
    imap_idle
    sudoku
+   bitfield
 
 Shorter Python tips
 

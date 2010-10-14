@@ -4,17 +4,19 @@ Manipulating bitfields in Python (in most language actually)
 ============================================================
 
 In most language, the smallest variable size available, that is the
-smallest memory chunk that you read or write, is usually one byte
-which is a *small integer*, which is on most architecture, eight
-bits. It is trickier to manipulate bits individually. For example,
-setting bit number 4 to zero leaving the other bits untouched.
+smallest memory chunk that you can manipulate, is usually one byte.
+That is *small integer*, which is on most architecture, eight bits. It
+is not possible to manipulate directly the individual bits. For
+example, setting bit number 4 to zero leaving the other bits
+untouched.
 
 There might be a day when there is a need to tackle a big computation
 problem, or when the application being developed halves the battery
 life of the users's mobile phone. It might even be the case (like
 right now actually) that the system needs to spin the vent of the
 laptop so fast that it wakes up grandma having a nap on the couch
-nearby. Well, this is frustrating, as you see, I am just typing text!
+nearby (for real). Well, this is frustrating, because as you see, I am
+just typing an article!
 
 That day, one might gets interested at how our fathers (and the
 fathers of our fathers) have sent a happy few to the moon with
@@ -26,7 +28,7 @@ flexible, trickier to get right, and not super easy to debug. You
 might end putting twice more time into the development that you
 originally expected. At this point, you might even want to consider
 rewriting the module in C, because by using choosing bitfields over
-dicts, sets and list, you are already half way there !
+dicts, sets and list, you are already halfway there !
 
 The example problem is to implement a set of digits from 1 to 9. A use
 case is for instance a sudoku resolver: before setting a number at
@@ -47,9 +49,10 @@ A bitfield of length nine is a lighter solution that the Python set
 and is adapted to our specific context: when the nth bit is set to 1
 then, n is in the set. Conversely, when the nth bit is zero, n is
 absent from the set. At this point, the set can be implemented with
-just one integer. A Python set object containing 9 digits would be much
-bigger. Also, the operation to set and retrieve the element of a set
-are much more heavywight processor-wise than bit arithmetic.
+just one integer. A Python set object containing 9 digits would be
+much bigger in terms of bytes. Also, the operation to set and retrieve
+the element of a set are much more heavywight processor-wise than bit
+arithmetic.
 
 A difficulty with manipulating binary number in the Python console, is
 that the console thinks you are typing decimal numbers. When you type
@@ -166,3 +169,51 @@ is set to 0.
 
 
  
+>>> class BitFieldSet:
+... 
+...     _num = 0
+... 
+...     get      = lambda s, n: (s.num >> n) & 1		  
+...     set_one  = lambda s, n: 255 & s.num & ((-1 << n) - 1) 
+...     set_zero = lambda s, n: s.num | (1 << n)              
+... 
+...     def add(self, number):
+...         self._num = self.set_one(number-1)
+... 
+...     def remove(self, number):
+...         self.num = self.set_zero(number-1)
+... 
+...     def __repr__(self):
+...         return "set(%s)" % str([i for i in self])
+... 	
+...     def __iter__(self):
+...         for i in range(1,10):
+... 	        if self.get(i)
+...     	    yield i
+
+>>> line = BitFieldSet()
+>>> for i in [1,2,3,4,5]:
+...     line.add(i)
+>>> 4 in line
+True
+>>> 9 in line
+False
+>>> line.add(9)
+>>> 9 in line
+True
+
+It is possible to optimize the set for our context where the element
+to put in the set are special enough to represent the set with a small
+number.
+
+def test(s):
+>>> for i in [1,2,3,4,5]:
+...     line.add(i)
+>>> 4 in line
+True
+>>> 9 in line
+False
+>>> line.add(9)
+>>> 9 in line
+True
+    
