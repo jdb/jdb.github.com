@@ -120,6 +120,7 @@ increments on a global variable, using deferreds:
 
 >>> from twisted.internet.defer import Deferred
 >>>
+>>> counter = 0  
 >>> deferreds = [Deferred().addCallback(incr) for i in xrange(100)] 
 >>>
 >>> # There is a hundred concurrent pending actions at this point ...
@@ -185,7 +186,7 @@ until it can own the ressource.
 
 The scheduling overhead does not occur with Twisted. I assume the
 reader is curious to see the Twisted can have many increment pending
-on a global variable and the associated performance, it is be shown
+on a global variable and the associated performance, it is shown
 as soon as the required Twisted concepts have been presented.
 
 .. note::
