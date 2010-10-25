@@ -14,6 +14,9 @@ Articles
    pty
    concurrent
    dependencies
+   imap_idle
+   sudoku
+   bitfield
 
 Shorter Python tips
 
@@ -25,3 +28,4 @@ Shorter Python tips
    missing_method
    classmethod
    dup
+   bits
