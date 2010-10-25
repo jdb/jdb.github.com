@@ -2,6 +2,7 @@
 import sys, os
 
 sys.path.insert(0, 'dependencies')
+sys.path.insert(0, '.')
 
 extensions = ['sphinx.ext.autosummary',
               'sphinx.ext.todo', 
