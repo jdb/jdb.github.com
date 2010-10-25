@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>a lightly edited version of the original imap4client example &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../../index.html" />
+    <link rel="up" title="Extending Twisted Mail with the IMAP Push" href="../../imap_idle.html" />
+    <link rel="next" title="a robust update of the previous script" href="imap4client_robust.html" />
+    <link rel="prev" title="Extension de Twisted avec le “Push Email”: le making-of" href="../pycon-presentation/speech.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="imap4client_robust.html" title="a robust update of the previous script"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../pycon-presentation/speech.html" title="Extension de Twisted avec le “Push Email”: le making-of"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../../imap_idle.html" accesskey="U">Extending Twisted Mail with the IMAP <em>Push</em></a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../pycon-presentation/speech.html"
+                        title="previous chapter">Extension de Twisted avec le &#8220;Push Email&#8221;: le making-of</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="imap4client_robust.html"
+                        title="next chapter">a robust update of the previous script</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../sources/imap_idle/twisted_imap/imap4client.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="a-lightly-edited-version-of-the-original-imap4client-example">
+<h1>a lightly edited version of the original imap4client example<a class="headerlink" href="#a-lightly-edited-version-of-the-original-imap4client-example" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+
+<span class="c"># Copyright (c) 2001-2009 Twisted Matrix Laboratories.</span>
+<span class="c"># See LICENSE for details.</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Simple IMAP4 client which displays the subjects of all messages in a </span>
+<span class="sd">particular mailbox.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">protocol</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">ssl</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">defer</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">stdio</span>
+<span class="kn">from</span> <span class="nn">twisted.mail</span> <span class="kn">import</span> <span class="n">imap4</span>
+<span class="kn">from</span> <span class="nn">twisted.protocols</span> <span class="kn">import</span> <span class="n">basic</span>
+<span class="kn">from</span> <span class="nn">twisted.python</span> <span class="kn">import</span> <span class="n">util</span>
+<span class="kn">from</span> <span class="nn">twisted.python</span> <span class="kn">import</span> <span class="n">log</span>
+
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+
+<span class="k">class</span> <span class="nc">TrivialPrompter</span><span class="p">(</span><span class="n">basic</span><span class="o">.</span><span class="n">LineReceiver</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">linesep</span> <span class="k">as</span> <span class="n">delimiter</span>
+
+    <span class="n">promptDeferred</span> <span class="o">=</span> <span class="bp">None</span>
+    
+    <span class="k">def</span> <span class="nf">prompt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">promptDeferred</span> <span class="ow">is</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">promptDeferred</span> <span class="o">=</span> <span class="n">defer</span><span class="o">.</span><span class="n">Deferred</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">promptDeferred</span>
+    
+    <span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transport</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">lineReceived</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>    
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">promptDeferred</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">promptDeferred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">promptDeferred</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">SimpleIMAP4Client</span><span class="p">(</span><span class="n">imap4</span><span class="o">.</span><span class="n">IMAP4Client</span><span class="p">):</span>
+    <span class="n">greetDeferred</span> <span class="o">=</span> <span class="bp">None</span>
+    
+    <span class="k">def</span> <span class="nf">serverGreeting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caps</span><span class="p">):</span>
+        <span class="c"># del caps[&#39;STARTTLS&#39;] # This is insecure, this is for debug purpose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serverCapabilities</span> <span class="o">=</span> <span class="n">caps</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">greetDeferred</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">greetDeferred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greetDeferred</span><span class="p">,</span> <span class="bp">None</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">SimpleIMAP4ClientFactory</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">ClientFactory</span><span class="p">):</span>
+    <span class="n">usedUp</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">protocol</span> <span class="o">=</span> <span class="n">SimpleIMAP4Client</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">onConn</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">ClientContextFactory</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">onConn</span> <span class="o">=</span> <span class="n">onConn</span>
+
+    <span class="k">def</span> <span class="nf">buildProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">usedUp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">usedUp</span> <span class="o">=</span> <span class="bp">True</span>
+        
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">factory</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">greetDeferred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">onConn</span>
+
+        <span class="n">auth</span> <span class="o">=</span> <span class="n">imap4</span><span class="o">.</span><span class="n">CramMD5ClientAuthenticator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">registerAuthenticator</span><span class="p">(</span><span class="n">auth</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">p</span>
+    
+    <span class="k">def</span> <span class="nf">clientConnectionFailed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connector</span><span class="p">,</span> <span class="n">reason</span><span class="p">):</span>
+        <span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onConn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">onConn</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">errback</span><span class="p">(</span><span class="n">reason</span><span class="p">)</span>
+
+<span class="c"># Initial callback - invoked after the server sends us its greet message</span>
+<span class="k">def</span> <span class="nf">cbServerGreeting</span><span class="p">(</span><span class="n">proto</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+    <span class="c"># Hook up stdio</span>
+    <span class="n">tp</span> <span class="o">=</span> <span class="n">TrivialPrompter</span><span class="p">()</span>
+    <span class="n">stdio</span><span class="o">.</span><span class="n">StandardIO</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+    
+    <span class="c"># And make it easily accessible</span>
+    <span class="n">proto</span><span class="o">.</span><span class="n">prompt</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">prompt</span>
+    <span class="n">proto</span><span class="o">.</span><span class="n">display</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">display</span>
+
+    <span class="k">return</span> <span class="n">proto</span><span class="o">.</span><span class="n">authenticate</span><span class="p">(</span><span class="n">password</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">cbAuthentication</span><span class="p">,</span> <span class="n">proto</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="n">ebAuthentication</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span>
+        <span class="p">)</span>
+
+<span class="c"># Fallback error-handler.  If anything goes wrong, log it and quit.</span>
+<span class="k">def</span> <span class="nf">ebConnection</span><span class="p">(</span><span class="n">reason</span><span class="p">):</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">startLogging</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">err</span><span class="p">(</span><span class="n">reason</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span>
+    <span class="n">reactor</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+<span class="c"># Callback after authentication has succeeded</span>
+<span class="k">def</span> <span class="nf">cbAuthentication</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">proto</span><span class="p">):</span>
+    <span class="c"># List a bunch of mailboxes</span>
+    <span class="k">return</span> <span class="n">proto</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;*&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">cbMailboxList</span><span class="p">,</span> <span class="n">proto</span>
+        <span class="p">)</span>
+
+<span class="c"># Errback invoked when authentication fails</span>
+<span class="k">def</span> <span class="nf">ebAuthentication</span><span class="p">(</span><span class="n">failure</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+    <span class="c"># If it failed because no SASL mechanisms match, offer the user the choice</span>
+    <span class="c"># of logging in insecurely.</span>
+    <span class="n">failure</span><span class="o">.</span><span class="n">trap</span><span class="p">(</span><span class="n">imap4</span><span class="o">.</span><span class="n">NoSupportedAuthentication</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">proto</span><span class="o">.</span><span class="n">startedTLS</span><span class="p">:</span>
+        <span class="c"># Well, despite the name, this is actually secure if the</span>
+        <span class="c"># connection is TLS...</span>
+        <span class="k">return</span> <span class="n">cbInsecureLogin</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>  
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">proto</span><span class="o">.</span><span class="n">prompt</span><span class="p">(</span>
+            <span class="s">&quot;No secure authentication available. &quot;</span>
+            <span class="s">&quot;Login insecurely? (y/N)&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">cbInsecureLogin</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span>
+            <span class="p">)</span>
+
+<span class="c"># Callback for &quot;insecure-login&quot; prompt</span>
+<span class="k">def</span> <span class="nf">cbInsecureLogin</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;y&quot;</span><span class="p">:</span>
+        <span class="c"># If they said yes, do it.</span>
+        <span class="k">return</span> <span class="n">proto</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">cbAuthentication</span><span class="p">,</span> <span class="n">proto</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">defer</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Login failed for security reasons.&quot;</span><span class="p">))</span>
+
+<span class="c"># Callback invoked when a list of mailboxes has been retrieved</span>
+<span class="k">def</span> <span class="nf">cbMailboxList</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">proto</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">result</span><span class="p">]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">. </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)),</span> <span class="n">result</span><span class="p">)])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">defer</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;No mailboxes exist on server!&quot;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">proto</span><span class="o">.</span><span class="n">prompt</span><span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Which mailbox? [1] &quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">cbPickMailbox</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">result</span>
+        <span class="p">)</span>
+
+<span class="c"># When the user selects a mailbox, &quot;examine&quot; it.</span>
+<span class="k">def</span> <span class="nf">cbPickMailbox</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">mboxes</span><span class="p">):</span>
+    <span class="n">mbox</span> <span class="o">=</span> <span class="n">mboxes</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span> <span class="ow">or</span> <span class="s">&#39;1&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">proto</span><span class="o">.</span><span class="n">examine</span><span class="p">(</span><span class="n">mbox</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">cbExamineMbox</span><span class="p">,</span> <span class="n">proto</span>
+        <span class="p">)</span>
+
+<span class="c"># Callback invoked when examine command completes.</span>
+<span class="k">def</span> <span class="nf">cbExamineMbox</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">proto</span><span class="p">):</span>
+    <span class="c"># Retrieve the subject header of every message on the mailbox.</span>
+    <span class="k">return</span> <span class="n">proto</span><span class="o">.</span><span class="n">fetchSpecific</span><span class="p">(</span><span class="s">&#39;1:*&#39;</span><span class="p">,</span>
+                               <span class="n">headerType</span><span class="o">=</span><span class="s">&#39;HEADER.FIELDS&#39;</span><span class="p">,</span>
+                               <span class="n">headerArgs</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;SUBJECT&#39;</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">cbFetch</span><span class="p">,</span> <span class="n">proto</span>
+        <span class="p">)</span>
+
+<span class="c"># Finally, display headers.</span>
+<span class="k">def</span> <span class="nf">cbFetch</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">proto</span><span class="p">):</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">proto</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">proto</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span><span class="n">reactor</span><span class="o">.</span><span class="n">stop</span><span class="p">())</span>
+
+<span class="n">PORT</span> <span class="o">=</span> <span class="mi">143</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">hostname</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&#39;IMAP4 Server Hostname: &#39;</span><span class="p">)</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&#39;IMAP4 Username: &#39;</span><span class="p">)</span>
+    
+    <span class="n">password</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">getPassword</span><span class="p">(</span><span class="s">&#39;IMAP4 Password: &#39;</span><span class="p">)</span>
+    
+    <span class="n">onConn</span> <span class="o">=</span> <span class="n">defer</span><span class="o">.</span><span class="n">Deferred</span><span class="p">(</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">cbServerGreeting</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="n">ebConnection</span>
+        <span class="p">)</span>
+
+    <span class="n">factory</span> <span class="o">=</span> <span class="n">SimpleIMAP4ClientFactory</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">onConn</span><span class="p">)</span>
+    
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">reactor</span><span class="o">.</span><span class="n">connectTCP</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">PORT</span><span class="p">,</span> <span class="n">factory</span><span class="p">)</span>
+    <span class="n">reactor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="imap4client_robust.html" title="a robust update of the previous script"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../pycon-presentation/speech.html" title="Extension de Twisted avec le “Push Email”: le making-of"
+             >previous</a> |</li>
+        <li><a href="../../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../../imap_idle.html" >Extending Twisted Mail with the IMAP <em>Push</em></a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
+    </div>
+  </body>
+</html>

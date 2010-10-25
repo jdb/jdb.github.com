@@ -1,0 +1,195 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Defeating the autologout server timer &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../../index.html" />
+    <link rel="up" title="A notification client in Twisted" href="../prototype.html" />
+    <link rel="next" title="Robust" href="client_notif_7.html" />
+    <link rel="prev" title="Higher level API" href="client_notif_5.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="client_notif_7.html" title="Robust"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="client_notif_5.html" title="Higher level API"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../../imap_idle.html" >Extending Twisted Mail with the IMAP <em>Push</em></a> &raquo;</li>
+          <li><a href="../prototype.html" accesskey="U">A notification client in Twisted</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="client_notif_5.html"
+                        title="previous chapter">Higher level API</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="client_notif_7.html"
+                        title="next chapter">Robust</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../sources/imap_idle/prototype/client_notif_6.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="defeating-the-autologout-server-timer">
+<h1>Defeating the autologout server timer<a class="headerlink" href="#defeating-the-autologout-server-timer" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">reactor</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">defer</span>
+<span class="kn">from</span> <span class="nn">twisted.protocols</span> <span class="kn">import</span> <span class="n">basic</span>
+
+<span class="k">class</span> <span class="nc">Client</span><span class="p">(</span><span class="n">basic</span><span class="o">.</span><span class="n">LineReceiver</span><span class="p">):</span>
+    
+    <span class="n">delimiter</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># callback executed by Twisted</span>
+    <span class="c"># ----------------------------</span>
+    <span class="k">def</span> <span class="nf">lineReceived</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>    <span class="c"># if self.d does not hold a deferred,</span>
+            <span class="k">return</span>            <span class="c"># no command has been sent, bail out:</span>
+                              <span class="c"># just ignore unexpected packets</span>
+        <span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        
+    <span class="c"># internal method</span>
+    <span class="c"># ---------------</span>
+    <span class="k">def</span> <span class="nf">command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="ow">is</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendLine</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">defer</span><span class="o">.</span><span class="n">Deferred</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span>
+
+    <span class="c"># public API</span>
+    <span class="c"># ----------</span>
+    <span class="k">def</span> <span class="nf">plizRandom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">_</span><span class="p">):</span> 
+        <span class="k">def</span> <span class="nf">gotRandom</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s">&quot;random&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">gotRandom</span><span class="p">)</span>
+
+    <span class="c"># @defer.inlineCallbacks   # a variant using the inlineCallbacks</span>
+    <span class="c"># def plizRandom(self): </span>
+    <span class="c">#     returnValue(int((yield self.command(&quot;random&quot;))))</span>
+
+    <span class="c"># notification methods</span>
+    <span class="c"># --------------------</span>
+    <span class="k">def</span> <span class="nf">notifyMe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">_</span><span class="p">):</span> 
+        <span class="k">def</span> <span class="nf">_notifyMe</span><span class="p">(</span><span class="n">_</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">defer</span><span class="o">.</span><span class="n">Deferred</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gotNotification</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s">&quot;server accepted the notification mode&quot;</span>
+            
+        <span class="c"># self.timeout = reactor.callLater(29*60, self.notifyTimeout)</span>
+        <span class="k">print</span> <span class="s">&quot;Yoooooo, about to ask the notification&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s">&quot;notify&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">_notifyMe</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">stopNotify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s">&quot;stop_notify&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">gotNotification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">notif</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">notif</span>
+        <span class="n">reactor</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+    <span class="nd">@defer.inlineCallbacks</span>
+    <span class="k">def</span> <span class="nf">notifyTimeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopNotify</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">notifyMe</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="c">#### End of the API</span>
+<span class="c">#### Beginning of the user code</span>
+
+<span class="nd">@defer.inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">gotConnection</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+    <span class="k">print</span> <span class="p">(</span><span class="k">yield</span> <span class="n">conn</span><span class="o">.</span><span class="n">plizRandom</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">conn</span><span class="o">.</span><span class="n">notifyMe</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">ClientCreator</span><span class="p">(</span><span class="n">reactor</span><span class="p">,</span> <span class="n">Client</span><span class="p">)</span>
+<span class="n">c</span><span class="o">.</span><span class="n">connectTCP</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">6789</span><span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">gotConnection</span><span class="p">)</span>
+<span class="n">reactor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="client_notif_7.html" title="Robust"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="client_notif_5.html" title="Higher level API"
+             >previous</a> |</li>
+        <li><a href="../../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../../imap_idle.html" >Extending Twisted Mail with the IMAP <em>Push</em></a> &raquo;</li>
+          <li><a href="../prototype.html" >A notification client in Twisted</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
+    </div>
+  </body>
+</html>

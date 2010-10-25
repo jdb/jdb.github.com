@@ -1,0 +1,339 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>A sudoku solver &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
+    <link rel="next" title="Manipulating bitfields in Python (in most language actually)" href="bitfield.html" />
+    <link rel="prev" title="An update of the IMAP client example with notifications" href="imap_idle/twisted_imap/imap4client_notif.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bitfield.html" title="Manipulating bitfields in Python (in most language actually)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="imap_idle/twisted_imap/imap4client_notif.html" title="An update of the IMAP client example with notifications"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">A sudoku solver</a><ul>
+<li><a class="reference internal" href="#module-sudoku">The Sudoku class</a></li>
+<li><a class="reference internal" href="#the-backtrack-algorithm">The backtrack algorithm</a></li>
+<li><a class="reference internal" href="#the-generators-vector">The generators vector</a></li>
+<li><a class="reference internal" href="#the-bitfield-optimization">The bitfield optimization</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="imap_idle/twisted_imap/imap4client_notif.html"
+                        title="previous chapter">An update of the IMAP client example with notifications</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="bitfield.html"
+                        title="next chapter">Manipulating bitfields in Python (in most language actually)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/sudoku.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="a-sudoku-solver">
+<h1>A sudoku solver<a class="headerlink" href="#a-sudoku-solver" title="Permalink to this headline">¶</a></h1>
+<p>This module can read the simple representation of a sudoku found in the
+newspaper such as this one:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">problem</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;006007403&#39;</span>
+           <span class="s">&#39;000906020&#39;</span>
+           <span class="s">&#39;500304006&#39;</span>
+           <span class="s">&#39;740000010&#39;</span>
+           <span class="s">&#39;809000304&#39;</span>
+           <span class="s">&#39;010000057&#39;</span>
+           <span class="s">&#39;200603005&#39;</span>
+           <span class="s">&#39;030208000&#39;</span>
+           <span class="s">&#39;405700200&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Empty slots are represented by a zero. The module can display the
+solution:</p>
+<div class="highlight-python"><pre>9 2 6    5 1 7    4 8 3
+3 7 4    9 8 6    5 2 1
+5 8 1    3 2 4    7 9 6
+
+7 4 3    8 6 5    9 1 2
+8 5 9    1 7 2    3 6 4
+6 1 2    4 3 9    8 5 7
+
+2 9 8    6 4 3    1 7 5
+1 3 7    2 5 8    6 4 9
+4 6 5    7 9 1    2 3 8</pre>
+</div>
+<p>A human brain usually scans the sudoku board and eventually <em>deduces</em>
+the right number in the slots. The algorithm presented below operates
+in a different way. The algorithm below start from the top left slot,
+stack up assumptions for which number in the current slot, all the way
+to the bottom right slot. Eventually backtrack to the previous slot to
+try a different assumption when no number can be set for the current
+slot.</p>
+<p>The algorithm does not do deductions but can remembers a full stack of
+assumptions, which is something hard to do for the human brain.</p>
+<div class="section" id="module-sudoku">
+<span id="the-sudoku-class"></span><h2>The Sudoku class<a class="headerlink" href="#module-sudoku" title="Permalink to this headline">¶</a></h2>
+<p>The <em>sudoku</em> module offers a sudoku solver built around three objects:</p>
+<ol class="arabic">
+<li><p class="first">a Sudoku class with the methods for reading the start state of a
+sudoku board, for representing a board, for setting and freeing a
+slot of the board.</p>
+<p>The most important functions which embed the rules of the sudoku
+games is the <em>candidates(col, row)</em> function: given the current
+state of the sudoku board, returns the list of possible values for
+the slot specified by the arguments.</p>
+</li>
+<li><p class="first">a generic, independent backtrack algorithm function. The argument a
+vector of generator function, the algorithm instantiates the
+generator at the first position of the vector, and pulls the next()
+method:</p>
+<ul class="simple">
+<li>either the method yields, in which case, the algorithm takes the
+second generator function and tries to pull the next() function,</li>
+<li>or the method raises a StopIteration, in which case, the
+algorithm trigger next() on the previous slot</li>
+</ul>
+</li>
+<li></li>
+</ol>
+</div>
+<div class="section" id="the-backtrack-algorithm">
+<h2>The backtrack algorithm<a class="headerlink" href="#the-backtrack-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>It is interesting to note that the backtracking algorithm (the
+algorithm whichis able to stack assumptions) really is independant
+from the sudoku rules. The algorithm requires an argument with a
+precise interface and blindly triggers them, whether the argument is
+manipulating a sudoku, the eight queens or the knight problem. When
+the algorithm yields, the sudoku board or chessboard manipulated by
+the argument has cooked a solution.</p>
+<p>It goes like this: generator i is called, if the generator yields,
+then an assumption could be made, the generator i+1 is called, on and
+on until the last generator of the vector is called. When a generator
+raises an iteration exception, the board is in a dead end, and
+the algorithm should backtrack: which means unstack the latest
+assumption and call again the previous generator.</p>
+<dl class="function">
+<dt id="sudoku.stack_assumptions">
+<tt class="descclassname">sudoku.</tt><tt class="descname">stack_assumptions</tt><big>(</big><em>assumption_generators</em>, <em>i=0</em><big>)</big><a class="headerlink" href="#sudoku.stack_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields whenever every generator of the vector has yielded.</p>
+<p>Each generator in the vector is responsible for a slot of the
+board. Whenever the generator is called, either it yields or it
+raises a StopIteration exception.</p>
+<p>When generator i has yielded, this means that a suitable candidate
+could be found and was set in the board&#8217;s slot and that an
+assumption can be tried on the next slot, with generator i+1.</p>
+<p>When the generator raise a StopIteration, then a dead end was
+met. A wrong assumption must have been taken in the previous
+recursion: the algorithm backtracks and at the previous recursion,
+another assumption can be attempted.</p>
+<p>Whenever the number of recursion is equal to the number of slots
+on the board, this means an assumption could successfully be made
+for each slot: the board is full, a solution has been reached. At
+this point, stack_assumptions yield, so that the board&#8217;s solution
+can be processed (printed, recorded, etc).</p>
+</dd></dl>
+
+</div>
+<div class="section" id="the-generators-vector">
+<h2>The generators vector<a class="headerlink" href="#the-generators-vector" title="Permalink to this headline">¶</a></h2>
+<p>There are as many generator than there are slots on the sudoku board,
+they are stored in a vector. Each generator is specific to a slot, it
+actually <em>stores</em> the coordinates of the slot, like a closure. When
+called for the first time, the generator computes the list of
+candidate numbers for the slot, according to the current sudoku
+board. The list of candidates depends on the state of the board at the
+time the generator is called for the first time.</p>
+<p>Only the function that provides the candidates for a slot implements
+the sudoku rules: no number appears more than once on the same column,
+on the same line and on the same square.</p>
+<dl class="function">
+<dt id="sudoku.make_assumption_generators">
+<tt class="descclassname">sudoku.</tt><tt class="descname">make_assumption_generators</tt><big>(</big><em>sudoku</em><big>)</big><a class="headerlink" href="#sudoku.make_assumption_generators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a vector of candidate generators for use with the backtrack 
+algorithm stack_assumption.</p>
+<p>The sudoku argument must provide two functions: <em>candidates(i,j)</em>,
+and <em>attempt(col, row, candidate)</em> and a member attribute called
+<em>board</em>, which is a 9x9 matrix.</p>
+<p>Once the argument provides the required interface, the vector can
+be created and the stack_assumption function can proceed.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="the-bitfield-optimization">
+<h2>The bitfield optimization<a class="headerlink" href="#the-bitfield-optimization" title="Permalink to this headline">¶</a></h2>
+<p>The sudoku rules that ... : the data structure which first comes to
+mind should be the set. Here is an optimization for created a set of
+numbers from 1 to 9: uses bitfield.</p>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+
+        <span class="c">### Initialisation of the searching algorithm </span>
+        <span class="c"># the termination condition: the empty_slots will come down to zero</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty_slots</span> <span class="o">=</span> <span class="mi">81</span>
+
+        <span class="c">### Initialisation of the data structures</span>
+        <span class="n">newarray</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">9</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span>   <span class="o">=</span> <span class="n">newarray</span><span class="p">()</span>  <span class="c"># Lines, columns and</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">newarray</span><span class="p">()</span>  <span class="c"># square are bitfields of length 9.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">squares</span> <span class="o">=</span> <span class="n">newarray</span><span class="p">()</span>  <span class="c"># When bit 3 is set in lines[5], 3</span>
+                                   <span class="c"># is present in the fifth line.</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">board</span>  <span class="o">=</span> <span class="p">[</span><span class="n">newarray</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">)]</span>
+        <span class="c"># a 9x9 matrix of of ints between 1 and 9. </span>
+
+        <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+                <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the list of possible candidates for the slot specified</span>
+<span class="sd">        by the argument col and row.</span>
+
+<span class="sd">        The sudoku rules states that the candidates are the numbers</span>
+<span class="sd">        which are not present neither in the column col, neither in</span>
+<span class="sd">        the line row, neither in the square identified by col and row.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="nb">all</span><span class="p">(</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">bf</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">bf</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">row</span><span class="p">],</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">squares</span><span class="p">[(</span><span class="n">row</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">col</span><span class="o">/</span><span class="mi">3</span><span class="p">])),</span>
+            <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+    <span class="c"># roy buchanan, jj kale</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stores a new value in position i,j (no checks). Updates the</span>
+<span class="sd">        lines, columns and squares arrays, decrements the number of</span>
+<span class="sd">        empty slots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>   <span class="o">=</span> <span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty_slots</span>  <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>             <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">one</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>             <span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>           <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">one</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>           <span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">squares</span><span class="p">[(</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">one</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">squares</span><span class="p">[(</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">],</span> <span class="n">val</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">free</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Frees the i,j slot. Updates the presence arrays, increments the </span>
+<span class="sd">        number of empty slots.</span>
+
+<span class="sd">        If val is None, then the value to be removed from the lines,</span>
+<span class="sd">        columns and square is taken from the board.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="k">if</span> <span class="n">val</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>    <span class="o">=</span>  <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty_slots</span>   <span class="o">+=</span>  <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>             <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>             <span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>           <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>           <span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">squares</span><span class="p">[(</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">squares</span><span class="p">[(</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">],</span> <span class="n">val</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">attempt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">candidate</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">candidate</span><span class="p">)</span>
+        <span class="k">yield</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">free</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">candidate</span><span class="p">)</span>
+        
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bitfield.html" title="Manipulating bitfields in Python (in most language actually)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="imap_idle/twisted_imap/imap4client_notif.html" title="An update of the IMAP client example with notifications"
+             >previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
+    </div>
+  </body>
+</html>

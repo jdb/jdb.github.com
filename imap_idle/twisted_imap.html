@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The IMAP IDLE command in Twisted &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../index.html" />
+    <link rel="up" title="Extending Twisted Mail with the IMAP Push" href="../imap_idle.html" />
+    <link rel="next" title="Interoperability with Dovecot and Gmail" href="interop.html" />
+    <link rel="prev" title="Integration with the nice deskptop notification system" href="prototype/client_notif_8.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="interop.html" title="Interoperability with Dovecot and Gmail"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="prototype/client_notif_8.html" title="Integration with the nice deskptop notification system"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../imap_idle.html" accesskey="U">Extending Twisted Mail with the IMAP <em>Push</em></a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The IMAP IDLE command in Twisted</a><ul>
+<li><a class="reference internal" href="#imap-presentation-in-four-keys-points">IMAP presentation in four keys points</a></li>
+<li><a class="reference internal" href="#imap-idle">IMAP IDLE</a></li>
+<li><a class="reference internal" href="#twisted-imap-support">Twisted IMAP support</a><ul>
+<li><a class="reference internal" href="#how-does-a-command-gets-sent">How does a command gets sent?</a></li>
+<li><a class="reference internal" href="#how-does-a-network-reply-gets-processed">How does a network reply gets processed?</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-algorithm-of-our-extension-to-twisted">The algorithm of our extension to Twisted</a></li>
+<li><a class="reference internal" href="#patching-the-twisted-mail-imap-module">Patching the twisted.mail.imap module</a></li>
+<li><a class="reference internal" href="#how-can-this-api-be-used">How can this API be used</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="prototype/client_notif_8.html"
+                        title="previous chapter">Integration with the nice deskptop notification system</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="interop.html"
+                        title="next chapter">Interoperability with Dovecot and Gmail</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../sources/imap_idle/twisted_imap.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-imap-idle-command-in-twisted">
+<h1>The IMAP IDLE command in Twisted<a class="headerlink" href="#the-imap-idle-command-in-twisted" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="imap-presentation-in-four-keys-points">
+<h2>IMAP presentation in four keys points<a class="headerlink" href="#imap-presentation-in-four-keys-points" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>commands, response, data, continuation: TODO</li>
+<li>flags: TODO</li>
+<li>tag, sequence numbers, uid: TODO</li>
+<li>fetch and rfc 2822 parts: TODO</li>
+</ul>
+</div>
+<div class="section" id="imap-idle">
+<h2>IMAP IDLE<a class="headerlink" href="#imap-idle" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="twisted-imap-support">
+<h2>Twisted IMAP support<a class="headerlink" href="#twisted-imap-support" title="Permalink to this headline">¶</a></h2>
+<p>Here three examples deriving from the script contained in the official
+documentation, which can connect to an IMAP mailbox and retrieve the
+messages subjects:</p>
+<ul class="simple">
+<li><a class="reference internal" href="twisted_imap/imap4client.html"><em>a lightly edited version of the original imap4client example</em></a>: the original Twisted imap4client
+example,</li>
+<li><a class="reference internal" href="twisted_imap/imap4client_yield.html"><em>a rewrite of the previous script in a simpler way</em></a>: the same script using the
+recent <em>inline callbacks</em>: much more basic and simpler to read (the
+original is 4 times longer).</li>
+<li><a class="reference internal" href="twisted_imap/imap4client_robust.html"><em>a robust update of the previous script</em></a>: on par with the features of
+the original example but still twice shorter. Arguably, inline
+callbacks do help with readability (if you are not stuck with a Python
+version before 2.5)</li>
+</ul>
+<div class="section" id="how-does-a-command-gets-sent">
+<h3>How does a command gets sent?<a class="headerlink" href="#how-does-a-command-gets-sent" title="Permalink to this headline">¶</a></h3>
+<p>Let&#8217;s take the example of the status method</p>
+<ol class="arabic">
+<li><p class="first">a Command object is instantiated with:
+- the <em>STATUS</em> string as the command,
+- the command arguments,
+- the continuation function and its arguments,
+- the expected response (is unused at this time)</p>
+</li>
+<li><p class="first"><em>sendCommand</em>
+- takes this Command instance as an argument,
+- stores a deferred in the cmd,
+- if there is a reply expected for a running command: queue the</p>
+<blockquote>
+<p>command and returns the command deferred,</p>
+</blockquote>
+<ul class="simple">
+<li>else :
+- make a tag number which identifies the request,
+- stores the command in the tags member dictionary
+- send the request and returns the deferred</li>
+</ul>
+</li>
+<li><p class="first">the <em>__cbStatus</em> callback which parses the reply string into a dictionary
+and returns the dictionary is attached to the deferred</p>
+</li>
+</ol>
+</div>
+<div class="section" id="how-does-a-network-reply-gets-processed">
+<h3>How does a network reply gets processed?<a class="headerlink" href="#how-does-a-network-reply-gets-processed" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first"><em>lineReceived</em> is meant to distinguish between the lines and the
+literal strings. The case of literal strings is of minor importance
+in our context: in case of a line, it is split into:
+- the tag which can be either <tt class="docutils literal"><span class="pre">*</span></tt>, <tt class="docutils literal"><span class="pre">+</span></tt> or an IMAP tag</p>
+<blockquote>
+<p>according to the RFC 3501,</p>
+</blockquote>
+<ul class="simple">
+<li>and the rest which comprises of the response name and arguments.</li>
+</ul>
+<p>The tag and rest are passed to:</p>
+</li>
+<li><p class="first">the <em>dispatchCommand</em> which selects a handler for the data based on
+the client state: the state of the Twisted client can be either
+<em>UNAUTH</em>, <em>AUTH</em> (the IMAP state <em>selected</em> and <em>logout</em> are
+comprised into the <em>AUTH</em> Twisted state).</p>
+</li>
+<li><p class="first">The <em>response_AUTH</em> handler, which correspond to our context, hands
+the the <em>tag</em> and <em>data</em> to:</p>
+</li>
+<li><p class="first">the <em>_defaultHandler</em> has several cases:</p>
+<ul>
+<li><p class="first">if the response is <strong>untagged</strong></p>
+<ul class="simple">
+<li>if the client is <strong>not waiting</strong> for an answer the <em>_extraInfo</em></li>
+</ul>
+<p>method is evaluated with the tag and rest as arguments.</p>
+<ul class="simple">
+<li>if the client is <strong>waiting</strong>, the <em>waiting</em> member attribute
+contains the tag number. Using the <em>tags</em> dictionary, which
+stores the tag as keys and the Command object instance as
+value, it is possible to reach to the command name, the
+received line buffer, the continuation function, the deferred
+and its callback. Because the response is untagged, either it
+is :<ul>
+<li>a <strong>continuation</strong> (<tt class="docutils literal"><span class="pre">+</span></tt>), in which case the continuation
+function is called</li>
+<li>a <strong>data</strong> (<tt class="docutils literal"><span class="pre">*</span></tt>), in which case the data is appended to the
+buffer. The buffer is used the tagged response arrives.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p class="first">if the response is <strong>tagged</strong>, it is a final response, the finish
+method, of the command object instance corresponding to the tag,
+is executed.</p>
+</li>
+</ul>
+</li>
+<li><p class="first">the finish method of the command object parses the buffer of lines
+and executes the callback with the received lines.</p>
+</li>
+</ol>
+<p>These steps are not adapted to the processing of notifications as:</p>
+<ul class="simple">
+<li>there is no callback stored for the message from the server
+<em>accepting notifications</em>, the <tt class="docutils literal"><span class="pre">+</span> <span class="pre">idling</span></tt> continuation data requests</li>
+<li>the data is buffered until the reception final tag response which
+triggers the callback of the command while a user callback should be
+executed for each notification,</li>
+</ul>
+</div>
+</div>
+<div class="section" id="the-algorithm-of-our-extension-to-twisted">
+<h2>The algorithm of our extension to Twisted<a class="headerlink" href="#the-algorithm-of-our-extension-to-twisted" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Send the IDLE command, returns a deferred which is triggered, not
+on the final tagged response but on the reception of <tt class="docutils literal"><span class="pre">+</span> <span class="pre">idling</span></tt></li>
+<li>Play with the exists number coming through the notifications
+to guess the sequence numbers and the unique messages ids,</li>
+<li>Do the right fetch on the latest sequence numbers and on the
+pattern</li>
+<li>Add the IDLE command to the authorized set of commands in
+auth STATE,</li>
+<li>Define the untagged responses acceptable for IDLE,</li>
+</ol>
+</div>
+<div class="section" id="patching-the-twisted-mail-imap-module">
+<h2>Patching the twisted.mail.imap module<a class="headerlink" href="#patching-the-twisted-mail-imap-module" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="twisted_imap/imap4client_notif.html"><em>An update of the IMAP client example with notifications</em></a>: an update of
+the simpler version seen above with the notify features</li>
+</ul>
+<p>I am not sure I see the state machines clearly:</p>
+<ul class="simple">
+<li>how does the IMAP4Client ensures the response is one of the
+authorized ones?</li>
+<li>how does the IMAP4Client client makes sure only commands sent are
+authorized ion the current mode (unauth, auth, selected)?</li>
+</ul>
+<p>Here are the events involved in a simple notification server:</p>
+<ol class="arabic simple">
+<li></li>
+</ol>
+</div>
+<div class="section" id="how-can-this-api-be-used">
+<h2>How can this API be used<a class="headerlink" href="#how-can-this-api-be-used" title="Permalink to this headline">¶</a></h2>
+<p>(and yes it is a shame errors are completely ingored)</p>
+<p>The pattern for this task is :</p>
+<ol class="arabic simple">
+<li>A client factory deriving from tw.in.pr.ClientFactory, configured
+with the server name, port, user, account and mailbox</li>
+<li>A protocol deriving from tw.pr.imap4.IMAP4Client which connect to
+the mailbox on serverGreetings and calls the factory deferred</li>
+<li>A higher level function attached to the factory deferred expecting
+a connection to the inbox and fetching the latest emails titles</li>
+</ol>
+<p>The chronological steps are:</p>
+<ol class="arabic simple">
+<li>declare the client factory, the protocol, and in the main: the
+higher level function which receives the list of email in the inbox
+and prints them</li>
+<li>instanciate a factory with the account information</li>
+<li>attach the higher level function to the deferred factory</li>
+<li>attach the factory to the reactor with a TCPConnect and the
+mailserver informations</li>
+<li>run the reactor</li>
+<li>the TCP connection is opened triggering the buildprotocol on the
+factory, returning a protocol instance on which connectionMade is
+called which says &#8220;hi&#8221; to the server</li>
+<li>the server replies with its greetings and capabilities, triggering
+the protocol serverGreetings callback:<ol class="arabic">
+<li>login</li>
+<li>select the correct mailbox</li>
+<li>download the message subjects</li>
+<li>call the factory deferred with the result</li>
+</ol>
+</li>
+<li>the function prints the title and stops the reactor</li>
+</ol>
+<p>02 51 68 50 63
+5, rue des pins
+Fromentine</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="interop.html" title="Interoperability with Dovecot and Gmail"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="prototype/client_notif_8.html" title="Integration with the nice deskptop notification system"
+             >previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../imap_idle.html" >Extending Twisted Mail with the IMAP <em>Push</em></a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
+    </div>
+  </body>
+</html>

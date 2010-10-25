@@ -1,0 +1,241 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>A notification client in Twisted &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="../static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="../index.html" />
+    <link rel="up" title="Extending Twisted Mail with the IMAP Push" href="../imap_idle.html" />
+    <link rel="next" title="the client can send a request get a reply" href="prototype/client_notif_1.html" />
+    <link rel="prev" title="Extending Twisted Mail with the IMAP Push" href="../imap_idle.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="prototype/client_notif_1.html" title="the client can send a request get a reply"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../imap_idle.html" title="Extending Twisted Mail with the IMAP Push"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../imap_idle.html" accesskey="U">Extending Twisted Mail with the IMAP <em>Push</em></a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">A notification client in Twisted</a><ul>
+<li><a class="reference internal" href="#a-simple-line-oriented-protocol">A simple line oriented protocol</a></li>
+<li><a class="reference internal" href="#prototype-iterations">Prototype iterations</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../imap_idle.html"
+                        title="previous chapter">Extending Twisted Mail with the IMAP <em>Push</em></a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="prototype/client_notif_1.html"
+                        title="next chapter">the client can send a request get a reply</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../sources/imap_idle/prototype.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="a-notification-client-in-twisted">
+<h1>A notification client in Twisted<a class="headerlink" href="#a-notification-client-in-twisted" title="Permalink to this headline">¶</a></h1>
+<p>Let&#8217;s create a simple client and a simple server able to receive
+notification. It will be super simple client supporting a custom line
+based protocol, just to play with a <em>server to client notification
+mechanism</em> in Twisted. While the traditional situation is for a client
+to initiate requests to the server which generates responses,
+notifications actually <em>invert</em> the role of client and server as the
+serveur initiates notification that the client wait for and
+acknowledges. With Twisted&#8217;s abstractions, here is how to implement
+exchanges between a client and a server:</p>
+<ol class="arabic">
+<li><p class="first">The client protocol instance format the correct request string in
+the <em>transport</em> attribute of the protocol&#8217;s factory.</p>
+<p>At the same time, it takes care to store the code processing the
+reply where the <em>lineReceived</em> method will be able to find
+it. <em>lineReceived</em> is called automatically by Twisted when the
+reply comes back in the <em>transport</em>.</p>
+<p>The callback is stored in a deferred, which is usually a member
+attribute of the protocol instance. The deferred is re-instantiated
+whenever sending a new request into the transport.</p>
+</li>
+<li><p class="first">when the replies comes back, the reactor pass it on to the
+<em>lineReceived</em> which usually calls the callback chosen by the
+developer with the received data as argument.</p>
+<p>The deferred is suppressed when the reply gets available. The
+member attribute is empty between request/replies exchanges.</p>
+</li>
+</ol>
+<p>Now, to expect notifications:</p>
+<ol class="arabic">
+<li><p class="first">the client sends a request to go into notification mode, and sets
+a callback in a deferred as usual,</p>
+</li>
+<li><p class="first">the server replies and accepts, the callback is fired and here is
+the difference with the traditional client/server exchange: <strong>the
+callback processing the reply re-instantiates a deferred</strong> holding
+a callback meant to process the notification</p>
+</li>
+<li><p class="first">at some point, the server sends a notification. The client receives
+the notification and might decide to expect other notifications, or
+turn to &#8220;normal&#8221; mode to actively request the server.</p>
+<p>Back to normal mode, when the notification has been actively
+processed, it is up to the client to reinitiate the notification
+mode.</p>
+</li>
+</ol>
+<p>The overview shows how to express notifications in Twisted with a
+Protocol class and deferreds. The protocol section briefly presents
+the four commands of the protocol. Later sections shows how the
+prototype evolves toward a complete program.</p>
+<div class="section" id="a-simple-line-oriented-protocol">
+<h2>A simple line oriented protocol<a class="headerlink" href="#a-simple-line-oriented-protocol" title="Permalink to this headline">¶</a></h2>
+<p>The protocol includes three commands:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">random?</span></tt>: the server should reply a random number,</li>
+<li><tt class="docutils literal"><span class="pre">classified?</span></tt>: the server should reply the recent unread
+classified ads,</li>
+<li><tt class="docutils literal"><span class="pre">notif</span></tt>: the server gets ready to send notifications about new
+items being available (see below). This command is not completed
+until the client sends <tt class="docutils literal"><span class="pre">stop_notif</span></tt>.</li>
+</ul>
+<p>A notification can either be : <tt class="docutils literal"><span class="pre">notif:</span> <span class="pre">random</span></tt>, <tt class="docutils literal"><span class="pre">notif:</span>
+<span class="pre">classified</span></tt> or <tt class="docutils literal"><span class="pre">notif:</span> <span class="pre">OK</span></tt> (the latter to acknowledge the
+notification mod). The server notifies the client of the availability
+of random numbers and classified ads. Then, it is up to the client to
+exit the notification mode by sending the data <tt class="docutils literal"><span class="pre">stop_notif</span></tt> to
+complete the <tt class="docutils literal"><span class="pre">notif</span></tt> command and then effectively download the
+random number or the classified ad, whatever the client is interested
+in. The successful completion of a command is indicated by sending the
+<tt class="docutils literal"><span class="pre">OK</span></tt> status response.</p>
+<p>How will the protocol be typically used?</p>
+<p>The client connects, retrieves the most recent items it is interested
+in and request the server to send notifications about newly available
+items. For each notification sent by the server, the client will exit
+the notification mode to explicitly downloads the items. Here is an
+example session, recorded on the server (the line begins with <tt class="docutils literal"><span class="pre">S:</span></tt>
+if sent by the server, <tt class="docutils literal"><span class="pre">C:</span></tt> if sent by the client):</p>
+<div class="highlight-python"><pre>C:  random?
+S:  456902234
+C:  classified?
+S:  Nice appart in the 11e.
+C:  _notif_
+S:  will send notifs
+S:  notif: classified
+C:  OK
+S:  notif: random
+C:  stop_notif
+S:  OK
+C:  random?
+S:  89765234756
+C:  _notif_
+S:  will send notifs
+S:  notif: classified
+C:  OK</pre>
+</div>
+</div>
+<div class="section" id="prototype-iterations">
+<h2>Prototype iterations<a class="headerlink" href="#prototype-iterations" title="Permalink to this headline">¶</a></h2>
+<p>Our prototype is built in several steps being a bit more useful and a
+bit more complex at each iteration:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="prototype/client_notif_1.html">the client can send a request get a reply</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prototype/client_notif_2.html">loop on notifications until killed with a control-C,</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prototype/client_notif_3.html">the client exits the notification mode to download the available random number</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prototype/client_notif_4.html">The user code is contain in one function</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prototype/client_notif_5.html">Higher level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prototype/client_notif_6.html">Defeating the autologout server timer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prototype/client_notif_7.html">Robust</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prototype/client_notif_8.html">Integration with the nice deskptop notification system</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="prototype/client_notif_1.html" title="the client can send a request get a reply"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../imap_idle.html" title="Extending Twisted Mail with the IMAP Push"
+             >previous</a> |</li>
+        <li><a href="../index.html">bits v0.7 documentation</a> &raquo;</li>
+          <li><a href="../imap_idle.html" >Extending Twisted Mail with the IMAP <em>Push</em></a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
+    </div>
+  </body>
+</html>

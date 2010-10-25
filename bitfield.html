@@ -1,0 +1,426 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Manipulating bitfields in Python (in most language actually) &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
+    <link rel="next" title="Counters in python" href="counter.html" />
+    <link rel="prev" title="A sudoku solver" href="sudoku.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="counter.html" title="Counters in python"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sudoku.html" title="A sudoku solver"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Manipulating bitfields in Python (in most language actually)</a><ul>
+<li><a class="reference internal" href="#why-and-when-to-use-a-bitfield">Why and when to use a bitfield</a></li>
+<li><a class="reference internal" href="#module-bitfield">Manipulating a bitfield</a><ul>
+<li><a class="reference internal" href="#how-to-get-the-nth-bit">How to <strong>get</strong> the nth bit?</a></li>
+<li><a class="reference internal" href="#how-to-set-the-nth-bit-of-the-bitfield">How to <strong>set</strong> the nth bit of the bitfield?</a></li>
+<li><a class="reference internal" href="#how-to-unset-the-nth-bit">How to <strong>unset</strong> the nth bit?</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#replacing-the-standard-python-set-object-with-a-bitfield">Replacing the standard Python set object with a bitfield</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sudoku.html"
+                        title="previous chapter">A sudoku solver</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="counter.html"
+                        title="next chapter">Counters in python</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/bitfield.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="manipulating-bitfields-in-python-in-most-language-actually">
+<h1>Manipulating bitfields in Python (in most language actually)<a class="headerlink" href="#manipulating-bitfields-in-python-in-most-language-actually" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="why-and-when-to-use-a-bitfield">
+<h2>Why and when to use a bitfield<a class="headerlink" href="#why-and-when-to-use-a-bitfield" title="Permalink to this headline">¶</a></h2>
+<p>In most language, the smallest memory chunk that you can manipulate,
+that is the smallest variable size available, is a small integer,
+which is, on most architecture, eight bits. It is not possible to
+manipulate directly the individual bits, for example, setting bit
+number 4 to zero leaving the other bits untouched. There is seldom use
+for such a manipulation.</p>
+<p>There might be a day when there is a need to tackle a big computation
+problem, or when the mobile application under development halves the
+battery life of the user&#8217; s phone. It might even be the case
+(like right now actually) that the system needs to spin the vent of
+the laptop so fast that it wakes up my grand mother having a nap on the
+couch nearby (true story, this is inconvenient).</p>
+<p>That day, one might gets interested in how our fathers (and the
+fathers of our fathers) have sent a happy few to the moon with
+processors clocked at a few Hz and with a few bytes on memory stored
+on punch cards. A technique they most certainly used is the
+manipulation of bitfields for some data structures because they are
+light and fast, especially much lighter in terms of memory and
+processing than the Python dictionaries and lists.</p>
+<p>They are not adapted for every use though: they are limited, trickier
+to get right, and not super easy to debug. You might end putting twice
+more time into the development that you originally expected. At this
+point, you might even want to consider rewriting the module in C,
+because by using choosing bitfields over dicts, sets and list, you are
+already halfway there !</p>
+<p>This introductory section is followed by the detailed explanation of
+how to manipulate bitfields. The last section shows a real case use: a
+heavyweight computation will swap the default Python dictionary for a
+dictionary implemented with a bitfield for better performance.</p>
+</div>
+<div class="section" id="module-bitfield">
+<span id="manipulating-a-bitfield"></span><h2>Manipulating a bitfield<a class="headerlink" href="#module-bitfield" title="Permalink to this headline">¶</a></h2>
+<p>A difficulty with manipulating binary numbers in the Python console,
+is that the console does not know the input numbers are to be
+interpreted in binary and the output numbers need to be formattedas
+binary. The <em>bitfield</em> module helps in that once a number is
+declared <em>Binary</em>, its representation in the console is the binary
+representation, not the decimal. Additions and bitshifts uses binary
+arithmetics too:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bitfield</span> <span class="kn">import</span> <span class="n">Binary</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span> <span class="o">=</span> <span class="n">Binary</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="go">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">one</span> <span class="o">&lt;&lt;</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)]</span>
+<span class="go">[1, 10, 100, 1000, 10000]</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Binary</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">10</span>
+<span class="go">(1000, 1001, 1010, 1010)</span>
+</pre></div>
+</div>
+<p>The second operand must be a binary number or an instance of the
+Binary class. It can not be a decimal number, decimal numbers must
+first be converted to a binary number with <em>B()</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">+</span> <span class="mi">5</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="nc">ValueError: invalid literal for int() with base 2</span>: <span class="n-Identifier">&#39;5&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">+</span> <span class="n">B</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">1101</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Binary</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="o">-</span><span class="n">b</span>
+<span class="go">(1010, 110)</span>
+</pre></div>
+</div>
+<p>Logical operators used with a Binary as first operand also return a
+Binary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">|</span><span class="n">b</span><span class="p">,</span>  <span class="n">a</span><span class="o">&amp;</span><span class="n">b</span><span class="p">,</span>  <span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="p">,</span>  <span class="n">a</span><span class="o">|</span><span class="mi">11</span><span class="p">,</span>  <span class="n">a</span><span class="o">^</span><span class="mi">11</span>
+<span class="go">(1010, 0, 1010, 1011, 1011)</span>
+</pre></div>
+</div>
+<p>The methods <em>one()</em>, <em>zero()</em> and <em>get()</em> operates on an individual
+bit of a Binary number, requiring the bit number (counted from zero) as
+the argument:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">(1, 0, 0, 0)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">one</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">(1000, 1010)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">zero</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>The methods of the Binary class often uses the <em>decimal2binary</em>, and
+<em>binary2decimal</em> module functions. <em>B</em> is a shortcut for the
+<em>decimal2binary</em> and is typically used by Binary when representing a
+Binary number :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">B</span><span class="p">(</span><span class="mi">63</span><span class="p">),</span> <span class="n">B</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>
+<span class="go">(&#39;111111&#39;, &#39;1000000&#39;)</span>
+</pre></div>
+</div>
+<p><em>D</em> is a shortcut for <em>binary2decimal</em> and converts a binary number or
+string to a decimal number.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">D</span><span class="p">(</span><span class="mi">111</span><span class="p">),</span> <span class="n">D</span><span class="p">(</span><span class="mi">101010</span><span class="p">)</span>
+<span class="go">(7, 42)</span>
+</pre></div>
+</div>
+<p>The <em>bitfield</em> module provides mostly eye candy, the two functions
+that are pivotal to the manipulation of binary numbers are
+<em>binary2decimal</em> and <em>decimal2binary</em> functions, whose source code is
+presented below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">decimal2binary</span><span class="p">(</span><span class="n">decimal</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Turns a decimal number into the string representation of a</span>
+<span class="sd">    binary&quot;&quot;&quot;</span>
+
+    <span class="c"># two special cases to &quot;get&quot; right: 0 and negative number</span>
+
+    <span class="n">sign</span><span class="p">,</span> <span class="n">decimal</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">decimal</span><span class="p">)</span> <span class="k">if</span> <span class="n">decimal</span><span class="o">&lt;</span><span class="mi">0</span> <span class="k">else</span> <span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">decimal</span><span class="p">)</span> 
+
+    <span class="n">digits</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="n">decimal</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">decimal</span><span class="p">,</span> <span class="n">digit</span> <span class="o">=</span> <span class="n">decimal</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">decimal</span><span class="o">%</span><span class="mi">2</span>
+        <span class="n">digits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">digit</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">sign</span> <span class="o">+</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">digits</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">digits</span> <span class="k">else</span> <span class="s">&#39;0&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">binary2decimal</span><span class="p">(</span><span class="n">binary</span><span class="p">):</span>
+    <span class="s">&quot;Turns a binary number into its decimal representation&quot;</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">binary</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now that it is possible to manipulate the bitfields with some ease,
+the following subsections details the <em>get()</em>, <em>one()</em> and <em>zero()</em>
+functions. The concepts explained here are similar in many programming
+languages such as C/C++, Java, Ruby.</p>
+<div class="section" id="how-to-get-the-nth-bit">
+<h3>How to <strong>get</strong> the nth bit?<a class="headerlink" href="#how-to-get-the-nth-bit" title="Permalink to this headline">¶</a></h3>
+<p>Take the number <em>1111</em> in binary, and we want to know if the third
+bit is set to one or zero (counting from zero, this is bit number
+<strong>2</strong>). Here is the method;:</p>
+<ol class="arabic">
+<li><p class="first">first put the desired bit at the righmost position by shifting the
+binary word on the right as many times as the position of the
+desired bit:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bitfield</span> <span class="kn">import</span> <span class="n">Binary</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Binary</span><span class="p">(</span><span class="mi">1111</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span>
+<span class="go">11</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">then, sets all bits except the rightmost one to zero and returns the
+result which is the desired bit and not more.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">1</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>The third bit of the binary number <em>1111</em> is actually set
+to 1. Here is another example, where bit #2 is requested in number
+<em>10000</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Binary</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span> <span class="o">&amp;</span> <span class="mi">1</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="how-to-set-the-nth-bit-of-the-bitfield">
+<h3>How to <strong>set</strong> the nth bit of the bitfield?<a class="headerlink" href="#how-to-set-the-nth-bit-of-the-bitfield" title="Permalink to this headline">¶</a></h3>
+<p>Take the binary number <em>10000</em> and let&#8217;s make sure the third bit is
+set to 1.</p>
+<ol class="arabic">
+<li><p class="first">First create a number with all the bits equals to zero except for
+the third bit:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">one</span> <span class="o">=</span> <span class="n">Binary</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span>
+<span class="go">100</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">The <em>OR</em> binary operator, available in Python with the <em>|</em>
+character, merges two bitfields: each bit of the resulting bitfield
+is <em>one</em> if either bit from one of the two operand is one, <em>zero</em> else:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="mi">1</span><span class="o">|</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">|</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">|</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">|</span><span class="mi">0</span>
+<span class="go">(1, 1, 1, 0)</span>
+</pre></div>
+</div>
+<p>The number to transformed needs to be <em>ORed</em> with the number
+created in the previous step:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">one</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">|</span> <span class="mi">10000</span>
+<span class="go">10100</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="how-to-unset-the-nth-bit">
+<h3>How to <strong>unset</strong> the nth bit?<a class="headerlink" href="#how-to-unset-the-nth-bit" title="Permalink to this headline">¶</a></h3>
+<p>Say we have the number <em>10100</em> and we want to make sure the third bit is
+set to 0.</p>
+<ol class="arabic">
+<li><p class="first">First create a binary whose third bit is one, all other are zero:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">one</span><span class="o">&lt;&lt;</span><span class="mi">2</span>
+<span class="go">100</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Invert the bits with the ~ operator: for every bits, a one becomes
+zero and a zero becomes a one: 100 becomes 011.</p>
+<p><em>ANDing</em> the input number and the number created at the previous
+step sets the third bit to zero:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="o">~</span><span class="p">(</span><span class="n">one</span><span class="o">&lt;&lt;</span><span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">10100</span>
+<span class="go">10000</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" id="replacing-the-standard-python-set-object-with-a-bitfield">
+<h2>Replacing the standard Python set object with a bitfield<a class="headerlink" href="#replacing-the-standard-python-set-object-with-a-bitfield" title="Permalink to this headline">¶</a></h2>
+<p>The example problem is to implement a set of digits from 1 to 9. This
+is a data structure which has methods for adding, removing and checking
+whether elements are contained in the data structure. Our use case is
+a sudoku resolver: before setting a number at some position on the
+sudoku <em>chessboard</em>, we must check that the number is not somewhere
+else in the line, or the column, or in the square. Each column, line
+or square can be represented by a set, with Python primitives, this
+is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">line</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">4</span> <span class="ow">in</span> <span class="n">line</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">9</span> <span class="ow">in</span> <span class="n">line</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">9</span> <span class="ow">in</span> <span class="n">line</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>A bitfield of length nine is a lighter solution that the Python set
+and is adapted to our specific context: when the nth bit is set to 1
+then, n is in the set. Conversely, when the nth bit is zero, n is
+absent from the set. At this point, the set can be implemented with
+just one integer. A Python set object containing 9 digits would be
+much bigger in terms of bytes. Also, the operation to set and retrieve
+the element of a set are much more heavywight processor-wise than bit
+arithmetic.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">BitFieldSet</span><span class="p">:</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="n">_num</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="n">_get</span>  <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_num</span> <span class="o">&gt;&gt;</span> <span class="n">n</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">1</span>
+<span class="gp">... </span>    <span class="n">_zero</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">_num</span> <span class="o">&amp;</span> <span class="o">~</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">n</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">_one</span>  <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">_num</span> <span class="o">|</span>  <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">n</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_one</span><span class="p">(</span><span class="n">number</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero</span><span class="p">(</span><span class="n">number</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">9</span><span class="p">):</span>
+<span class="gp">... </span>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+<span class="gp">... </span>                <span class="k">yield</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="s">&quot;set(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>Let&#8217;s write a small function which can operate on any data structure
+which has the methods <em>add</em> and <em>remove</em>. The function can not make a
+difference between a regular Python set and a
+<em>BitFieldSet</em>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]:</span>
+<span class="gp">... </span>        <span class="n">line</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="mi">4</span> <span class="ow">in</span> <span class="n">line</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="ow">not</span> <span class="mi">9</span> <span class="ow">in</span> <span class="n">line</span>
+<span class="gp">... </span>    <span class="n">line</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="mi">9</span> <span class="ow">in</span> <span class="n">line</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="nb">set</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="n">BitFieldSet</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Timer</span><span class="p">(</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">test</span><span class="p">(</span><span class="nb">set</span><span class="p">())</span>        <span class="p">)</span><span class="o">.</span><span class="n">timeit</span><span class="p">()</span>     
+<span class="go">2.52030396461</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Timer</span><span class="p">(</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">test</span><span class="p">(</span><span class="n">BitFieldSet</span><span class="p">()))</span><span class="o">.</span><span class="n">timeit</span><span class="p">()</span>     
+<span class="go">28.7120981216</span>
+</pre></div>
+</div>
+<p>The last time the test function was executed, the BitFieldSet version
+would take rougly ten times longer, showing that the data structure
+unadapted for an optimized replacement of the Python set. Let&#8217;s blame
+it on a too naive benchmark for now. The article <a class="reference internal" href="sudoku.html"><em>A sudoku solver</em></a> shows
+the efficient use of bitfields for implementing a sudoku solver.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="counter.html" title="Counters in python"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sudoku.html" title="A sudoku solver"
+             >previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
+    </div>
+  </body>
+</html>

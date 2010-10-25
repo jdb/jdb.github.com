@@ -1,0 +1,144 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Extending Twisted Mail with the IMAP Push &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
+    <link rel="next" title="A notification client in Twisted" href="imap_idle/prototype.html" />
+    <link rel="prev" title="Graph traversal" href="dependencies/bfs_dfs.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="imap_idle/prototype.html" title="A notification client in Twisted"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dependencies/bfs_dfs.html" title="Graph traversal"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dependencies/bfs_dfs.html"
+                        title="previous chapter">Graph traversal</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="imap_idle/prototype.html"
+                        title="next chapter">A notification client in Twisted</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/imap_idle.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="extending-twisted-mail-with-the-imap-push">
+<h1>Extending Twisted Mail with the IMAP <em>Push</em><a class="headerlink" href="#extending-twisted-mail-with-the-imap-push" title="Permalink to this headline">¶</a></h1>
+<p>Twisted supports the IMAP protocol used by millions accross the world
+to remotely access their mailboxes. There is one extension of the IMAP
+protocol which is not handled by the Twisted client library and which is
+supported by the Dovecot, Gmail and many other mail servers: it is the
+IMAP IDLE commands which the client sends to the servers when it wants
+to be notified of the reception of new mails.</p>
+<p>This is the <em>push mail</em> fonctionality which allows for faster
+reception of emails on the client and also better ressource usage by
+avoiding the frequent and needless polling of the mailbox for new
+messages.</p>
+<p>This series illustrates the steps of the developments and integration
+of this extension into the Twisted Project. First, a prototype of the
+notification mechanism between a Twisted client and server is set
+up. Then, this mechanism is <em>ported</em> to IMAP, by extending the Twisted
+IMAP module. Then, this module interoperability is tested with a local
+installation of Dovecot/Postfix on one hand, and on the other hand
+with the Gmail servers, over SSL. Finally, the steps with connecting
+with the Twisted community and methods are presented, so that our code
+get merged upstream.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="imap_idle/prototype.html">A notification client in Twisted</a></li>
+<li class="toctree-l1"><a class="reference internal" href="imap_idle/twisted_imap.html">The IMAP IDLE command in Twisted</a></li>
+<li class="toctree-l1"><a class="reference internal" href="imap_idle/interop.html">Interoperability with Dovecot and Gmail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="imap_idle/twisted_methods.html">Getting the code upstream</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="imap_idle/prototype.html" title="A notification client in Twisted"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dependencies/bfs_dfs.html" title="Graph traversal"
+             >previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
+    </div>
+  </body>
+</html>
