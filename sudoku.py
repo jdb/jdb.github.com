@@ -130,7 +130,7 @@ class Sudoku(object):
         return s.getvalue()
 
 
-def make_assumption_generators(self, sudoku):
+def make_assumption_generators(sudoku):
     """Returns a vector of candidate generators for use with the backtrack 
     algorithm stack_assumption.
 
@@ -141,7 +141,7 @@ def make_assumption_generators(self, sudoku):
     Once the argument provides the required interface, the vector can
     be created and the stack_assumption function can proceed."""
  
-    self.assumptions_generators = []
+    assumptions_generators = []
     for i in range(9):
         for j in range(9):
             def assumption_generator(col=i,row=j):
@@ -149,9 +149,10 @@ def make_assumption_generators(self, sudoku):
                     yield
                 else:
                     for candidate in sudoku.candidates(col, row):
-                        with sudoku.attempt(candidate):
+                        with sudoku.attempt(col, row, candidate):
                             yield
-            self.assumptions_generators.append(assumption_generator)
+            assumptions_generators.append(assumption_generator)
+    return assumptions_generators
 
 
 def stack_assumptions(assumption_generators, i=0):
@@ -206,6 +207,7 @@ if __name__=="__main__":
           '200603005'
           '030208000'
           '405700200')
+
 
     sudoku = Sudoku(data)
     gen_vector = make_assumption_generators(sudoku)

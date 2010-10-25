@@ -3,33 +3,63 @@
 A sudoku solver
 ===============
 
-Compared to a sudoku solved by a human, the algorithm presented below
-operates in a different way. A human brain usually scans the sudoku
-board in a seemingly random way and eventually *deduces* the right
-number in the slots. On the other hand, the automated algorithm below
-start from the top left slot, stack up assumptions, all the way to the
-bottom right slot: take such candidate from the list of possible
-number in such slot, and eventually backtrack the assumptions when a
-dead end is met. The algorithm does not do deduction but remembers the
-levels of assumptions, which is something hard to do for the human
-brain.
+This module can read the simple representation of a sudoku found in the
+newspaper such as this one::
+
+  problem = ('006007403'  
+             '000906020'  
+             '500304006'  
+             '740000010'  
+             '809000304'  
+             '010000057'  
+             '200603005'  
+             '030208000'  
+             '405700200') 
+			  
+Empty slots are represented by a zero. The module can display the
+solution::
+
+   9 2 6    5 1 7    4 8 3 
+   3 7 4    9 8 6    5 2 1 
+   5 8 1    3 2 4    7 9 6 
+
+   7 4 3    8 6 5    9 1 2 
+   8 5 9    1 7 2    3 6 4 
+   6 1 2    4 3 9    8 5 7 
+
+   2 9 8    6 4 3    1 7 5 
+   1 3 7    2 5 8    6 4 9 
+   4 6 5    7 9 1    2 3 8 
+
+
+
+A human brain usually scans the sudoku board and eventually *deduces*
+the right number in the slots. The algorithm presented below operates
+in a different way. The algorithm below start from the top left slot,
+stack up assumptions for which number in the current slot, all the way
+to the bottom right slot. Eventually backtrack to the previous slot to
+try a different assumption when no number can be set for the current
+slot.
+
+The algorithm does not do deductions but can remembers a full stack of
+assumptions, which is something hard to do for the human brain.
 
 
 The Sudoku class
 ----------------
 
-.. autodoc, autoclass
+.. automodule:: sudoku
 
 The backtrack algorithm
 -----------------------
 
 It is interesting to note that the backtracking algorithm (the
 algorithm whichis able to stack assumptions) really is independant
-from the sudoku rules. The algorithm requires a vector of generators,
-and blindly triggers them in a standard way, whether the generators
-are solving a sudoku, the eight queens or the knight problem. When the
-algorithm yields, the data structure: i.e. the sudoku board or
-chessboard manipulated by the generators has cooked a solution.
+from the sudoku rules. The algorithm requires an argument with a
+precise interface and blindly triggers them, whether the argument is
+manipulating a sudoku, the eight queens or the knight problem. When
+the algorithm yields, the sudoku board or chessboard manipulated by
+the argument has cooked a solution.
 
 It goes like this: generator i is called, if the generator yields,
 then an assumption could be made, the generator i+1 is called, on and
@@ -38,8 +68,7 @@ raises an iteration exception, the board is in a dead end, and
 the algorithm should backtrack: which means unstack the latest
 assumption and call again the previous generator.
 
-.. literalinclude:: sudoku.py
-   :pyobject: conjoin
+.. autofunction:: sudoku.stack_assumptions
 
 
 The generators vector
@@ -57,8 +86,7 @@ Only the function that provides the candidates for a slot implements
 the sudoku rules: no number appears more than once on the same column,
 on the same line and on the same square.
 
-.. literalinclude:: sudoku.py
-   :pyobject: Sudoku._make_assumption_generators
+.. autofunction:: sudoku.make_assumption_generators
 
 
 The bitfield optimization
@@ -69,7 +97,10 @@ mind should be the set. Here is an optimization for created a set of
 numbers from 1 to 9: uses bitfield.
 
 .. literalinclude:: sudoku.py
-   :lines: 55-67
+   :pyobject: Sudoku.__init__
+
+.. literalinclude:: sudoku.py
+   :pyobject: Sudoku.candidates
 
 .. literalinclude:: sudoku.py
    :pyobject: Sudoku.set
@@ -77,8 +108,6 @@ numbers from 1 to 9: uses bitfield.
 .. literalinclude:: sudoku.py
    :pyobject: Sudoku.free
 
+.. literalinclude:: sudoku.py
+   :pyobject: Sudoku.attempt
 
-.. It is possible to do without if we keep a vector of
-.. emptiness of the slots and if self.free takes the val to
-.. suppress as an input, and if the conjoin keeps track of the
-.. candidates
