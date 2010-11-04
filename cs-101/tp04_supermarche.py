@@ -15,17 +15,6 @@ from storm.locals import *
 
 dbfile = 'store.db'
 
-def parse_args(): 
-   """Options disponible sur la ligne de commande"""
-   usage = "Permet d'enregistrer, supprimer, lister des articles du supermarche"
-   p = OptionParser( usage=usage )
-
-   p.add_option('-l', '--liste', action='store_true')
-   p.add_option('-s', '--supprime', action='store_true')
-   p.add_option('-e', '--enregistre', metavar='article,prix,marge')
-
-   return p.parse_args()
-
 def initialise_database():
    """Renvoie une connexion sur une base de donnee relationnelle. Cree
    la base au preable si elle n'existe pas"""
@@ -57,7 +46,18 @@ class Article(object):
       return self.prix * ( 100 + self.marge ) / 100
 
 
-(o, args) = parse_command_line()
+def parse_args(): 
+   """Options disponible sur la ligne de commande"""
+   usage = "Permet d'enregistrer, supprimer, lister des articles du supermarche"
+   p = OptionParser( usage=usage )
+
+   p.add_option('-l', '--liste', action='store_true')
+   p.add_option('-s', '--supprime', action='store_true')
+   p.add_option('-e', '--enregistre', metavar='article,prix,marge')
+
+   return p.parse_args()
+
+(o, args) = parse_args()
 # o contient des attributs qui sont les different options, si cet
 # attribut est non vide, alors l'option a ete utilisee sur la ligne de
 # commande et l'attribut contient la valeur passe en parametre
