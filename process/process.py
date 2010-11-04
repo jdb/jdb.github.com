@@ -4,6 +4,11 @@ from threading import Thread
 from time import sleep
 import sys
 
+# bien comprendre:
+#   difference entre thread et process
+#   difference entre C et Python (Exception !)
+#   test driven development
+#   difference entre procedural et event driven
 
 def terminate_on_timeout_if_still_exists(sub, delay=2):
     sleep(delay)
@@ -40,3 +45,4 @@ if __name__=="__main__" and len(sys.argv)>1:
         print "Executing test: %20s \t" % (test,),
         sub_process_with_timeout(sys.argv[1], test)
  
+
