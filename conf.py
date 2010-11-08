@@ -11,7 +11,7 @@ extensions = ['sphinx.ext.autosummary',
               'sphinx.ext.pngmath', 
               'sphinx.ext.doctest', 
               'sphinx.ext.autodoc',
-              # 'sphinx.ext.viewcode',
+              'sphinx.ext.viewcode',
               ]
 
 intersphinx_mapping = {'http://docs.python.org/dev': '_static/python-inv.txt'}
