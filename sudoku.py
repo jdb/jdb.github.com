@@ -110,19 +110,15 @@ class Sudoku(object):
             range(1,10))
         
     def __str__(self):
-        s = ''
-        for i in range(9):
-            if i % 3==0:
-                s += '\n'
-            for j in range(9):
-                if j % 3==0:
-                    s += '   '
-                if self.board[i][j]==0:
-                    s += '  '
-                else:
-                    s += str(self.board[i][j]) + ' '
-            s += '\n'
-        return s
+
+        l = [str(self.board[i][j]) if self.board[i][j] else ' '
+                    for i in range(9) for j in range(9)]
+
+        l = ['\n   '+e if i%9 ==0 else e for (i,e) in enumerate(l)]
+        l = ['  '+e    if i%3 ==0 else e for (i,e) in enumerate(l)]
+        l = ['\n'+e    if i%27==0 else e for (i,e) in enumerate(l)]
+
+        return ' '.join(l)
 
 
 def make_generator_functions(sudoku):
@@ -202,8 +198,8 @@ if __name__=="__main__":
           '405700200')
 
     sudoku = Sudoku(data)
-    print "The problem: \n", sudoku
+    print "The problem: %s\n" % sudoku
 
     for _ in stack_assumptions(make_generator_functions(sudoku)):
-        print "A solution: \n", sudoku
+        print "A solution: %s\n" % sudoku
 
