@@ -111,10 +111,14 @@ class Sudoku(object):
         
     def __str__(self):
 
+        # The matrix is transformed into a list of characters
         l = [str(self.board[i][j]) if self.board[i][j] else ' '
                     for i in range(9) for j in range(9)]
 
+        # New lines every 9 elements
         l = ['\n   '+e if i%9 ==0 else e for (i,e) in enumerate(l)]
+
+        # Squares are materialized by extra spaces and another newline
         l = ['  '+e    if i%3 ==0 else e for (i,e) in enumerate(l)]
         l = ['\n'+e    if i%27==0 else e for (i,e) in enumerate(l)]
 
