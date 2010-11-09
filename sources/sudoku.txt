@@ -3,6 +3,9 @@
 A sudoku solver
 ===============
 
+.. Ever since the ancient gods, humans beings have 
+.. 
+
 This module can read the simple representation of a sudoku found in the
 newspaper and display the solution. Ex::
 
