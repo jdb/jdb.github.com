@@ -23,11 +23,10 @@ class Sudoku(object):
     according to the rules of the sudoku game."""
 
     def __init__(self, problem):
-
-        ### Initialisation of the data structures
         newarray = lambda: array.array('i', [0] * 9)
+        # helper of initialisation of the data structures
 
-        # Private properties
+        # Private bitfield presence sets
         self._lines   = newarray()  # Lines, columns and
         self._columns = newarray()  # square are bitfields of length 9.
         self._squares = newarray()  # When bit 3 is set in lines[5], 3
@@ -51,16 +50,14 @@ class Sudoku(object):
     # Bitfield manipulation
 
     def set(self, i, j, val):
-        """Sets a new digit on the board in position i,j. This simply
-        updates the board without checking if the rules of the sudo
-        game are respected"""
-
-
-        # Not only update the board but also the lines, columns and
-        # squares arrays
+        """Sets a new digit on the board in position i,j. This only
+        updates the board *without* checking first if the rules of the
+        sudo game are respected"""
 
         self.board[i][j]   = val
 
+        # Not only update the board but also the lines, columns and
+        # squares arrays
         self._lines[i]   = self._one(self._lines[i],   val)
         self._columns[j] = self._one(self._columns[j], val)
         self._squares[(j/3)*3+i/3] = self._one(
@@ -69,14 +66,11 @@ class Sudoku(object):
     def free(self, i, j):
         """Frees the slot in position i,j"""
 
-        # Also update the line, column and square presence sets.
-
         # The value to be removed from the lines, columns and square
         # presence set is found in the *board* member attribute
-        val = self.board[i][j]
+        val, self.board[i][j] = self.board[i][j], 0
             
-        self.board[i][j]    =  0
-
+        # Also update the line, column and square presence sets.
         self._lines[i]   = self._zero(self._lines[i],   val)
         self._columns[j] = self._zero(self._columns[j], val)
         self._squares[(j/3)*3+i/3] = self._zero(
@@ -118,8 +112,9 @@ class Sudoku(object):
         l = ['  '+e    if i%3 ==0 else e for (i,e) in enumerate(l)] # 2.
         l = ['\n'+e    if i%27==0 else e for (i,e) in enumerate(l)] # 3.
 
-        # 1. New lines every 9 elements
-        # 2,3. Squares are represented by extra spaces and another newline
+        # 1.   New lines every 9 elements
+        # 2,3. Squares are represented by extra spaces and another
+        #      newline
 
         return ' '.join(l) 
 
