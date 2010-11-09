@@ -110,19 +110,18 @@ class Sudoku(object):
             range(1,10))
         
     def __str__(self):
-
         # The matrix is transformed into a list of characters
         l = [str(self.board[i][j]) if self.board[i][j] else ' '
                     for i in range(9) for j in range(9)]
 
-        # New lines every 9 elements
-        l = ['\n   '+e if i%9 ==0 else e for (i,e) in enumerate(l)]
+        l = ['\n   '+e if i%9 ==0 else e for (i,e) in enumerate(l)] # 1.
+        l = ['  '+e    if i%3 ==0 else e for (i,e) in enumerate(l)] # 2.
+        l = ['\n'+e    if i%27==0 else e for (i,e) in enumerate(l)] # 3.
 
-        # Squares are materialized by extra spaces and another newline
-        l = ['  '+e    if i%3 ==0 else e for (i,e) in enumerate(l)]
-        l = ['\n'+e    if i%27==0 else e for (i,e) in enumerate(l)]
+        # 1. New lines every 9 elements
+        # 2,3. Squares are represented by extra spaces and another newline
 
-        return ' '.join(l)
+        return ' '.join(l) 
 
 
 def make_generator_functions(sudoku):
@@ -142,21 +141,21 @@ def make_generator_functions(sudoku):
     board. The list of candidates depends on the state of the board at
     the time the generator is called for the first time."""
 
-    funcs = []
+    gen_funcs = []
     for i in range(9):
         for j in range(9):
-            def assumption_generator(col=i,row=j):
+            def gen_func(col=i,row=j):
                 if sudoku.board[col][row] != 0:
                     yield
                 else:
                     for candidate in sudoku.candidates(col, row):
                         with sudoku.attempt(col, row, candidate):
                             yield
-            funcs.append(assumption_generator)
-    return funcs
+            gen_funcs.append(gen_func)
+    return gen_funcs
 
 
-def stack_assumptions(assumption_generators, i=0):
+def stack_assumptions(gen_funcs, i=0):
     """The algorithm works by instantiating the generator at the *nth*
     position of the vector, and pulls the *next()* method on it:
 
@@ -172,20 +171,20 @@ def stack_assumptions(assumption_generators, i=0):
     a digit according to the sudoku rules: a solution has been
     reached and the board can be printed.
 
-    When generator  has yielded, this means that a suitable candidate
+    When a generator has yielded, this means that a suitable candidate
     could be found and was set in the board's slot and that an
     assumption can be tried on the next slot, with generator i+1.
 
-    When the generator raise a StopIteration, then a dead end was
-    met. A wrong assumption must have been taken in the previous
-    recursion: the algorithm backtracks and at the previous recursion,
-    another assumption can be attempted."""
+    When a generator raises a StopIteration, then a dead-end was
+    met. A wrong assumption must have been taken somewhere along the
+    stack of the previous recursion: the algorithm backtracks at the
+    previous recursion, another assumption can be attempted."""
 
-    if i >= len(assumption_generators):
+    if i >= len(gen_funcs):
         yield 
     else:
-        for _ in assumption_generators[i]():
-            for _ in stack_assumptions(assumption_generators, i+1):
+        for _ in gen_funcs[i]():
+            for _ in stack_assumptions(gen_funcs, i+1):
                 yield
 
 
@@ -206,4 +205,39 @@ if __name__=="__main__":
 
     for _ in stack_assumptions(make_generator_functions(sudoku)):
         print "A solution: %s\n" % sudoku
+
+
+# A run of this script shows the following result:
+# 
+# .. sourcecode:: bash
+# 
+#    ~$ python sudoku.py
+#    The problem: 
+#      
+#           6       7   4   3   
+#               9   6     2     
+#       5       3   4       6 
+#      
+#       7 4               1     
+#       8   9           3   4   
+#         1               5 7 
+#      
+#       2       6   3       5   
+#         3     2   8           
+#       4   5   7       2    
+#    
+#    A solution: 
+#      
+#       9 2 6   5 1 7   4 8 3   
+#       3 7 4   9 8 6   5 2 1   
+#       5 8 1   3 2 4   7 9 6 
+#      
+#       7 4 3   8 6 5   9 1 2   
+#       8 5 9   1 7 2   3 6 4   
+#       6 1 2   4 3 9   8 5 7 
+#      
+#       2 9 8   6 4 3   1 7 5   
+#       1 3 7   2 5 8   6 4 9   
+#       4 6 5   7 9 1   2 3 8
+
 
