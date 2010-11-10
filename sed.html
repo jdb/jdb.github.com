@@ -1,0 +1,194 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Bash tricks with find and sed &mdash; bits v0.7 documentation</title>
+    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="bits v0.7 documentation" href="index.html" />
+    <link rel="prev" title="Setting and reading individual bit of a integer" href="bits.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bits.html" title="Setting and reading individual bit of a integer"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="bits.html"
+                        title="previous chapter">Setting and reading individual bit of a integer</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/sed.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="bash-tricks-with-find-and-sed">
+<h1>Bash tricks with <em>find</em> and <em>sed</em><a class="headerlink" href="#bash-tricks-with-find-and-sed" title="Permalink to this headline">¶</a></h1>
+<p>This article shows two bash tricks with find and with sed. The problem
+at hand is computing the number of the lines in multiple files in a
+directory. There is no subdirectory but the files have a one line
+header that does not count.</p>
+<ul class="simple">
+<li><strong>sed</strong> will help operating on each files to omit the first lines</li>
+<li><strong>find</strong> will help executing the sed lines on every files of a directory</li>
+</ul>
+<p>Let&#8217;s create a directory examples with two files:</p>
+<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>mkdir papa <span class="o">&amp;&amp;</span> <span class="nb">cd </span>papa
+~<span class="nv">$ </span>cat &gt; tata   <span class="c"># type Ctrl-d to stop editing</span>
+<span class="c"># header</span>
+1
+2
+3
+4
+~<span class="nv">$ </span>cat &gt; titi
+<span class="c"># HEAD</span>
+1
+2
+~<span class="nv">$ </span>cat titi
+<span class="c"># HEAD</span>
+1
+2
+</pre></div>
+</div>
+<p><em>sed</em> operates on lines which are specified with an address range:
+<em>first,last</em>. There is a comma between the first line number and the
+<a href="#id1"><span class="problematic" id="id2">*</span></a>second line number, sed counts from one, not zero. The special
+<a href="#id3"><span class="problematic" id="id4">*</span></a>character <tt class="docutils literal"><span class="pre">$</span></tt> means the number of the last line. So to operate on
+<a href="#id5"><span class="problematic" id="id6">*</span></a>every line except the first one, the address range is <tt class="docutils literal"><span class="pre">'2,$'</span></tt>. Do
+<a href="#id7"><span class="problematic" id="id8">*</span></a>not forget the single quotes to prevent bash from messing with the
+<a href="#id9"><span class="problematic" id="id10">*</span></a><tt class="docutils literal"><span class="pre">$</span></tt>.</p>
+<p>Now that a range is specified, a command must be given: in our case,
+it is the command <tt class="docutils literal"><span class="pre">p</span></tt> (for print).</p>
+<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sed <span class="s1">&#39;2,$p&#39;</span> tata
+<span class="c"># head</span>
+1
+1
+2
+2
+3
+3
+</pre></div>
+</div>
+<p>One more thing, <em>sed</em>&#8216;s default behavior is to print every line it
+meets, regardless of what it does with it. The <tt class="docutils literal"><span class="pre">-n</span></tt> option
+deactivates this (a.k.a <tt class="docutils literal"><span class="pre">--silent</span></tt>).</p>
+<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sed -n <span class="s1">&#39;2,$p&#39;</span> tata
+1
+2
+3
+~<span class="nv">$ </span>sed --silent <span class="s1">&#39;2,$p&#39;</span> tata
+1
+2
+3
+</pre></div>
+</div>
+<p>Fine for <em>sed</em>, now on to <em>find</em>. find can be restricted to <em>find</em>
+only normal files with the option <tt class="docutils literal"><span class="pre">-type</span> <span class="pre">f</span></tt>, so that no directory
+gets shown.</p>
+<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>find
+.
+./tata
+./titi
+
+~<span class="nv">$ </span>find -type f
+./tata
+./titi
+</pre></div>
+</div>
+<p>Now, for each of these file, the previous sed command must be
+EXECuted. <em>find</em> has the <tt class="docutils literal"><span class="pre">-exec</span></tt> option whose value is a command to
+be executed for each file found. The name of the file found is
+inserted in the command with the <tt class="docutils literal"><span class="pre">'{}'</span></tt> pattern. A <tt class="docutils literal"><span class="pre">;</span></tt>
+<em>terminator</em> character must be written at the end of the command so
+that <em>find</em> knows when the command ends. The semi-colon must be
+protected from mangling from bash with either <tt class="docutils literal"><span class="pre">\;</span></tt> or <tt class="docutils literal"><span class="pre">';'</span></tt>.</p>
+<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>find -type f -exec <span class="nb">echo</span> <span class="s2">&quot;I found {}&quot;</span> <span class="se">\;</span>
+I found ./tata
+I found ./titi
+</pre></div>
+</div>
+<p>Now here is the command to count the line of every file in the directory,
+while omitting the header:</p>
+<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>find -type f -exec sed -n <span class="s1">&#39;2,$p&#39;</span> <span class="s1">&#39;{}&#39;</span> <span class="se">\;</span> | wc -l
+9
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bits.html" title="Setting and reading individual bit of a integer"
+             >previous</a> |</li>
+        <li><a href="index.html">bits v0.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Jean Daniel Browne.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.4.
+    </div>
+  </body>
+</html>
