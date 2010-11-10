@@ -4,10 +4,10 @@ The *sudoku* module offers three objects building a sudoku solver:
 
 - the *Sudoku* class modelling the sudoku board and sudoku rules,
 
-- the *stack_assumptions* generic backtracking algorithm. The function takes 
-  a vector of generator function as argument,
+- the *stack_assumptions* generic backtracking algorithm. The function
+  takes a list of generator functions as argument,
 
-- the *make_generator_functions* function returning a vector of
+- the *make_generators* function returning a list of
   generator functions suited for manipulating a sudoku and compatible
   with the bactracking algorithm.
 
@@ -119,8 +119,8 @@ class Sudoku(object):
         return ' '.join(l) 
 
 
-def make_generator_functions(sudoku):
-    """Returns a vector of candidate generators for use with the
+def make_generators(sudoku):
+    """Returns a list of candidate generators for use with the
     backtrack algorithm stack_assumptions.  The sudoku argument must
     provide two functions: *candidates(i,j)*, and *attempt(col, row,
     candidate)* and a member attribute called *board*, which is a 9x9
@@ -136,7 +136,7 @@ def make_generator_functions(sudoku):
     board. The list of candidates depends on the state of the board at
     the time the generator is called for the first time."""
 
-    gen_funcs = []
+    generators = []
     for i in range(9):
         for j in range(9):
             def gen_func(col=i,row=j):
@@ -146,22 +146,27 @@ def make_generator_functions(sudoku):
                     for candidate in sudoku.candidates(col, row):
                         with sudoku.attempt(col, row, candidate):
                             yield
-            gen_funcs.append(gen_func)
-    return gen_funcs
+            generators.append(gen_func)
+    return generators
 
 
-def stack_assumptions(gen_funcs, i=0):
-    """The algorithm works by instantiating the generator at the *nth*
-    position of the vector, and pulls the *next()* method on it:
+def stack_assumptions(generators, i=0):
+    """Takes a list of generators. This list is assumed to manipulate
+    a shared representation of the problem. When this algorithm
+    yields, a solution has been found and can be printed.
+
+    The algorithm works by calling the generator at the *nth* position
+    of the list, and pulls the *next()* method on the iterator
+    returned:
 
     #. either *next()* returns, in which case, the algorithm
        instantiates the generator from position **n+1** of the input
-       vector function and tries to pull its *next()* method,
+       list function and tries to pull its *next()* method,
 
     #. or the method raises a StopIteration, in which case, the
        algorithm trigger *next()* on the generator at position **n-1**,
 
-    This algorithm yields whenever every generator of the vector has
+    This algorithm yields whenever every generator of the list has
     yielded, at this point, every position of the board is filled with
     a digit according to the sudoku rules: a solution has been
     reached and the board can be printed.
@@ -175,11 +180,11 @@ def stack_assumptions(gen_funcs, i=0):
     stack of the previous recursion: the algorithm backtracks at the
     previous recursion, another assumption can be attempted."""
 
-    if i >= len(gen_funcs):
+    if i >= len(generators):
         yield 
     else:
-        for _ in gen_funcs[i]():
-            for _ in stack_assumptions(gen_funcs, i+1):
+        for _ in generators[i]():
+            for _ in stack_assumptions(generators, i+1):
                 yield
 
 
@@ -198,7 +203,7 @@ if __name__=="__main__":
     sudoku = Sudoku(data)
     print "The problem: %s\n" % sudoku
 
-    for _ in stack_assumptions(make_generator_functions(sudoku)):
+    for _ in stack_assumptions(make_generators(sudoku)):
         print "A solution: %s\n" % sudoku
 
 

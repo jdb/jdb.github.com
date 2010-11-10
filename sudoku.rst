@@ -3,8 +3,13 @@
 A sudoku solver
 ===============
 
+.. Intro
 .. Ever since the ancient gods, humans beings have 
-.. 
+.. Problematique
+.. Scope
+.. Plan
+
+.. Conclusion
 
 This module can read the simple representation of a sudoku found in the
 newspaper and display the solution. Ex::
@@ -40,14 +45,15 @@ newspaper and display the solution. Ex::
   
 
 As a human brain usually scans the sudoku board and eventually
-**deduces** the right digit in the slots. The algorithm presented
-below operates in a different way. The algorithm below start from the
-top left slot, **stack up assumptions** for which number in the
-current slot, all the way to the bottom right slot. Eventually
-backtrack to the previous slot to try a different assumption when no
-number can be set for the current slot. The algorithm does not do
-deductions but can easily remember a full stack of assumptions, which
-is something hard to do for the human brain.
+**deduces** the right digit in the slots, the algorithm presented
+below operates in a different way. The algorithm below starts from the
+top left slot and **stacks up assumptions** for which digit is put in
+a slot, for each slot all the way to the bottom right slot. Eventually
+backtrack to a previous slot to try a different assumption when no
+number can be set for the current slot. On the contrary to the human
+brain, the algorithm does not do deductions but can easily remember a
+full stack of assumptions, which is something hard to do for the human
+brain.
 
 
 .. automodule:: sudoku
