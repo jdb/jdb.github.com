@@ -29,3 +29,5 @@ Shorter Python tips
    classmethod
    dup
    bits
+   sed
+

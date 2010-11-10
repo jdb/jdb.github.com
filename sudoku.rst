@@ -3,6 +3,7 @@
 A sudoku solver
 ===============
 
+
 .. todo::
 
    A real intro and conclusion, differents parts, and partial transitions
@@ -23,9 +24,7 @@ A sudoku solver
 .. Plan
 
 .. Conclusion
-   
  
-
 .. todo::
 
    - Mention the bitfield optimizations,
@@ -35,8 +34,6 @@ A sudoku solver
    - Make a variant in C 
 
    - Profile the variants
-
- 
 
 
 This module can read the simple representation of a sudoku found in the
