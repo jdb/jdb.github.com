@@ -94,7 +94,7 @@ gets shown.
 Now, for each of these files, the previous *sed* command must be
 EXECuted. *find* has the ``-exec`` option whose value is a command to
 be executed for each file found. The name of the file found is
-inserted e in the command with the ``'{}'`` pattern. A ``;``
+inserted here in the command with the ``'{}'`` pattern. A ``;``
 *terminator* character must be written at the end of the command so
 that *find* knows when the command ends. The semi-colon must be
 protected from mangling from bash with either ``\;`` or ``';'``.
