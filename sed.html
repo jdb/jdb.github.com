@@ -74,68 +74,73 @@
             
   <div class="section" id="bash-tricks-with-find-and-sed">
 <h1>Bash tricks with <em>find</em> and <em>sed</em><a class="headerlink" href="#bash-tricks-with-find-and-sed" title="Permalink to this headline">¶</a></h1>
-<p>This article shows two bash tricks with find and with sed. The problem
-at hand is computing the number of the lines in multiple files in a
-directory. There is no subdirectory but the files have a one line
-header that does not count.</p>
+<p>This article shows two <em>bash</em> tricks with <em>find</em> and <em>sed</em>. The
+problem at hand is computing the number of lines in multiple files
+in a directory. There is no subdirectory but the files have a one line
+header that should not be part of the count.</p>
 <ul class="simple">
-<li><strong>sed</strong> will help operating on each files to omit the first lines</li>
-<li><strong>find</strong> will help executing the sed lines on every files of a directory</li>
+<li><strong>sed</strong> will help operating on each file to omit the first line,</li>
+<li><strong>find</strong> will help executing the sed command on every files of a
+directory</li>
 </ul>
 <p>Let&#8217;s create a directory examples with two files:</p>
-<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>mkdir papa <span class="o">&amp;&amp;</span> <span class="nb">cd </span>papa
-~<span class="nv">$ </span>cat &gt; tata   <span class="c"># type Ctrl-d to stop editing</span>
-<span class="c"># header</span>
+<div class="highlight-bash"><pre>~$ mkdir papa &amp;&amp; cd papa
+~$
+~$ cat &gt; tata   # Type Ctrl-D to stop editing
+# header
 1
 2
 3
 4
-~<span class="nv">$ </span>cat &gt; titi
-<span class="c"># HEAD</span>
+
+~$ cat &gt; titi
+# HEAD
 1
 2
-~<span class="nv">$ </span>cat titi
-<span class="c"># HEAD</span>
+~$ cat titi
+# HEAD
 1
-2
-</pre></div>
+2</pre>
 </div>
 <p><em>sed</em> operates on lines which are specified with an address range:
-<em>first,last</em>. There is a comma between the first line number and the
-<a href="#id1"><span class="problematic" id="id2">*</span></a>second line number, sed counts from one, not zero. The special
-<a href="#id3"><span class="problematic" id="id4">*</span></a>character <tt class="docutils literal"><span class="pre">$</span></tt> means the number of the last line. So to operate on
-<a href="#id5"><span class="problematic" id="id6">*</span></a>every line except the first one, the address range is <tt class="docutils literal"><span class="pre">'2,$'</span></tt>. Do
-<a href="#id7"><span class="problematic" id="id8">*</span></a>not forget the single quotes to prevent bash from messing with the
-<a href="#id9"><span class="problematic" id="id10">*</span></a><tt class="docutils literal"><span class="pre">$</span></tt>.</p>
+<em>first,last</em>. <em>sed</em> counts from one, not zero. The special
+character <tt class="docutils literal"><span class="pre">$</span></tt> means the number of the <em>last line</em>. So to operate on
+every line except the first one, the address range is <tt class="docutils literal"><span class="pre">'2,$'</span></tt>. Do
+not forget the single quotes to prevent bash from messing with the
+<tt class="docutils literal"><span class="pre">$</span></tt>.</p>
 <p>Now that a range is specified, a command must be given: in our case,
 it is the command <tt class="docutils literal"><span class="pre">p</span></tt> (for print).</p>
-<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sed <span class="s1">&#39;2,$p&#39;</span> tata
-<span class="c"># head</span>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>sed <span class="s1">&#39;2,$p&#39;</span> tata
+<span class="c"># header</span>
 1
 1
 2
 2
 3
 3
+4
+4
 </pre></div>
 </div>
 <p>One more thing, <em>sed</em>&#8216;s default behavior is to print every line it
 meets, regardless of what it does with it. The <tt class="docutils literal"><span class="pre">-n</span></tt> option
-deactivates this (a.k.a <tt class="docutils literal"><span class="pre">--silent</span></tt>).</p>
-<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sed -n <span class="s1">&#39;2,$p&#39;</span> tata
+deactivates this (a.k.a. <tt class="docutils literal"><span class="pre">--silent</span></tt>):</p>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>sed -n <span class="s1">&#39;2,$p&#39;</span> tata
 1
 2
 3
+4
 ~<span class="nv">$ </span>sed --silent <span class="s1">&#39;2,$p&#39;</span> tata
 1
 2
 3
+4
 </pre></div>
 </div>
-<p>Fine for <em>sed</em>, now on to <em>find</em>. find can be restricted to <em>find</em>
+<p>Fine for <em>sed</em>, now on to <em>find</em>. <em>find</em> can be restricted to <em>find</em>
 only normal files with the option <tt class="docutils literal"><span class="pre">-type</span> <span class="pre">f</span></tt>, so that no directory
 gets shown.</p>
-<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>find
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>find
 .
 ./tata
 ./titi
@@ -145,22 +150,22 @@ gets shown.</p>
 ./titi
 </pre></div>
 </div>
-<p>Now, for each of these file, the previous sed command must be
+<p>Now, for each of these files, the previous <em>sed</em> command must be
 EXECuted. <em>find</em> has the <tt class="docutils literal"><span class="pre">-exec</span></tt> option whose value is a command to
 be executed for each file found. The name of the file found is
 inserted in the command with the <tt class="docutils literal"><span class="pre">'{}'</span></tt> pattern. A <tt class="docutils literal"><span class="pre">;</span></tt>
 <em>terminator</em> character must be written at the end of the command so
 that <em>find</em> knows when the command ends. The semi-colon must be
 protected from mangling from bash with either <tt class="docutils literal"><span class="pre">\;</span></tt> or <tt class="docutils literal"><span class="pre">';'</span></tt>.</p>
-<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>find -type f -exec <span class="nb">echo</span> <span class="s2">&quot;I found {}&quot;</span> <span class="se">\;</span>
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>find -type f -exec <span class="nb">echo</span> <span class="s2">&quot;I found {}&quot;</span> <span class="se">\;</span>
 I found ./tata
 I found ./titi
 </pre></div>
 </div>
-<p>Now here is the command to count the line of every file in the directory,
+<p>Now here is the command to count the lines of every file in the directory,
 while omitting the header:</p>
-<div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>find -type f -exec sed -n <span class="s1">&#39;2,$p&#39;</span> <span class="s1">&#39;{}&#39;</span> <span class="se">\;</span> | wc -l
-9
+<div class="highlight-sh"><div class="highlight"><pre>~<span class="nv">$ </span>find -type f -exec sed -n <span class="s1">&#39;2,$p&#39;</span> <span class="s1">&#39;{}&#39;</span> <span class="se">\;</span> | wc -l
+6
 </pre></div>
 </div>
 </div>
