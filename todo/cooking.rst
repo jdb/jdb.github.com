@@ -158,3 +158,24 @@ Gauffres traditionnels
 1. oeufs entier
 
 1. delayer avec le lait
+
+Tarte Angevine
+==============
+
+- 5 poires
+
+- **pate brisée**, 12h au frigo
+
+- farine 500
+
+- sucre 20
+
+- sel
+
+- beurre 350
+
+- oeufs 
+
+- 2/3 cuillere de lait
+
+1. la veille

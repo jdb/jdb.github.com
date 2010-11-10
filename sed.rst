@@ -60,7 +60,7 @@ it is the command ``p`` (for print).
    4
 
 One more thing, *sed*\ 's default behavior is to print every line it
-meets, regardless of what it does with it. The ``-n`` option
+meets, regardless of what else it may do with it. The ``-n`` option
 deactivates this (a.k.a. ``--silent``):
 
 .. sourcecode:: sh
@@ -94,7 +94,7 @@ gets shown.
 Now, for each of these files, the previous *sed* command must be
 EXECuted. *find* has the ``-exec`` option whose value is a command to
 be executed for each file found. The name of the file found is
-inserted in the command with the ``'{}'`` pattern. A ``;``
+inserted e in the command with the ``'{}'`` pattern. A ``;``
 *terminator* character must be written at the end of the command so
 that *find* knows when the command ends. The semi-colon must be
 protected from mangling from bash with either ``\;`` or ``';'``.
