@@ -113,20 +113,21 @@ A solution:
    4 6 5    7 9 1    2 3 8</pre>
 </div>
 <p>As a human brain usually scans the sudoku board and eventually
-<strong>deduces</strong> the right digit in the slots. The algorithm presented
-below operates in a different way. The algorithm below start from the
-top left slot, <strong>stack up assumptions</strong> for which number in the
-current slot, all the way to the bottom right slot. Eventually
-backtrack to the previous slot to try a different assumption when no
-number can be set for the current slot. The algorithm does not do
-deductions but can easily remember a full stack of assumptions, which
-is something hard to do for the human brain.</p>
+<strong>deduces</strong> the right digit in the slots, the algorithm presented
+below operates in a different way. The algorithm below starts from the
+top left slot and <strong>stacks up assumptions</strong> for which digit is put in
+a slot, for each slot all the way to the bottom right slot. Eventually
+backtrack to a previous slot to try a different assumption when no
+number can be set for the current slot. On the contrary to the human
+brain, the algorithm does not do deductions but can easily remember a
+full stack of assumptions, which is something hard to do for the human
+brain.</p>
 <span class="target" id="module-sudoku"></span><p>The <em>sudoku</em> module offers three objects building a sudoku solver:</p>
 <ul class="simple">
 <li>the <em>Sudoku</em> class modelling the sudoku board and sudoku rules,</li>
-<li>the <em>stack_assumptions</em> generic backtracking algorithm. The function takes 
-a vector of generator function as argument,</li>
-<li>the <em>make_generator_functions</em> function returning a vector of
+<li>the <em>stack_assumptions</em> generic backtracking algorithm. The function
+takes a list of generator functions as argument,</li>
+<li>the <em>make_generators</em> function returning a list of
 generator functions suited for manipulating a sudoku and compatible
 with the bactracking algorithm.</li>
 </ul>
@@ -168,17 +169,21 @@ frees the position on exiting the context.</p>
 
 <dl class="function">
 <dt id="sudoku.stack_assumptions">
-<tt class="descclassname">sudoku.</tt><tt class="descname">stack_assumptions</tt><big>(</big><em>gen_funcs</em>, <em>i=0</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#stack_assumptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.stack_assumptions" title="Permalink to this definition">¶</a></dt>
-<dd><p>The algorithm works by instantiating the generator at the <em>nth</em>
-position of the vector, and pulls the <em>next()</em> method on it:</p>
+<tt class="descclassname">sudoku.</tt><tt class="descname">stack_assumptions</tt><big>(</big><em>generators</em>, <em>i=0</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#stack_assumptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.stack_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a list of generators. This list is assumed to manipulate
+a shared representation of the problem. When this algorithm
+yields, a solution has been found and can be printed.</p>
+<p>The algorithm works by calling the generator at the <em>nth</em> position
+of the list, and pulls the <em>next()</em> method on the iterator
+returned:</p>
 <ol class="arabic simple">
 <li>either <em>next()</em> returns, in which case, the algorithm
 instantiates the generator from position <strong>n+1</strong> of the input
-vector function and tries to pull its <em>next()</em> method,</li>
+list function and tries to pull its <em>next()</em> method,</li>
 <li>or the method raises a StopIteration, in which case, the
 algorithm trigger <em>next()</em> on the generator at position <strong>n-1</strong>,</li>
 </ol>
-<p>This algorithm yields whenever every generator of the vector has
+<p>This algorithm yields whenever every generator of the list has
 yielded, at this point, every position of the board is filled with
 a digit according to the sudoku rules: a solution has been
 reached and the board can be printed.</p>
@@ -198,24 +203,6 @@ precise interface and blindly triggers them, whether the argument is
 manipulating a sudoku, the eight queens or the knight problem. When
 the algorithm yields, the sudoku board or chessboard manipulated by
 the argument has cooked a solution.</p>
-<dl class="function">
-<dt id="sudoku.make_generator_functions">
-<tt class="descclassname">sudoku.</tt><tt class="descname">make_generator_functions</tt><big>(</big><em>sudoku</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#make_generator_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.make_generator_functions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a vector of candidate generators for use with the
-backtrack algorithm stack_assumptions.  The sudoku argument must
-provide two functions: <em>candidates(i,j)</em>, and <em>attempt(col, row,
-candidate)</em> and a member attribute called <em>board</em>, which is a 9x9
-matrix.</p>
-<p>There are as many generator functions than there are slots on the
-sudoku board, they are stored in a list. Each generator function
-is specific to a slot: it actually <em>contains</em> the coordinates of
-the slot, like a closure.</p>
-<p>When called for the first time, the generator computes the list of
-candidate numbers for the slot, according to the current sudoku
-board. The list of candidates depends on the state of the board at
-the time the generator is called for the first time.</p>
-</dd></dl>
-
 </div>
 
 
