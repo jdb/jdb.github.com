@@ -178,4 +178,30 @@ Tarte Angevine
 
 - 2/3 cuillere de lait
 
-1. la veille
+- 65 cL de vin rouge
+
+- baton de vanille
+
+
+1. la veille, vin + 280 de sucre + vanille a ebullition,
+
+1. mettre les poires a feu tres doux, 15 minutes a couvert, 
+
+1. puis 15 min a decouvert,
+
+1. laisser refroidir a couvert,
+
+1. Egoutter les fruits,
+
+1. Fariner le moule en laissant une crete au dessus du [illisible]
+
+1. frigo 2h, pquer le fond a la fourchette
+
+1. creme amande et creme patissiere, etalez au fond
+
+1. ranger 8 demi poires en etoile, partie etroite au milieu, et les
+  deux dernieres, coupées au centre,
+
+1. 40/45 min au fours
+
+1. Laisser refroidir, demoulez et servir avec une gelée de vin
