@@ -107,5 +107,5 @@ the algorithm yields, the sudoku board or chessboard manipulated by
 the argument has cooked a solution.
 
 
-.. autofunction:: sudoku.make_generator_functions
+.. autofunction:: sudoku.make_generators
 

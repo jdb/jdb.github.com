@@ -133,7 +133,7 @@ with the bactracking algorithm.</li>
 </ul>
 <dl class="class">
 <dt id="sudoku.Sudoku">
-<em class="property">class </em><tt class="descclassname">sudoku.</tt><tt class="descname">Sudoku</tt><big>(</big><em>problem</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#Sudoku"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sudoku.</tt><tt class="descname">Sudoku</tt><big>(</big><em>problem</em><big>)</big><a class="reference internal" href="modules/sudoku.html#Sudoku"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku" title="Permalink to this definition">¶</a></dt>
 <dd><p>The <em>Sudoku</em> board class has the methods for reading the start
 state of a sudoku board, for representing a board. It also has the
 methods for setting and freeing a digit in a slot of the board,
@@ -147,7 +147,7 @@ empty position is represented by a False value</p>
 
 <dl class="method">
 <dt id="sudoku.Sudoku.candidates">
-<tt class="descname">candidates</tt><big>(</big><em>col</em>, <em>row</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#Sudoku.candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku.candidates" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">candidates</tt><big>(</big><em>col</em>, <em>row</em><big>)</big><a class="reference internal" href="modules/sudoku.html#Sudoku.candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku.candidates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the list of possible values for the slot specified by
 the arguments, according to the current state of the sudoku
 board and according to the rules of the sudoku game.</p>
@@ -159,7 +159,7 @@ the line <em>row</em>, neither in the square identified by <em>col</em> and
 
 <dl class="method">
 <dt id="sudoku.Sudoku.attempt">
-<tt class="descname">attempt</tt><big>(</big><em>*args</em>, <em>**kwds</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#Sudoku.attempt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku.attempt" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">attempt</tt><big>(</big><em>*args</em>, <em>**kwds</em><big>)</big><a class="reference internal" href="modules/sudoku.html#Sudoku.attempt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku.attempt" title="Permalink to this definition">¶</a></dt>
 <dd><p>A context manager which sets the value of the board at
 position: <em>col</em>, <em>line</em> on entering the context and which
 frees the position on exiting the context.</p>
@@ -169,7 +169,7 @@ frees the position on exiting the context.</p>
 
 <dl class="function">
 <dt id="sudoku.stack_assumptions">
-<tt class="descclassname">sudoku.</tt><tt class="descname">stack_assumptions</tt><big>(</big><em>generators</em>, <em>i=0</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#stack_assumptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.stack_assumptions" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sudoku.</tt><tt class="descname">stack_assumptions</tt><big>(</big><em>generators</em>, <em>i=0</em><big>)</big><a class="reference internal" href="modules/sudoku.html#stack_assumptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.stack_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes a list of generators. This list is assumed to manipulate
 a shared representation of the problem. When this algorithm
 yields, a solution has been found and can be printed.</p>
@@ -203,6 +203,24 @@ precise interface and blindly triggers them, whether the argument is
 manipulating a sudoku, the eight queens or the knight problem. When
 the algorithm yields, the sudoku board or chessboard manipulated by
 the argument has cooked a solution.</p>
+<dl class="function">
+<dt id="sudoku.make_generators">
+<tt class="descclassname">sudoku.</tt><tt class="descname">make_generators</tt><big>(</big><em>sudoku</em><big>)</big><a class="headerlink" href="#sudoku.make_generators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of candidate generators for use with the
+backtrack algorithm stack_assumptions.  The sudoku argument must
+provide two functions: <em>candidates(i,j)</em>, and <em>attempt(col, row,
+candidate)</em> and a member attribute called <em>board</em>, which is a 9x9
+matrix.</p>
+<p>There are as many generator functions than there are slots on the
+sudoku board, they are stored in a list. Each generator function
+is specific to a slot: it actually <em>contains</em> the coordinates of
+the slot, like a closure.</p>
+<p>When called for the first time, the generator computes the list of
+candidate numbers for the slot, according to the current sudoku
+board. The list of candidates depends on the state of the board at
+the time the generator is called for the first time.</p>
+</dd></dl>
+
 </div>
 
 
