@@ -68,10 +68,10 @@
 
 <span class="sd">- the *Sudoku* class modelling the sudoku board and sudoku rules,</span>
 
-<span class="sd">- the *stack_assumptions* generic backtracking algorithm. The function takes </span>
-<span class="sd">  a vector of generator function as argument,</span>
+<span class="sd">- the *stack_assumptions* generic backtracking algorithm. The function</span>
+<span class="sd">  takes a list of generator functions as argument,</span>
 
-<span class="sd">- the *make_generator_functions* function returning a vector of</span>
+<span class="sd">- the *make_generators* function returning a list of</span>
 <span class="sd">  generator functions suited for manipulating a sudoku and compatible</span>
 <span class="sd">  with the bactracking algorithm.</span>
 
@@ -87,11 +87,10 @@
 <span class="sd">    according to the rules of the sudoku game.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
-
-        <span class="c">### Initialisation of the data structures</span>
         <span class="n">newarray</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">9</span><span class="p">)</span>
+        <span class="c"># helper of initialisation of the data structures</span>
 
-        <span class="c"># Private properties</span>
+        <span class="c"># Private bitfield presence sets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span>   <span class="o">=</span> <span class="n">newarray</span><span class="p">()</span>  <span class="c"># Lines, columns and</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_columns</span> <span class="o">=</span> <span class="n">newarray</span><span class="p">()</span>  <span class="c"># square are bitfields of length 9.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_squares</span> <span class="o">=</span> <span class="n">newarray</span><span class="p">()</span>  <span class="c"># When bit 3 is set in lines[5], 3</span>
@@ -115,16 +114,14 @@
     <span class="c"># Bitfield manipulation</span>
 
     <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Sets a new digit on the board in position i,j. This simply</span>
-<span class="sd">        updates the board without checking if the rules of the sudo</span>
-<span class="sd">        game are respected&quot;&quot;&quot;</span>
-
-
-        <span class="c"># Not only update the board but also the lines, columns and</span>
-        <span class="c"># squares arrays</span>
+        <span class="sd">&quot;&quot;&quot;Sets a new digit on the board in position i,j. This only</span>
+<span class="sd">        updates the board *without* checking first if the rules of the</span>
+<span class="sd">        sudo game are respected&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>   <span class="o">=</span> <span class="n">val</span>
 
+        <span class="c"># Not only update the board but also the lines, columns and</span>
+        <span class="c"># squares arrays</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_one</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>   <span class="n">val</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_columns</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_one</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_columns</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">val</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_squares</span><span class="p">[(</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_one</span><span class="p">(</span>
@@ -133,14 +130,11 @@
     <span class="k">def</span> <span class="nf">free</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Frees the slot in position i,j&quot;&quot;&quot;</span>
 
-        <span class="c"># Also update the line, column and square presence sets.</span>
-
         <span class="c"># The value to be removed from the lines, columns and square</span>
         <span class="c"># presence set is found in the *board* member attribute</span>
-        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="mi">0</span>
             
-        <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>    <span class="o">=</span>  <span class="mi">0</span>
-
+        <span class="c"># Also update the line, column and square presence sets.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>   <span class="n">val</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_columns</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_columns</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">val</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_squares</span><span class="p">[(</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero</span><span class="p">(</span>
@@ -182,14 +176,15 @@
         <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="n">e</span>    <span class="k">if</span> <span class="n">i</span><span class="o">%</span><span class="mi">3</span> <span class="o">==</span><span class="mi">0</span> <span class="k">else</span> <span class="n">e</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">e</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span> <span class="c"># 2.</span>
         <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="n">e</span>    <span class="k">if</span> <span class="n">i</span><span class="o">%</span><span class="mi">27</span><span class="o">==</span><span class="mi">0</span> <span class="k">else</span> <span class="n">e</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">e</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span> <span class="c"># 3.</span>
 
-        <span class="c"># 1. New lines every 9 elements</span>
-        <span class="c"># 2,3. Squares are represented by extra spaces and another newline</span>
+        <span class="c"># 1.   New lines every 9 elements</span>
+        <span class="c"># 2,3. Squares are represented by extra spaces and another</span>
+        <span class="c">#      newline</span>
 
         <span class="k">return</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> 
 
 
-<span class="k">def</span> <span class="nf">make_generator_functions</span><span class="p">(</span><span class="n">sudoku</span><span class="p">):</span></div>
-<div class="viewcode-block" id="make_generator_functions"><a class="viewcode-back" href="../sudoku.html#sudoku.make_generator_functions">[docs]</a>    <span class="sd">&quot;&quot;&quot;Returns a vector of candidate generators for use with the</span>
+<span class="k">def</span> <span class="nf">make_generators</span><span class="p">(</span><span class="n">sudoku</span><span class="p">):</span></div>
+<div class="viewcode-block" id="make_generators"><a class="viewcode-back" href="../sudoku.html#sudoku.make_generators">[docs]</a>    <span class="sd">&quot;&quot;&quot;Returns a list of candidate generators for use with the</span>
 <span class="sd">    backtrack algorithm stack_assumptions.  The sudoku argument must</span>
 <span class="sd">    provide two functions: *candidates(i,j)*, and *attempt(col, row,</span>
 <span class="sd">    candidate)* and a member attribute called *board*, which is a 9x9</span>
@@ -205,7 +200,7 @@
 <span class="sd">    board. The list of candidates depends on the state of the board at</span>
 <span class="sd">    the time the generator is called for the first time.&quot;&quot;&quot;</span>
 
-    <span class="n">gen_funcs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">generators</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
             <span class="k">def</span> <span class="nf">gen_func</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="n">i</span><span class="p">,</span><span class="n">row</span><span class="o">=</span><span class="n">j</span><span class="p">):</span>
@@ -215,22 +210,27 @@
                     <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">sudoku</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
                         <span class="k">with</span> <span class="n">sudoku</span><span class="o">.</span><span class="n">attempt</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">candidate</span><span class="p">):</span>
                             <span class="k">yield</span>
-            <span class="n">gen_funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gen_func</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gen_funcs</span>
+            <span class="n">generators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gen_func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">generators</span>
 
 
-<span class="k">def</span> <span class="nf">stack_assumptions</span><span class="p">(</span><span class="n">gen_funcs</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></div>
-<div class="viewcode-block" id="stack_assumptions"><a class="viewcode-back" href="../sudoku.html#sudoku.stack_assumptions">[docs]</a>    <span class="sd">&quot;&quot;&quot;The algorithm works by instantiating the generator at the *nth*</span>
-<span class="sd">    position of the vector, and pulls the *next()* method on it:</span>
+<span class="k">def</span> <span class="nf">stack_assumptions</span><span class="p">(</span><span class="n">generators</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></div>
+<div class="viewcode-block" id="stack_assumptions"><a class="viewcode-back" href="../sudoku.html#sudoku.stack_assumptions">[docs]</a>    <span class="sd">&quot;&quot;&quot;Takes a list of generators. This list is assumed to manipulate</span>
+<span class="sd">    a shared representation of the problem. When this algorithm</span>
+<span class="sd">    yields, a solution has been found and can be printed.</span>
+
+<span class="sd">    The algorithm works by calling the generator at the *nth* position</span>
+<span class="sd">    of the list, and pulls the *next()* method on the iterator</span>
+<span class="sd">    returned:</span>
 
 <span class="sd">    #. either *next()* returns, in which case, the algorithm</span>
 <span class="sd">       instantiates the generator from position **n+1** of the input</span>
-<span class="sd">       vector function and tries to pull its *next()* method,</span>
+<span class="sd">       list function and tries to pull its *next()* method,</span>
 
 <span class="sd">    #. or the method raises a StopIteration, in which case, the</span>
 <span class="sd">       algorithm trigger *next()* on the generator at position **n-1**,</span>
 
-<span class="sd">    This algorithm yields whenever every generator of the vector has</span>
+<span class="sd">    This algorithm yields whenever every generator of the list has</span>
 <span class="sd">    yielded, at this point, every position of the board is filled with</span>
 <span class="sd">    a digit according to the sudoku rules: a solution has been</span>
 <span class="sd">    reached and the board can be printed.</span>
@@ -244,11 +244,11 @@
 <span class="sd">    stack of the previous recursion: the algorithm backtracks at the</span>
 <span class="sd">    previous recursion, another assumption can be attempted.&quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gen_funcs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">generators</span><span class="p">):</span>
         <span class="k">yield</span> 
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">gen_funcs</span><span class="p">[</span><span class="n">i</span><span class="p">]():</span>
-            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stack_assumptions</span><span class="p">(</span><span class="n">gen_funcs</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">generators</span><span class="p">[</span><span class="n">i</span><span class="p">]():</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stack_assumptions</span><span class="p">(</span><span class="n">generators</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
                 <span class="k">yield</span>
 
 
@@ -267,13 +267,11 @@
     <span class="n">sudoku</span> <span class="o">=</span> <span class="n">Sudoku</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="k">print</span> <span class="s">&quot;The problem: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">sudoku</span>
 
-    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stack_assumptions</span><span class="p">(</span><span class="n">make_generator_functions</span><span class="p">(</span><span class="n">sudoku</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stack_assumptions</span><span class="p">(</span><span class="n">make_generators</span><span class="p">(</span><span class="n">sudoku</span><span class="p">)):</span>
         <span class="k">print</span> <span class="s">&quot;A solution: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">sudoku</span>
 
 
-<span class="c"># A run of this script shows the following result:</span>
-<span class="c"># </span>
-<span class="c"># .. sourcecode:: bash</span>
+<span class="c"># A run of this script shows the following result::</span>
 <span class="c"># </span>
 <span class="c">#    ~$ python sudoku.py</span>
 <span class="c">#    The problem: </span>
