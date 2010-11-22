@@ -8,8 +8,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>A sudoku solver &mdash; bits v0.7 documentation</title>
-    <link rel="stylesheet" href="static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
@@ -19,9 +19,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="static/jquery.js"></script>
-    <script type="text/javascript" src="static/underscore.js"></script>
-    <script type="text/javascript" src="static/doctools.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bits v0.7 documentation" href="index.html" />
     <link rel="next" title="Manipulating bitfields in Python (in most language actually)" href="bitfield.html" />
     <link rel="prev" title="An update of the IMAP client example with notifications" href="imap_idle/twisted_imap/imap4client_notif.html" /> 
@@ -55,7 +55,7 @@
                         title="next chapter">Manipulating bitfields in Python (in most language actually)</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="sources/sudoku.txt"
+    <li><a href="_sources/sudoku.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
@@ -133,7 +133,7 @@ with the bactracking algorithm.</li>
 </ul>
 <dl class="class">
 <dt id="sudoku.Sudoku">
-<em class="property">class </em><tt class="descclassname">sudoku.</tt><tt class="descname">Sudoku</tt><big>(</big><em>problem</em><big>)</big><a class="reference internal" href="modules/sudoku.html#Sudoku"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sudoku.</tt><tt class="descname">Sudoku</tt><big>(</big><em>problem</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#Sudoku"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku" title="Permalink to this definition">¶</a></dt>
 <dd><p>The <em>Sudoku</em> board class has the methods for reading the start
 state of a sudoku board, for representing a board. It also has the
 methods for setting and freeing a digit in a slot of the board,
@@ -147,7 +147,7 @@ empty position is represented by a False value</p>
 
 <dl class="method">
 <dt id="sudoku.Sudoku.candidates">
-<tt class="descname">candidates</tt><big>(</big><em>col</em>, <em>row</em><big>)</big><a class="reference internal" href="modules/sudoku.html#Sudoku.candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku.candidates" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">candidates</tt><big>(</big><em>col</em>, <em>row</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#Sudoku.candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku.candidates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the list of possible values for the slot specified by
 the arguments, according to the current state of the sudoku
 board and according to the rules of the sudoku game.</p>
@@ -159,7 +159,7 @@ the line <em>row</em>, neither in the square identified by <em>col</em> and
 
 <dl class="method">
 <dt id="sudoku.Sudoku.attempt">
-<tt class="descname">attempt</tt><big>(</big><em>*args</em>, <em>**kwds</em><big>)</big><a class="reference internal" href="modules/sudoku.html#Sudoku.attempt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku.attempt" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">attempt</tt><big>(</big><em>*args</em>, <em>**kwds</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#Sudoku.attempt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.Sudoku.attempt" title="Permalink to this definition">¶</a></dt>
 <dd><p>A context manager which sets the value of the board at
 position: <em>col</em>, <em>line</em> on entering the context and which
 frees the position on exiting the context.</p>
@@ -169,7 +169,7 @@ frees the position on exiting the context.</p>
 
 <dl class="function">
 <dt id="sudoku.stack_assumptions">
-<tt class="descclassname">sudoku.</tt><tt class="descname">stack_assumptions</tt><big>(</big><em>generators</em>, <em>i=0</em><big>)</big><a class="reference internal" href="modules/sudoku.html#stack_assumptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.stack_assumptions" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sudoku.</tt><tt class="descname">stack_assumptions</tt><big>(</big><em>generators</em>, <em>i=0</em><big>)</big><a class="reference internal" href="_modules/sudoku.html#stack_assumptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sudoku.stack_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes a list of generators. This list is assumed to manipulate
 a shared representation of the problem. When this algorithm
 yields, a solution has been found and can be printed.</p>
