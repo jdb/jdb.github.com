@@ -109,3 +109,5 @@ the argument has cooked a solution.
 
 .. autofunction:: sudoku.make_generators
 
+
+
