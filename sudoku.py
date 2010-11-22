@@ -207,9 +207,7 @@ if __name__=="__main__":
         print "A solution: %s\n" % sudoku
 
 
-# A run of this script shows the following result:
-# 
-# .. sourcecode:: bash
+# A run of this script shows the following result::
 # 
 #    ~$ python sudoku.py
 #    The problem: 
