@@ -1,6 +1,10 @@
-=== Access Samba shares ===
- 1. {{{
-aptitude install smbfs}}}
+
+Access Samba shares
+==
+
+::
+
+   aptitude install smbfs}}}
  1. Test it with {{{
 # umount /tmp/sandra
 # smbclient -L sandra -U%
