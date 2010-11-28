@@ -108,11 +108,11 @@ class Sudoku(object):
         self.columns[j]           = self.zero(self.columns[j],           val)
         self.squares[(j/3)*3+i/3] = self.zero(self.squares[(j/3)*3+i/3], val)
 
-    @contextmanager
-    def attempt(self, col, row, candidate):
-        self.set(col, row, candidate)
-        yield
-        self.free(col, row, candidate)
+    #@contextmanager
+    #def attempt(self, col, row, candidate):
+    #    self.set(col, row, candidate)
+    #    yield
+    #    self.free(col, row, candidate)
         
     def __str__(self):
         s = StringIO.StringIO()
@@ -149,8 +149,10 @@ def make_assumption_generators(sudoku):
                     yield
                 else:
                     for candidate in sudoku.candidates(col, row):
-                        with sudoku.attempt(col, row, candidate):
-                            yield
+                        sudoku.set(col, row, candidate)
+                        yield
+                        sudoku.free(col, row, candidate)
+
             assumptions_generators.append(assumption_generator)
     return assumptions_generators
 
@@ -198,15 +200,15 @@ if __name__=="__main__":
           '030208000'
           '405700200')
 
-    data=('006007403'
-          '000906020'
-          '500304006'
-          '740000010'
-          '809000304'
-          '010000057'
-          '200603005'
-          '030208000'
-          '405700200')
+    data=('006000090'
+          '000501700'
+          '200300900'
+          '070030050'
+          '020090060'
+          '040080020'
+          '001003004'
+          '005207000'
+          '030000800')
 
 
     sudoku = Sudoku(data)

@@ -14,3 +14,4 @@ def negative():
     return moyenne(-10)==-5
 
 tests = "positive", "zero", "negative", "incorrect_test"
+testfuns = positive, negative, incorrect_test, zero
