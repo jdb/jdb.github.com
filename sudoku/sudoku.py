@@ -24,18 +24,18 @@ class Sudoku(object):
     # is represented by a false value.
 
     def __init__(self, problem):    
-        # Reading the problem, i stands for row, j for columns
-        k=0
-        for j in range(9):
-            for i in range(9):
-                if int(problem[k]) != 0:
-                    self.set(i, j, int(problem[k]))
-                k+=1
+        # Reading the problem
+        i=0
+        for row in range(9):
+            for column in range(9):
+                if int(problem[i]) != 0:
+                    self.set(row, column, int(problem[i]))
+                i+=1
 
     def __str__(self):
         # The matrix is transformed into a list of characters
-        l = [str(self.board[j][i]) if self.board[j][i] else ' '
-                    for i in range(9) for j in range(9)]
+        l = [str(self.board[col][row]) if self.board[col][row] else ' '
+                    for row in range(9) for col in range(9)]
 
         l = ['\n   '+e if i%9 ==0 else e for (i,e) in enumerate(l)] # 1.
         l = ['  '+e    if i%3 ==0 else e for (i,e) in enumerate(l)] # 2.
@@ -59,20 +59,25 @@ class Sudoku(object):
         raise NotImplementedError
 
     def set(self, row, col, val):
-        """Sets a new digit on the board in position i,j. This only
+        """Sets a new digit on the board in position *row,col*. This only
         updates the board *without* checking first if the rules of the
         sudo game are respected"""
         raise NotImplementedError
 
     def free(self, row, col):
-        "Frees the slot in position i,j"
+        "Frees the slot in position row,col"
         raise NotImplementedError
 
 
 class BitField(Sudoku):
+    """Optimized implementation of the Sudoku interfaces. The
+    "presence sets()" i.e. the efficient data structure which stores
+    the information of which numbers are present in which
+    rows/columns/squares are, each, represented with a single int
+    instead of with a native Python dict"""
 
     # Private bitfield presence sets
-    _lines   = [0] * 9  # Lines, columns and
+    _rows   =  [0] * 9  # Lines, columns and
     _columns = [0] * 9  # square are bitfields of length 9.
     _squares = [0] * 9  # When bit 3 is set in lines[5], 3
                         # is present in the fifth line.
@@ -82,28 +87,28 @@ class BitField(Sudoku):
     _get  = lambda self, val, index: (val >>  index - 1) & 1
     # Bitfield manipulation
 
-    def set(self, i, j, val):
-        self.board[i][j]   = val
+    def set(self, row, col, val):
+        self.board[col][row] = val
 
         # Not only update the board but also the lines, columns and
         # squares arrays
-        self._lines[i]   = self._one(self._lines[i],   val)
-        self._columns[j] = self._one(self._columns[j], val)
-        self._squares[(j/3)*3+i/3] = self._one(
-            self._squares[(j/3)*3+i/3], val)
+        self._rows[row]    = self._one(self._rows[row],   val)
+        self._columns[col] = self._one(self._columns[col], val)
+        self._squares[(col/3)*3+row/3] = self._one(
+            self._squares[(col/3)*3+row/3], val)
 
-    def free(self, i, j):
+    def free(self, row, col):
         # The value to be removed from the lines, columns and square
         # presence set is found in the *board* member attribute
-        val, self.board[i][j] = self.board[i][j], 0
+        val, self.board[col][row] = self.board[col][row], 0
             
         # Also update the line, column and square presence sets.
-        self._lines[i]   = self._zero(self._lines[i],   val)
-        self._columns[j] = self._zero(self._columns[j], val)
-        self._squares[(j/3)*3+i/3] = self._zero(
-            self._squares[(j/3)*3+i/3], val)
+        self._rows[row]  = self._zero(self._rows[row],  val)
+        self._columns[col] = self._zero(self._columns[col], val)
+        self._squares[(col/3)*3+row/3] = self._zero(
+            self._squares[(col/3)*3+row/3], val)
 
-    def candidates(self, col, row):
+    def candidates(self, row, col):
         """Returns the list of possible values for the slot specified by
         the arguments, according to the current state of the sudoku
         board and according to the rules of the sudoku game.
@@ -115,16 +120,16 @@ class BitField(Sudoku):
 
         return filter(
             lambda val: all( not self._get(bf, val) for bf in (
-                    self._lines[col], 
-                    self._columns[row], 
-                    self._squares[(row/3)*3+col/3])),
+                    self._rows[row], 
+                    self._columns[col], 
+                    self._squares[(col/3)*3+row/3])),
             range(1,10))
 
 
 def make_generators(sudoku):
     """Returns a list of candidate generators for use with the
     backtrack algorithm stack_assumptions.  The sudoku argument must
-    provide two functions: *candidates(i,j)*, and *attempt(col, row,
+    provide two functions: *candidates(row,col)*, and *attempt(row, col,
     candidate)* and a member attribute called *board*, which is a 9x9
     matrix.
 
@@ -139,16 +144,16 @@ def make_generators(sudoku):
     the time the generator is called for the first time."""
 
     generators = []
-    for i in range(9):
-        for j in range(9):
-            def gen_func(col=i,row=j):
+    for row in range(9):
+        for col in range(9):
+            def gen_func(row=row,col=col):
                 if sudoku.board[col][row] != 0:
                     yield
                 else:
-                    for candidate in sudoku.candidates(col, row):
-                        sudoku.set(col, row, candidate)
+                    for candidate in sudoku.candidates(row, col):
+                        sudoku.set(row, col, candidate)
                         yield
-                        sudoku.free(col, row)
+                        sudoku.free(row, col)
             generators.append(gen_func)
     return generators
 
@@ -190,16 +195,6 @@ def stack_assumptions(generators, i=0):
             for _ in stack_assumptions(generators, i+1):
                 yield
 
-data=('006007403'
-      '000906020'
-      '500304006'
-      '740000010'
-      '809000304'
-      '010000057'
-      '200603005'
-      '030208000'
-      '405700200')
-
 data=('006000090'
       '000501700'
       '200900300'
@@ -210,6 +205,16 @@ data=('006000090'
       '005207000'
       '030000800')
 
+data=('006007403'
+      '000906020'
+      '500304006'
+      '740000010'
+      '809000304'
+      '010000057'
+      '200603005'
+      '030208000'
+      '405700200')
+
 
 if __name__=="__main__":
 
@@ -217,7 +222,7 @@ if __name__=="__main__":
     print "The problem: %s\n" % sudoku
 
     for _ in stack_assumptions(make_generators(sudoku)):
-        print "A solution: %s\n" % sudoku
+       print "A solution: %s\n" % sudoku
 
 
 # A run of this script shows the following result::
