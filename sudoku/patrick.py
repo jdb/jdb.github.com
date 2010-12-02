@@ -13,7 +13,10 @@ class NativeSet( ...
 
     # - NO! no different. Only different in your mind.
     #   You must unlearn what you have learn.
-    #   Do,  or do not, there is no try.
+
+    # - All right, I'll give it a try...
+
+    # - NO! Do, or do not, there is no try.
 
     
     [ ... ] 
