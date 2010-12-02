@@ -1,7 +1,7 @@
 
 from sudoku import Sudoku, make_generators, stack_assumptions, data
 
-class NativeSet( ...
+class NativeSet(Sudoku):
 
     # - Ooh noo, we'll never get it out now...
 
@@ -18,8 +18,34 @@ class NativeSet( ...
 
     # - NO! Do, or do not, there is no try.
 
-    
-    [ ... ] 
+    _rows   =  [set() for _ in range(9)]
+    _columns = [set() for _ in range(9)]
+    _squares = [set() for _ in range(9)]
+
+    def set(self, row, col, val):
+        self.board[col][row] = val
+
+        self._rows   [  row          ].add(val)
+        self._columns[  col          ].add(val)
+        self._squares[(row/3)*3+col/3].add(val)
+
+    def free(self, row, col):
+        val = self.board[col][row]
+        self.board[col][row] = 0
+
+        self._rows   [  row          ].remove(val)
+        self._columns[  col          ].remove(val)
+        self._squares[(row/3)*3+col/3].remove(val)
+
+    def candidates(self, row, col):
+        return filter(
+            lambda e:all(
+                [e not in s for s in (
+                        self._rows[row],
+                        self._columns[col],
+                        self._squares[(row/3)*3+col/3])]),
+            range(1,10))
+
 
 if __name__=="__main__":
 
