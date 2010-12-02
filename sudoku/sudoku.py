@@ -13,36 +13,69 @@ The *sudoku* module offers three objects building a sudoku solver:
 
 """
 
-import array
-from contextlib import contextmanager
-
 class Sudoku(object):
     """The *Sudoku* board class has the methods for reading the start
     state of a sudoku board, for representing a board. It also has the
     methods for setting and freeing a digit in a slot of the board,
     according to the rules of the sudoku game."""
 
-    def __init__(self, problem):
-        newarray = lambda: array.array('i', [0] * 9)
-        # helper of initialisation of the data structures
+    board  = [[0] * 9 for _ in range(9)]
+    # a 9x9 matrix of of ints between 1 and 9, an empty position
+    # is represented by a false value.
 
-        # Private bitfield presence sets
-        self._lines   = newarray()  # Lines, columns and
-        self._columns = newarray()  # square are bitfields of length 9.
-        self._squares = newarray()  # When bit 3 is set in lines[5], 3
-                                    # is present in the fifth line.
-    
-        self.board  = [newarray() for i in range(9)]
-        # a 9x9 matrix of of ints between 1 and 9, an empty position
-        # is represented by a false value.
-
-        # Reading the problem
+    def __init__(self, problem):    
+        # Reading the problem, i stands for row, j for columns
         k=0
-        for i in range(9):
-            for j in range(9):
+        for j in range(9):
+            for i in range(9):
                 if int(problem[k]) != 0:
-                    self.set(i, j, int(data[k]))
+                    self.set(i, j, int(problem[k]))
                 k+=1
+
+    def __str__(self):
+        # The matrix is transformed into a list of characters
+        l = [str(self.board[j][i]) if self.board[j][i] else ' '
+                    for i in range(9) for j in range(9)]
+
+        l = ['\n   '+e if i%9 ==0 else e for (i,e) in enumerate(l)] # 1.
+        l = ['  '+e    if i%3 ==0 else e for (i,e) in enumerate(l)] # 2.
+        l = ['\n'+e    if i%27==0 else e for (i,e) in enumerate(l)] # 3.
+
+        # 1.   New lines every 9 elements
+        # 2,3. Squares are represented by extra spaces and another
+        #      newline
+
+        return ' '.join(l) 
+
+    def candidates(self, row, col):
+        """Returns the list of possible values for the slot specified by
+        the arguments, according to the current state of the sudoku
+        board and according to the rules of the sudoku game.
+        
+        The sudoku rules states that the candidates are the numbers
+        which are not present neither in the column *col*, neither in
+        the line *row*, neither in the square identified by *col* and
+        *row*."""
+        raise NotImplementedError
+
+    def set(self, row, col, val):
+        """Sets a new digit on the board in position i,j. This only
+        updates the board *without* checking first if the rules of the
+        sudo game are respected"""
+        raise NotImplementedError
+
+    def free(self, row, col):
+        "Frees the slot in position i,j"
+        raise NotImplementedError
+
+
+class BitField(Sudoku):
+
+    # Private bitfield presence sets
+    _lines   = [0] * 9  # Lines, columns and
+    _columns = [0] * 9  # square are bitfields of length 9.
+    _squares = [0] * 9  # When bit 3 is set in lines[5], 3
+                        # is present in the fifth line.
 
     _one  = lambda self, val, index: val |   1 << index - 1    
     _zero = lambda self, val, index: val & ~(1 << index - 1)
@@ -50,10 +83,6 @@ class Sudoku(object):
     # Bitfield manipulation
 
     def set(self, i, j, val):
-        """Sets a new digit on the board in position i,j. This only
-        updates the board *without* checking first if the rules of the
-        sudo game are respected"""
-
         self.board[i][j]   = val
 
         # Not only update the board but also the lines, columns and
@@ -64,8 +93,6 @@ class Sudoku(object):
             self._squares[(j/3)*3+i/3], val)
 
     def free(self, i, j):
-        """Frees the slot in position i,j"""
-
         # The value to be removed from the lines, columns and square
         # presence set is found in the *board* member attribute
         val, self.board[i][j] = self.board[i][j], 0
@@ -75,16 +102,6 @@ class Sudoku(object):
         self._columns[j] = self._zero(self._columns[j], val)
         self._squares[(j/3)*3+i/3] = self._zero(
             self._squares[(j/3)*3+i/3], val)
-
-    @contextmanager
-    def attempt(self, col, row, candidate):
-        """A context manager which sets the value of the board at
-        position: *col*, *line* on entering the context and which
-        frees the position on exiting the context."""
-
-        self.set(col, row, candidate)
-        yield
-        self.free(col, row)
 
     def candidates(self, col, row):
         """Returns the list of possible values for the slot specified by
@@ -102,21 +119,6 @@ class Sudoku(object):
                     self._columns[row], 
                     self._squares[(row/3)*3+col/3])),
             range(1,10))
-        
-    def __str__(self):
-        # The matrix is transformed into a list of characters
-        l = [str(self.board[i][j]) if self.board[i][j] else ' '
-                    for i in range(9) for j in range(9)]
-
-        l = ['\n   '+e if i%9 ==0 else e for (i,e) in enumerate(l)] # 1.
-        l = ['  '+e    if i%3 ==0 else e for (i,e) in enumerate(l)] # 2.
-        l = ['\n'+e    if i%27==0 else e for (i,e) in enumerate(l)] # 3.
-
-        # 1.   New lines every 9 elements
-        # 2,3. Squares are represented by extra spaces and another
-        #      newline
-
-        return ' '.join(l) 
 
 
 def make_generators(sudoku):
@@ -128,7 +130,7 @@ def make_generators(sudoku):
 
     There are as many generator functions than there are slots on the
     sudoku board, they are stored in a list. Each generator function
-    is specific to a slot: it actually *contains* the coordinates of
+    is specific to a slot: it actually *stores* the coordinates of
     the slot, like a closure.
 
     When called for the first time, the generator computes the list of
@@ -144,8 +146,9 @@ def make_generators(sudoku):
                     yield
                 else:
                     for candidate in sudoku.candidates(col, row):
-                        with sudoku.attempt(col, row, candidate):
-                            yield
+                        sudoku.set(col, row, candidate)
+                        yield
+                        sudoku.free(col, row)
             generators.append(gen_func)
     return generators
 
@@ -187,20 +190,30 @@ def stack_assumptions(generators, i=0):
             for _ in stack_assumptions(generators, i+1):
                 yield
 
+data=('006007403'
+      '000906020'
+      '500304006'
+      '740000010'
+      '809000304'
+      '010000057'
+      '200603005'
+      '030208000'
+      '405700200')
+
+data=('006000090'
+      '000501700'
+      '200900300'
+      '070030050'
+      '020090060'
+      '040080020'
+      '001003004'
+      '005207000'
+      '030000800')
+
 
 if __name__=="__main__":
 
-    data=('006007403'
-          '000906020'
-          '500304006'
-          '740000010'
-          '809000304'
-          '010000057'
-          '200603005'
-          '030208000'
-          '405700200')
-
-    sudoku = Sudoku(data)
+    sudoku = BitField(data)
     print "The problem: %s\n" % sudoku
 
     for _ in stack_assumptions(make_generators(sudoku)):

@@ -3,11 +3,20 @@ from sudoku import Sudoku, make_generators, stack_assumptions, data
 
 class NativeSet( ...
 
-    # May the force be with u
-    # You can haz the sullushun!
+    # Ooh noo, we'll never get it out now...
+
+    # So certain are you. Always with you, it cannot be done
+    # Hear you nothing that I say?
+
+    # Master, moving stones around is one thing but this is totally
+    # different
+
+    # NO! no different. Only different in your mind
+    # You must unlearn what you have learn
+    # Do ...  or do not, there is no try.
+
     
     [ ... ] 
-
 
 if __name__=="__main__":
 
