@@ -54,4 +54,3 @@ if __name__=="__main__":
 
     for _ in stack_assumptions(make_generators(sudoku)):
         print "A solution: %s\n" % sudoku
-

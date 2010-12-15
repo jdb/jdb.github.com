@@ -274,3 +274,16 @@ query through keys, keys and instruction, key + JS.
 what is sharded?
 riak search is a bit a remplacement of Lucene
 how do you store a graph on riak?
+
+
+    # In python, when you declare a private method, do not forget the
+    # self, in the argument (It is also necessary for the functions
+    # defined with lambda). Else, method defined with "def" can not
+    # call them. Though lambda methods can be called by other lambda
+    # methods when they both omitted the self. (self is a pita)
+
+    # a lambda methods can refer to another lambda method iff it was not defined  
+
+You can try to avoid self by using lambda, but it is a recipe for
+problems, lambda methods without self can not be called by method with
+defs while can be called by other lambda methods.
