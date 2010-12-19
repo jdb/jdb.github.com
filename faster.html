@@ -132,8 +132,8 @@ mean of the approximations found in the queue.</p>
 
 <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>  
-<span class="n">subprocess_results</span> <span class="o">=</span> <span class="p">[</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">qsize</span><span class="p">())]</span>
 
+<span class="n">subprocess_results</span> <span class="o">=</span> <span class="p">[</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">qsize</span><span class="p">())]</span>
 <span class="k">print</span> <span class="s">&quot;with 4 processes, Pi = </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span>
     <span class="nb">sum</span><span class="p">(</span><span class="n">subprocess_results</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">subprocess_results</span><span class="p">))</span>
 </pre></div>
@@ -204,10 +204,8 @@ time compiler</a> and <a class="reference external" href="http://pypy.org/">Pypy
 </pre></div>
 </div>
 </li>
-<li><p class="first">Write the boilerplate code in the C file that distutils
-expect. More details can be found <a class="reference external" href="http://docs.python.org/dev/extending/extending.html">here</a>.</p>
-<p>The conventional callbacks functions in the C extension are
-described in more details in the documentation of the module</p>
+<li><p class="first">Write the conventional boilerplate 2 functions and one struct in
+the C file that distutils expect. More details can be found <a class="reference external" href="http://docs.python.org/dev/extending/extending.html">here</a>.</p>
 <ul>
 <li><p class="first">A wrapper function for the pi function, which matches Python
 interfaces, is defined. This wrapper receives the arguments in the
@@ -264,8 +262,8 @@ file which specifies the packaging options. This file uses the
 <a class="reference external" href="http://docs.python.org/dev/distutils/apiref.html#distutils.core.setup" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">setup()</span></tt></a> function and would minimally be:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
 
-<span class="n">setup</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;pi&#39;</span><span class="p">,</span> <span class="n">version</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span><span class="p">,</span>
-    <span class="n">description</span> <span class="o">=</span> <span class="s">&#39;This is simple method for approximating Pi&#39;</span><span class="p">)</span>
+<span class="n">setup</span><span class="p">(</span> <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;pi&#39;</span><span class="p">,</span> <span class="n">version</span> <span class="o">=</span> <span class="s">&#39;0.1&#39;</span><span class="p">,</span>
+       <span class="n">description</span> <span class="o">=</span> <span class="s">&#39;This is simple method for approximating Pi&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <a class="reference external" href="http://docs.python.org/dev/distutils/apiref.html#distutils.core.Extension" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">Extension</span></tt></a> class from the <em>distutils</em>
@@ -314,7 +312,7 @@ version is pure Python. This is not fantastic but it is indeed much
 more efficient. When compared to Python, C does shine in the
 processing of numbers. Running the same original procedural pure
 Python script with the Pypy interpreter instead of the standard
-Python interpreter shows a five fold speed up.</p>
+Python interpreter shows a five fold speed up, for free.</p>
 </div>
 <div class="section" id="a-fast-algorithm-for-pi">
 <h2>A fast algorithm for Pi<a class="headerlink" href="#a-fast-algorithm-for-pi" title="Permalink to this headline">¶</a></h2>

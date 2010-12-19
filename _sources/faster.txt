@@ -115,13 +115,10 @@ Using distutils, two more files are needed a C file (let's call it
       :language: c
  
   
-#. Write the boilerplate code in the C file that distutils
-   expect. More details can be found here_.
+#. Write the conventional boilerplate 2 functions and one struct in
+   the C file that distutils expect. More details can be found here_.
 
    .. _here: http://docs.python.org/dev/extending/extending.html
-
-   The conventional callbacks functions in the C extension are
-   described in more details in the documentation of the module
 
    *  A wrapper function for the pi function, which matches Python
       interfaces, is defined. This wrapper receives the arguments in the
@@ -167,8 +164,8 @@ Using distutils, two more files are needed a C file (let's call it
 
       from distutils.core import setup
 
-      setup(name = 'pi', version = '0.1', 
-          description = 'This is simple method for approximating Pi')
+      setup( name = 'pi', version = '0.1', 
+             description = 'This is simple method for approximating Pi')
    
    The :class:`~distutils.core.Extension` class from the *distutils*
    package has some magic taking care of the build configuration of
@@ -213,7 +210,7 @@ version is pure Python. This is not fantastic but it is indeed much
 more efficient. When compared to Python, C does shine in the
 processing of numbers. Running the same original procedural pure
 Python script with the Pypy interpreter instead of the standard
-Python interpreter shows a five fold speed up.
+Python interpreter shows a five fold speed up, for free.
 
 
 A fast algorithm for Pi
