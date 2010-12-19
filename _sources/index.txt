@@ -9,6 +9,7 @@ Articles
    :maxdepth: 1
 
    functional
+   faster
    i18n
    lvm
    pty
