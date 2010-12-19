@@ -4,10 +4,6 @@
 from random import uniform
 from math import sqrt
 import sys 
-from multiprocessing import Process, Queue
-
-n = int( sys.argv[1] )
-numproc = 4
 
 def pi(n):
     somme=0
@@ -16,17 +12,17 @@ def pi(n):
             somme+=1
     return 4*float(somme)/n 
 
+n = int( sys.argv[1] )
 
-def processpool(func, *args):
-    q = Queue()
-    processes = [ Process(target=lambda _:q.put(func(_)),args=args) 
-                  for i in range(numproc) ]
+from multiprocessing import Process, Queue
+processes, q, numproc = (), Queue(), 4
+for _ in range(numproc):
+    processes.append(Process(target = lambda n:q.put(pi(n)),
+                             args   = (n/numproc,))) 
 
-    for p in processes: p.start()
-    for p in processes: p.join()  
-    return [ q.get() for _ in range(q.qsize())]
+for p in processes: p.start()
+for p in processes: p.join()  
+subprocess_results = [ q.get() for _ in range(q.qsize())]
 
-subprocess_results = processpool(pi,n/numproc)
-
-print "An approximation of Pi with 4 processes: %s" %(
+print "with 4 processes, Pi = %s" %(
     sum(subprocess_results)/len(subprocess_results))
