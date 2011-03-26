@@ -1,4 +1,3 @@
-
 Counters in python
 ==================
 
@@ -6,14 +5,13 @@ Counters serve many purposes in software development. It is sometimes
 handy to use a incrementor function which *returns* the new value
 every time it is called, like calling ``count()`` instead of
 manipulating directly a variable by using a binding statement such
-as``count += 1``. It has its uses especially in Python where binding a
-variable does not return the bound value, as in the C langage.
-
-*Update: itertools.count() is in the standard library*
+as ``count += 1``. It is useful especially in Python where binding a
+variable does not return the bound value, as in the C langage. The 
+implementation in the standard library is at itertools.count().
 
 There is a peculiar example_ in the official Python documentation on
 *lambda*. The *make_incrementor* function is misleadingly named since
-nothing is incremented: the created callable merely returns the
+nothing is incremented: the created callable returns the
 addition of two integers.
 
 .. _example: http://docs.python.org/tutorial/controlflow.html#lambda-forms
@@ -29,7 +27,7 @@ addition of two integers.
 
 An incrementor would commonly be called without argument and, in this
 example, return *43* the first time it was called and *44* the second
-time, etc. With an incrementor, same cause lead to *different*
+time, etc. With an incrementor, same cause leads to *different*
 effects.
 
 In the example, *start* is enclosed in the created callable *f* but it
@@ -38,8 +36,8 @@ can not be modified. The following function tries to increment
 calling the incrementor:
 
 >>> def make_incrementor(start):
-...     def f(jump=1):
-...         start+=jump
+...     def f():
+...         start+=1
 ...         return start
 ...     return f
 ...
@@ -48,8 +46,11 @@ calling the incrementor:
 Traceback (most recent call last):
 UnboundLocalError: local variable 'start' referenced before assignment
 
-This variable can't be written in this scope, have a look at four correct
-implementations below.
+The error message is actually misleading, the start variable is assigned 
+and can be read. This variable can't be written in this scope because 
+integers are passed by value and not by reference, I assume. 
+
+Let's have a look at four correct implementations below.
 
 the object oriented way
 -----------------------
@@ -129,22 +130,22 @@ only evaluated once at the declaration time. Whenever the function is
 called later on, the count list is not reset to *[start]*, whic make it
 possible to store data between calls, as if count was a *static* variable.
 
-using *yield*
+using a *generator*
 -------------
 
 The following function uses *yield*. Yielding, for a function, is the
 act of voluntarily suspending itself. Functions using yield return a
 generator which have the *next()* and *send()* methods.
 
->>> def make_incrementor(start, jump=1):
+>>> def make_incrementor(start):
 ...     count = start
 ...     while True:
-...         count += jump
-...         jump = (yield count) or 1
+...         count += 1
+...         yield count
 ...
 >>> f = make_incrementor(42)
->>> f.next(), f.next(), f.send(10)
-(43, 44, 54)
+>>> f.next(), f.next(),f.next()
+(43, 44, 45)
 
 As generators are functions which can be resumed, they keep their
 state: they can keep track of a counter. 
