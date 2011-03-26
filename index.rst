@@ -1,4 +1,3 @@
-
 ==================
  Every bit counts
 ==================
@@ -32,3 +31,4 @@ Shorter Python tips
    bits
    sed
 
+.. there is no admin section?
